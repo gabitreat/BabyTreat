@@ -4,10 +4,13 @@ import SwiftData
 struct MealsWeekView: View {
     let birthDate: Date
 
+    @Environment(\.modelContext) private var modelContext
     @Query private var foods: [Food]
     @Query private var menu: [MenuEntry]
+    @Query private var recipes: [Recipe]
 
     @State private var weekOffset = 0
+    @State private var editTarget: MealEditTarget?
 
     private var today: Date { MealRules.startOfDay(.now) }
     private var weekStart: Date { MealRules.addDays(weekOffset * 7, to: MealRules.mondayOf(today)) }
@@ -37,6 +40,32 @@ struct MealsWeekView: View {
             }
             .padding(.horizontal, MealTheme.pad)
             .padding(.vertical, 20)
+        }
+        .sheet(item: $editTarget) { target in
+            MealEditSheet(
+                date: target.date,
+                slot: target.slot,
+                existing: target.entry,
+                foods: foods,
+                recipes: recipes,
+                onSave: { dish, foodIDs, recipeID, isNew in
+                    if let entry = target.entry {
+                        entry.dish = dish
+                        entry.foodIDs = foodIDs
+                        entry.recipeID = recipeID
+                        entry.isNewFood = isNew
+                    } else {
+                        modelContext.insert(
+                            MenuEntry(date: target.date, slot: target.slot, dish: dish, foodIDs: foodIDs,
+                                      recipeID: recipeID, isNewFood: isNew, calendar: MealRules.calendar)
+                        )
+                    }
+                    try? modelContext.save()
+                },
+                onDelete: target.entry.map { entry in
+                    { modelContext.delete(entry); try? modelContext.save() }
+                }
+            )
         }
     }
 
@@ -165,7 +194,17 @@ struct MealsWeekView: View {
                 let day = MealRules.addDays(offset, to: weekStart)
                 let entries = weekEntries
                     .filter { MealRules.startOfDay($0.date) == day && activeSlots.contains($0.slot) }
-                DayCard(day: day, entries: entries, foodsByID: foodsByID, isToday: day == today)
+                    .sorted { $0.slot.displayOrder < $1.slot.displayOrder }
+                DayCard(
+                    day: day,
+                    entries: entries,
+                    activeSlots: activeSlots,
+                    foodsByID: foodsByID,
+                    isToday: day == today,
+                    onSelect: { slot, entry in
+                        editTarget = MealEditTarget(date: day, slot: slot, entry: entry)
+                    }
+                )
             }
         }
     }
@@ -221,9 +260,17 @@ struct NutritionRow: View {
 
 struct DayCard: View {
     let day: Date
+    /// Already sorted by `MealSlot.displayOrder` — breakfast before lunch.
     let entries: [MenuEntry]
+    let activeSlots: [MealSlot]
     let foodsByID: [String: Food]
     let isToday: Bool
+    let onSelect: (MealSlot, MenuEntry?) -> Void
+
+    private var emptySlots: [MealSlot] {
+        let planned = Set(entries.map(\.slotRaw))
+        return activeSlots.filter { !planned.contains($0.rawValue) }
+    }
 
     var body: some View {
         MealCard(
@@ -242,12 +289,8 @@ struct DayCard: View {
                     }
                 }
 
-                if entries.isEmpty {
-                    Text("not planned")
-                        .font(.system(size: 13))
-                        .foregroundStyle(MealTheme.muted)
-                } else {
-                    ForEach(entries) { entry in
+                ForEach(entries) { entry in
+                    Button { onSelect(entry.slot, entry) } label: {
                         VStack(alignment: .leading, spacing: 5) {
                             FoodColorStrip(colors: entry.foodIDs.compactMap { foodsByID[$0]?.color }, height: 4)
                             HStack(alignment: .top, spacing: 8) {
@@ -258,9 +301,27 @@ struct DayCard: View {
                                 Text(entry.dish)
                                     .font(.system(size: 13.5))
                                     .foregroundStyle(MealTheme.ink)
+                                    .multilineTextAlignment(.leading)
+                                Spacer(minLength: 0)
                             }
                         }
                     }
+                    .buttonStyle(.plain)
+                }
+
+                ForEach(emptySlots) { slot in
+                    Button { onSelect(slot, nil) } label: {
+                        HStack(spacing: 8) {
+                            Text(slot.short)
+                                .font(.system(size: 10.5, weight: .bold))
+                                .frame(width: 22, alignment: .leading)
+                            Text("add \(slot.label.lowercased())")
+                                .font(.system(size: 13))
+                            Spacer(minLength: 0)
+                        }
+                        .foregroundStyle(MealTheme.lagoon.opacity(0.85))
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

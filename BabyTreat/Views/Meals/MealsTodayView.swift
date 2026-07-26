@@ -8,8 +8,12 @@ struct MealsTodayView: View {
     @Query private var foods: [Food]
     @Query private var menu: [MenuEntry]
     @Query private var logs: [MealLog]
+    @Query private var recipes: [Recipe]
 
     @AppStorage("dairyHoldNoticeSeen") private var dairyHoldNoticeSeen = false
+
+    @State private var editTarget: MealEditTarget?
+    @State private var logTarget: MealEditTarget?
 
     private var today: Date { MealRules.startOfDay(.now) }
     private var months: Int { MealRules.ageMonths(on: today, birthDate: birthDate) }
@@ -18,7 +22,13 @@ struct MealsTodayView: View {
 
     private var todaysEntries: [MenuEntry] {
         menu.filter { MealRules.startOfDay($0.date) == today && activeSlots.contains($0.slot) }
-            .sorted { ($0.slot.unlocksAtMonths ?? 0, $0.slot.rawValue) < ($1.slot.unlocksAtMonths ?? 0, $1.slot.rawValue) }
+            .sorted { $0.slot.displayOrder < $1.slot.displayOrder }
+    }
+
+    /// Unlocked slots with nothing planned — the entry point for an improvised meal.
+    private var emptySlots: [MealSlot] {
+        let planned = Set(todaysEntries.map(\.slotRaw))
+        return activeSlots.filter { !planned.contains($0.rawValue) }
     }
 
     var body: some View {
@@ -30,22 +40,33 @@ struct MealsTodayView: View {
 
                 dairyHoldNotice
 
-                if todaysEntries.isEmpty {
-                    MealCard(background: MealTheme.lagoonSoft, border: MealTheme.lagoon.opacity(0.3)) {
-                        Text("No meals planned today. Open the Week tab to plan.")
-                            .font(.system(size: 14))
-                            .foregroundStyle(MealTheme.muted)
+                VStack(spacing: 12) {
+                    ForEach(todaysEntries) { entry in
+                        MealEntryCard(
+                            entry: entry,
+                            foodsByID: foodsByID,
+                            log: log(for: entry),
+                            onEdit: { editTarget = MealEditTarget(date: entry.date, slot: entry.slot, entry: entry) },
+                            onLog: { logTarget = MealEditTarget(date: entry.date, slot: entry.slot, entry: entry) }
+                        )
                     }
-                } else {
-                    VStack(spacing: 12) {
-                        ForEach(todaysEntries) { entry in
-                            MealEntryCard(
-                                entry: entry,
-                                foodsByID: foodsByID,
-                                log: log(for: entry),
-                                onLog: { portion in setLog(entry: entry, portion: portion) }
-                            )
+
+                    ForEach(emptySlots) { slot in
+                        Button {
+                            editTarget = MealEditTarget(date: today, slot: slot, entry: nil)
+                        } label: {
+                            MealCard(background: .white, dashed: true) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("Add \(slot.label.lowercased())")
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                }
+                                .font(.system(size: 14))
+                                .foregroundStyle(MealTheme.lagoon)
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
                 }
 
@@ -53,6 +74,38 @@ struct MealsTodayView: View {
             }
             .padding(.horizontal, MealTheme.pad)
             .padding(.vertical, 20)
+        }
+        .sheet(item: $editTarget) { target in
+            MealEditSheet(
+                date: target.date,
+                slot: target.slot,
+                existing: target.entry,
+                foods: foods,
+                recipes: recipes,
+                onSave: { dish, foodIDs, recipeID, isNew in
+                    save(target: target, dish: dish, foodIDs: foodIDs, recipeID: recipeID, isNew: isNew)
+                },
+                onDelete: target.entry.map { entry in
+                    { modelContext.delete(entry); try? modelContext.save() }
+                }
+            )
+        }
+        .sheet(item: $logTarget) { target in
+            MealLogSheet(
+                date: target.date,
+                slot: target.slot,
+                dish: target.entry?.dish ?? "",
+                existing: target.entry.flatMap(log(for:)),
+                onSave: { portion, grams, note in
+                    setLog(target: target, portion: portion, grams: grams, note: note)
+                },
+                onClear: {
+                    if let entry = target.entry, let existing = log(for: entry) {
+                        modelContext.delete(existing)
+                        try? modelContext.save()
+                    }
+                }
+            )
         }
     }
 
@@ -108,24 +161,37 @@ struct MealsTodayView: View {
         }
     }
 
-    // MARK: - Logging
+    // MARK: - Persistence
 
     private func log(for entry: MenuEntry) -> MealLog? {
         logs.first { MealRules.startOfDay($0.date) == MealRules.startOfDay(entry.date) && $0.slotRaw == entry.slotRaw }
     }
 
-    private func setLog(entry: MenuEntry, portion: MealPortion) {
-        if let existing = log(for: entry) {
-            // Tapping the same portion again clears the log, so a mistap is undoable.
-            if existing.portion == portion {
-                modelContext.delete(existing)
-            } else {
-                existing.portion = portion
-                existing.loggedAt = .now
-            }
+    private func save(target: MealEditTarget, dish: String, foodIDs: [String], recipeID: String?, isNew: Bool) {
+        if let entry = target.entry {
+            entry.dish = dish
+            entry.foodIDs = foodIDs
+            entry.recipeID = recipeID
+            entry.isNewFood = isNew
         } else {
             modelContext.insert(
-                MealLog(date: entry.date, slot: entry.slot, portion: portion, calendar: MealRules.calendar)
+                MenuEntry(date: target.date, slot: target.slot, dish: dish, foodIDs: foodIDs,
+                          recipeID: recipeID, isNewFood: isNew, calendar: MealRules.calendar)
+            )
+        }
+        try? modelContext.save()
+    }
+
+    private func setLog(target: MealEditTarget, portion: MealPortion, grams: Int?, note: String) {
+        if let entry = target.entry, let existing = log(for: entry) {
+            existing.portion = portion
+            existing.grams = grams
+            existing.note = note
+            existing.loggedAt = .now
+        } else {
+            modelContext.insert(
+                MealLog(date: target.date, slot: target.slot, portion: portion,
+                        grams: grams, note: note, calendar: MealRules.calendar)
             )
         }
         try? modelContext.save()
@@ -138,7 +204,8 @@ struct MealEntryCard: View {
     let entry: MenuEntry
     let foodsByID: [String: Food]
     let log: MealLog?
-    let onLog: (MealPortion) -> Void
+    let onEdit: () -> Void
+    let onLog: () -> Void
 
     private var entryFoods: [Food] { entry.foodIDs.compactMap { foodsByID[$0] } }
     private var gaps: [String] { MealRules.lunchGaps(entry: entry, foodsByID: foodsByID) }
@@ -155,13 +222,14 @@ struct MealEntryCard: View {
                         MealBadge(text: "new food", tint: MealTheme.marigold, soft: MealTheme.marigoldSoft)
                     }
                     Spacer()
-                    if let log {
-                        MealBadge(
-                            text: log.portion.label,
-                            tint: log.portion == .refused ? MealTheme.bubblegum : MealTheme.lagoon,
-                            soft: log.portion == .refused ? MealTheme.bubbleSoft : MealTheme.lagoonSoft
-                        )
+                    Button(action: onEdit) {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(MealTheme.muted)
+                            .padding(6)
+                            .background(MealTheme.line.opacity(0.35), in: Circle())
                     }
+                    .buttonStyle(.plain)
                 }
 
                 FoodColorStrip(colors: entryFoods.map(\.color))
@@ -179,31 +247,34 @@ struct MealEntryCard: View {
                               tint: MealTheme.bubblegum, soft: MealTheme.bubbleSoft)
                 }
 
-                Menu {
-                    ForEach(MealPortion.allCases) { portion in
-                        Button {
-                            onLog(portion)
-                        } label: {
-                            if log?.portion == portion {
-                                Label(portion.label, systemImage: "checkmark")
-                            } else {
-                                Text(portion.label)
-                            }
-                        }
-                    }
-                } label: {
+                if let log, !log.note.isEmpty {
+                    Text(log.note)
+                        .font(.system(size: 12.5))
+                        .foregroundStyle(MealTheme.muted)
+                }
+
+                Button(action: onLog) {
                     HStack(spacing: 6) {
                         Image(systemName: log == nil ? "square.and.pencil" : "checkmark.circle.fill")
-                        Text(log == nil ? "Log this meal" : "Change")
+                        Text(log?.summary ?? "Log this meal")
                     }
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(MealTheme.lagoon)
+                    .foregroundStyle(logTint)
                     .padding(.vertical, 7)
                     .padding(.horizontal, 12)
-                    .background(MealTheme.lagoonSoft, in: Capsule())
+                    .background(logBackground, in: Capsule())
                 }
+                .buttonStyle(.plain)
             }
         }
+    }
+
+    private var logTint: Color {
+        log?.portion == .refused ? MealTheme.bubblegum : MealTheme.lagoon
+    }
+
+    private var logBackground: Color {
+        log?.portion == .refused ? MealTheme.bubbleSoft : MealTheme.lagoonSoft
     }
 }
 

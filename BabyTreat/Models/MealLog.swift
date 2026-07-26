@@ -33,6 +33,9 @@ final class MealLog {
     var date: Date
     var slotRaw: String
     var portionRaw: String
+    /// Measured intake. Optional because not every meal gets weighed — the
+    /// qualitative portion is always there, grams are recorded when known.
+    var grams: Int?
     var note: String
     var loggedAt: Date
 
@@ -40,6 +43,7 @@ final class MealLog {
         date: Date,
         slot: MealSlot,
         portion: MealPortion,
+        grams: Int? = nil,
         note: String = "",
         loggedAt: Date = .now,
         calendar: Calendar = .current
@@ -47,8 +51,15 @@ final class MealLog {
         self.date = calendar.startOfDay(for: date)
         self.slotRaw = slot.rawValue
         self.portionRaw = portion.rawValue
+        self.grams = grams
         self.note = note
         self.loggedAt = loggedAt
+    }
+
+    /// "120 g · Almost all", or just the portion when nothing was weighed.
+    var summary: String {
+        guard let grams else { return portion.label }
+        return "\(grams) g · \(portion.label)"
     }
 
     var slot: MealSlot {

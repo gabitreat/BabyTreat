@@ -41,6 +41,8 @@
 		4C90C8909E709DAB293552B7 /* MealsFoodsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93247D5748BDED73676029D3 /* MealsFoodsView.swift */; };
 		C947707B9B5D1B385FBD2499 /* MealsRecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E0DA4855B2E082835D4479 /* MealsRecipesView.swift */; };
 		2E51B2DC2314D9FC17E0F3AB /* MealsShoppingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B102F49EE81C19F14D5FE73 /* MealsShoppingView.swift */; };
+		FC215E74DB6870806219081D /* MealEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67799169630E818D0A190FB1 /* MealEditSheet.swift */; };
+		EA64EC9850300D2DF612D500 /* MealLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E388206D56246112A83362 /* MealLogSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -91,6 +93,8 @@
 		93247D5748BDED73676029D3 /* MealsFoodsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsFoodsView.swift; sourceTree = "<group>"; };
 		F0E0DA4855B2E082835D4479 /* MealsRecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsRecipesView.swift; sourceTree = "<group>"; };
 		5B102F49EE81C19F14D5FE73 /* MealsShoppingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsShoppingView.swift; sourceTree = "<group>"; };
+		67799169630E818D0A190FB1 /* MealEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealEditSheet.swift; sourceTree = "<group>"; };
+		68E388206D56246112A83362 /* MealLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealLogSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -223,6 +227,8 @@
 		2D8FDF06041B2BB0A2845F03 /* Meals */ = {
 			isa = PBXGroup;
 			children = (
+				67799169630E818D0A190FB1 /* MealEditSheet.swift */,
+				68E388206D56246112A83362 /* MealLogSheet.swift */,
 				DAE723EF14C2F3D52979A47C /* MealsTodayView.swift */,
 				E304B3A103F1106550EA6FE8 /* MealsWeekView.swift */,
 				93247D5748BDED73676029D3 /* MealsFoodsView.swift */,
@@ -291,6 +297,8 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				FC215E74DB6870806219081D /* MealEditSheet.swift in Sources */,
+				EA64EC9850300D2DF612D500 /* MealLogSheet.swift in Sources */,
 				951FC375BF5F522DF604D0F6 /* Food.swift in Sources */,
 				830F28AC3834D8C72B769E36 /* Recipe.swift in Sources */,
 				0E5512ACAD8CF22B220EDAB9 /* MenuEntry.swift in Sources */,
