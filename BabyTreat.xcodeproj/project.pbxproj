@@ -1,0 +1,531 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 90;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		06580E6E2F352FE800FBC564 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06580E6D2F352FE800FBC564 /* SettingsView.swift */; };
+		06580E712F35321600FBC564 /* Medicine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06580E6F2F35321600FBC564 /* Medicine.swift */; };
+		06580E732F35333E00FBC564 /* TemperatureReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06580E722F35333E00FBC564 /* TemperatureReading.swift */; };
+		06580E752F35345F00FBC564 /* SleepRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06580E742F35345F00FBC564 /* SleepRecord.swift */; };
+		06580E772F3534EB00FBC564 /* PlaytimeRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06580E762F3534EB00FBC564 /* PlaytimeRecord.swift */; };
+		06580E792F35365F00FBC564 /* NursingRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06580E782F35365F00FBC564 /* NursingRecord.swift */; };
+		06580E7B2F35368200FBC564 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06580E7A2F35368200FBC564 /* HistoryView.swift */; };
+		33751E5F38CA06DA0BA982DA /* MedicineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E851554DA80110390015313D /* MedicineView.swift */; };
+		3D0C5843B3E8DC1C7C2CD897 /* GridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F870F37521F04FA4FD1823 /* GridView.swift */; };
+		48FA0251FFC7EC7869B7AD90 /* TuistAssets+BabyTreat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2692F8BE9C6F595CD4B4866D /* TuistAssets+BabyTreat.swift */; };
+		4AEAD5437E100CFA6D367ABF /* TemperatureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53085CB85BE517AB96BE3C83 /* TemperatureView.swift */; };
+		8AB959BD86500B24CFF4D18E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C7136FAC57623159460A64 /* ContentView.swift */; };
+		8B3A997D7962189B93CF3D40 /* PlaytimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754290274399D3B7F31C3DE0 /* PlaytimeView.swift */; };
+		95434DDCD5D8CF860AE25DB2 /* NursingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DE89A6066A0F4383B384CC /* NursingView.swift */; };
+		9CC5FE73F37A7C3681026767 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6D9DFF36B2E67AA8D127D75C /* Assets.xcassets */; };
+		AF1B66643B5E5C8B6E04C313 /* SleepView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39BF5D695417CE677FBF390B /* SleepView.swift */; };
+		B7C94E7ACB20EDB132689464 /* DiaperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA7B0068BC381742645D8CB /* DiaperView.swift */; };
+		CD31567E7F4D0C8DAA236F85 /* FormulaView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85699E4184D15DEBC653A9E0 /* FormulaView.swift */; };
+		F4442972A2C888B928683A93 /* TuistBundle+BabyTreat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6335F8D8A7DD01813CC6FF11 /* TuistBundle+BabyTreat.swift */; };
+		F96D08D97AD2E4DF747C59BC /* BabyTreatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87AD284D39AC105EE8446BCC /* BabyTreatApp.swift */; };
+		951FC375BF5F522DF604D0F6 /* Food.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE25C27A8636D8F01F92039 /* Food.swift */; };
+		830F28AC3834D8C72B769E36 /* Recipe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DC5A126782DA40EAAD88406 /* Recipe.swift */; };
+		0E5512ACAD8CF22B220EDAB9 /* MenuEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4B1F4766D8A2332193F459 /* MenuEntry.swift */; };
+		926D201649E1DDA7B6CE63B2 /* MealLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E3CCA9391E3DE9E63B810F8 /* MealLog.swift */; };
+		C112BA530796C6C4FB8E843F /* ShoppingItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7477B46EFE2315D9D3DCF60C /* ShoppingItem.swift */; };
+		12B22226D2ADC1C0F176759C /* MealsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E23AF24A0BE069874B5A1CFB /* MealsView.swift */; };
+		54009F0F8229E3CBB3FB7DC4 /* MealTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 717F719308068A4FE0A13053 /* MealTheme.swift */; };
+		DB1552CDE0F9B7B6E596DAE0 /* MealRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63A80E6A34243F21F6F34399 /* MealRules.swift */; };
+		CFCD7329DD44151775E8B976 /* MealSeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1F2EACA760862AC52E5C47B /* MealSeed.swift */; };
+		044F11D47F7F84A0082AAE76 /* MealsTodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAE723EF14C2F3D52979A47C /* MealsTodayView.swift */; };
+		653323A05C4EF2D2F77CB9F9 /* MealsWeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E304B3A103F1106550EA6FE8 /* MealsWeekView.swift */; };
+		4C90C8909E709DAB293552B7 /* MealsFoodsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93247D5748BDED73676029D3 /* MealsFoodsView.swift */; };
+		C947707B9B5D1B385FBD2499 /* MealsRecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E0DA4855B2E082835D4479 /* MealsRecipesView.swift */; };
+		2E51B2DC2314D9FC17E0F3AB /* MealsShoppingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B102F49EE81C19F14D5FE73 /* MealsShoppingView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		2E3FC13A4E675C46F1439C94 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = Frameworks;
+			files = (
+			);
+			name = "Embed Frameworks";
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		06580E6D2F352FE800FBC564 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		06580E6F2F35321600FBC564 /* Medicine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Medicine.swift; sourceTree = "<group>"; };
+		06580E722F35333E00FBC564 /* TemperatureReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureReading.swift; sourceTree = "<group>"; };
+		06580E742F35345F00FBC564 /* SleepRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepRecord.swift; sourceTree = "<group>"; };
+		06580E762F3534EB00FBC564 /* PlaytimeRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaytimeRecord.swift; sourceTree = "<group>"; };
+		06580E782F35365F00FBC564 /* NursingRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NursingRecord.swift; sourceTree = "<group>"; };
+		06580E7A2F35368200FBC564 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		2692F8BE9C6F595CD4B4866D /* TuistAssets+BabyTreat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+BabyTreat.swift"; sourceTree = "<group>"; };
+		39BF5D695417CE677FBF390B /* SleepView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepView.swift; sourceTree = "<group>"; };
+		53085CB85BE517AB96BE3C83 /* TemperatureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemperatureView.swift; sourceTree = "<group>"; };
+		6335F8D8A7DD01813CC6FF11 /* TuistBundle+BabyTreat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+BabyTreat.swift"; sourceTree = "<group>"; };
+		6D9DFF36B2E67AA8D127D75C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		72F870F37521F04FA4FD1823 /* GridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridView.swift; sourceTree = "<group>"; };
+		754290274399D3B7F31C3DE0 /* PlaytimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaytimeView.swift; sourceTree = "<group>"; };
+		85699E4184D15DEBC653A9E0 /* FormulaView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormulaView.swift; sourceTree = "<group>"; };
+		863A0F5E3B023D73CFB7169F /* BabyTreat-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "BabyTreat-Info.plist"; sourceTree = "<group>"; };
+		87AD284D39AC105EE8446BCC /* BabyTreatApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyTreatApp.swift; sourceTree = "<group>"; };
+		97C7136FAC57623159460A64 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		9AA7B0068BC381742645D8CB /* DiaperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaperView.swift; sourceTree = "<group>"; };
+		A6DE89A6066A0F4383B384CC /* NursingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NursingView.swift; sourceTree = "<group>"; };
+		C00285F7C2EE1E323B83B531 /* BabyTreat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BabyTreat.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E851554DA80110390015313D /* MedicineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicineView.swift; sourceTree = "<group>"; };
+		5CE25C27A8636D8F01F92039 /* Food.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Food.swift; sourceTree = "<group>"; };
+		3DC5A126782DA40EAAD88406 /* Recipe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Recipe.swift; sourceTree = "<group>"; };
+		2B4B1F4766D8A2332193F459 /* MenuEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuEntry.swift; sourceTree = "<group>"; };
+		7E3CCA9391E3DE9E63B810F8 /* MealLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealLog.swift; sourceTree = "<group>"; };
+		7477B46EFE2315D9D3DCF60C /* ShoppingItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppingItem.swift; sourceTree = "<group>"; };
+		E23AF24A0BE069874B5A1CFB /* MealsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsView.swift; sourceTree = "<group>"; };
+		717F719308068A4FE0A13053 /* MealTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealTheme.swift; sourceTree = "<group>"; };
+		63A80E6A34243F21F6F34399 /* MealRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealRules.swift; sourceTree = "<group>"; };
+		A1F2EACA760862AC52E5C47B /* MealSeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealSeed.swift; sourceTree = "<group>"; };
+		DAE723EF14C2F3D52979A47C /* MealsTodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsTodayView.swift; sourceTree = "<group>"; };
+		E304B3A103F1106550EA6FE8 /* MealsWeekView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsWeekView.swift; sourceTree = "<group>"; };
+		93247D5748BDED73676029D3 /* MealsFoodsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsFoodsView.swift; sourceTree = "<group>"; };
+		F0E0DA4855B2E082835D4479 /* MealsRecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsRecipesView.swift; sourceTree = "<group>"; };
+		5B102F49EE81C19F14D5FE73 /* MealsShoppingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsShoppingView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		68997D183BF9D834899DB897 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		06580E702F35321600FBC564 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				5CE25C27A8636D8F01F92039 /* Food.swift */,
+				3DC5A126782DA40EAAD88406 /* Recipe.swift */,
+				2B4B1F4766D8A2332193F459 /* MenuEntry.swift */,
+				7E3CCA9391E3DE9E63B810F8 /* MealLog.swift */,
+				7477B46EFE2315D9D3DCF60C /* ShoppingItem.swift */,
+				06580E762F3534EB00FBC564 /* PlaytimeRecord.swift */,
+				06580E782F35365F00FBC564 /* NursingRecord.swift */,
+				06580E742F35345F00FBC564 /* SleepRecord.swift */,
+				06580E722F35333E00FBC564 /* TemperatureReading.swift */,
+				06580E6F2F35321600FBC564 /* Medicine.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		0EFE2E0DCA3648099E03E8AA /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				2692F8BE9C6F595CD4B4866D /* TuistAssets+BabyTreat.swift */,
+				6335F8D8A7DD01813CC6FF11 /* TuistBundle+BabyTreat.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		141A3BE4F9F88F1DE169E5F1 /* Project */ = {
+			isa = PBXGroup;
+			children = (
+				574B75AB6E15F28E135AC551 /* BabyTreat */,
+				BE7186ED53FE061AF935F372 /* Derived */,
+			);
+			name = Project;
+			sourceTree = "<group>";
+		};
+		3EF636CB7D1427CA521BA65B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C00285F7C2EE1E323B83B531 /* BabyTreat.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		50044A4FD4CBF2952BC0CFBE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		574B75AB6E15F28E135AC551 /* BabyTreat */ = {
+			isa = PBXGroup;
+			children = (
+				AA705FE705C2E79D900A9C73 /* MealPlanning */,
+				06580E702F35321600FBC564 /* Models */,
+				AD3508F41705AB2EA836F4C8 /* Views */,
+				6D9DFF36B2E67AA8D127D75C /* Assets.xcassets */,
+				87AD284D39AC105EE8446BCC /* BabyTreatApp.swift */,
+				97C7136FAC57623159460A64 /* ContentView.swift */,
+			);
+			path = BabyTreat;
+			sourceTree = "<group>";
+		};
+		6D03373FE6FF55F3DFBA7FB0 = {
+			isa = PBXGroup;
+			children = (
+				141A3BE4F9F88F1DE169E5F1 /* Project */,
+				50044A4FD4CBF2952BC0CFBE /* Frameworks */,
+				3EF636CB7D1427CA521BA65B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A3BD85D5B87781DA0BBAEBBA /* InfoPlists */ = {
+			isa = PBXGroup;
+			children = (
+				863A0F5E3B023D73CFB7169F /* BabyTreat-Info.plist */,
+			);
+			path = InfoPlists;
+			sourceTree = "<group>";
+		};
+		AD3508F41705AB2EA836F4C8 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				E23AF24A0BE069874B5A1CFB /* MealsView.swift */,
+				2D8FDF06041B2BB0A2845F03 /* Meals */,
+				06580E7A2F35368200FBC564 /* HistoryView.swift */,
+				9AA7B0068BC381742645D8CB /* DiaperView.swift */,
+				06580E6D2F352FE800FBC564 /* SettingsView.swift */,
+				85699E4184D15DEBC653A9E0 /* FormulaView.swift */,
+				72F870F37521F04FA4FD1823 /* GridView.swift */,
+				E851554DA80110390015313D /* MedicineView.swift */,
+				A6DE89A6066A0F4383B384CC /* NursingView.swift */,
+				754290274399D3B7F31C3DE0 /* PlaytimeView.swift */,
+				39BF5D695417CE677FBF390B /* SleepView.swift */,
+				53085CB85BE517AB96BE3C83 /* TemperatureView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		BE7186ED53FE061AF935F372 /* Derived */ = {
+			isa = PBXGroup;
+			children = (
+				A3BD85D5B87781DA0BBAEBBA /* InfoPlists */,
+				0EFE2E0DCA3648099E03E8AA /* Sources */,
+			);
+			path = Derived;
+			sourceTree = "<group>";
+		};
+		AA705FE705C2E79D900A9C73 /* MealPlanning */ = {
+			isa = PBXGroup;
+			children = (
+				717F719308068A4FE0A13053 /* MealTheme.swift */,
+				63A80E6A34243F21F6F34399 /* MealRules.swift */,
+				A1F2EACA760862AC52E5C47B /* MealSeed.swift */,
+			);
+			path = MealPlanning;
+			sourceTree = "<group>";
+		};
+		2D8FDF06041B2BB0A2845F03 /* Meals */ = {
+			isa = PBXGroup;
+			children = (
+				DAE723EF14C2F3D52979A47C /* MealsTodayView.swift */,
+				E304B3A103F1106550EA6FE8 /* MealsWeekView.swift */,
+				93247D5748BDED73676029D3 /* MealsFoodsView.swift */,
+				F0E0DA4855B2E082835D4479 /* MealsRecipesView.swift */,
+				5B102F49EE81C19F14D5FE73 /* MealsShoppingView.swift */,
+			);
+			path = Meals;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E5BE074951FF4B51E71B9FF5 /* BabyTreat */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 018915B0200E1217F62A93DB /* Build configuration list for PBXNativeTarget "BabyTreat" */;
+			buildPhases = (
+				5439C9C5F954022E8A1D0850 /* Sources */,
+				B5C4D8C4B76799B94BD63AE5 /* Resources */,
+				2E3FC13A4E675C46F1439C94 /* Embed Frameworks */,
+				68997D183BF9D834899DB897 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			name = BabyTreat;
+			productName = BabyTreat;
+			productReference = C00285F7C2EE1E323B83B531 /* BabyTreat.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7768D36F9400F21BC1C1A5FC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2620;
+			};
+			buildConfigurationList = 3B9497098DEBC0466094E04D /* Build configuration list for PBXProject "BabyTreat" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 6D03373FE6FF55F3DFBA7FB0;
+			preferredProjectObjectVersion = 90;
+			productRefGroup = 3EF636CB7D1427CA521BA65B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E5BE074951FF4B51E71B9FF5 /* BabyTreat */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B5C4D8C4B76799B94BD63AE5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+				9CC5FE73F37A7C3681026767 /* Assets.xcassets in Resources */,
+			);
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5439C9C5F954022E8A1D0850 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+				951FC375BF5F522DF604D0F6 /* Food.swift in Sources */,
+				830F28AC3834D8C72B769E36 /* Recipe.swift in Sources */,
+				0E5512ACAD8CF22B220EDAB9 /* MenuEntry.swift in Sources */,
+				926D201649E1DDA7B6CE63B2 /* MealLog.swift in Sources */,
+				C112BA530796C6C4FB8E843F /* ShoppingItem.swift in Sources */,
+				12B22226D2ADC1C0F176759C /* MealsView.swift in Sources */,
+				54009F0F8229E3CBB3FB7DC4 /* MealTheme.swift in Sources */,
+				DB1552CDE0F9B7B6E596DAE0 /* MealRules.swift in Sources */,
+				CFCD7329DD44151775E8B976 /* MealSeed.swift in Sources */,
+				044F11D47F7F84A0082AAE76 /* MealsTodayView.swift in Sources */,
+				653323A05C4EF2D2F77CB9F9 /* MealsWeekView.swift in Sources */,
+				4C90C8909E709DAB293552B7 /* MealsFoodsView.swift in Sources */,
+				C947707B9B5D1B385FBD2499 /* MealsRecipesView.swift in Sources */,
+				2E51B2DC2314D9FC17E0F3AB /* MealsShoppingView.swift in Sources */,
+				F96D08D97AD2E4DF747C59BC /* BabyTreatApp.swift in Sources */,
+				8AB959BD86500B24CFF4D18E /* ContentView.swift in Sources */,
+				B7C94E7ACB20EDB132689464 /* DiaperView.swift in Sources */,
+				CD31567E7F4D0C8DAA236F85 /* FormulaView.swift in Sources */,
+				06580E752F35345F00FBC564 /* SleepRecord.swift in Sources */,
+				06580E792F35365F00FBC564 /* NursingRecord.swift in Sources */,
+				3D0C5843B3E8DC1C7C2CD897 /* GridView.swift in Sources */,
+				33751E5F38CA06DA0BA982DA /* MedicineView.swift in Sources */,
+				06580E772F3534EB00FBC564 /* PlaytimeRecord.swift in Sources */,
+				95434DDCD5D8CF860AE25DB2 /* NursingView.swift in Sources */,
+				06580E732F35333E00FBC564 /* TemperatureReading.swift in Sources */,
+				06580E712F35321600FBC564 /* Medicine.swift in Sources */,
+				06580E7B2F35368200FBC564 /* HistoryView.swift in Sources */,
+				8B3A997D7962189B93CF3D40 /* PlaytimeView.swift in Sources */,
+				AF1B66643B5E5C8B6E04C313 /* SleepView.swift in Sources */,
+				4AEAD5437E100CFA6D367ABF /* TemperatureView.swift in Sources */,
+				48FA0251FFC7EC7869B7AD90 /* TuistAssets+BabyTreat.swift in Sources */,
+				F4442972A2C888B928683A93 /* TuistBundle+BabyTreat.swift in Sources */,
+				06580E6E2F352FE800FBC564 /* SettingsView.swift in Sources */,
+			);
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		162F575F99E3104B4C3A8D3D /* Debug configuration for PBXProject "BabyTreat" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+			};
+			name = Debug;
+		};
+		58391B8FFEBDBCAA9FF6CEC0 /* Debug configuration for PBXNativeTarget "BabyTreat" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 47SD75X688;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Derived/InfoPlists/BabyTreat-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Baby Treat";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.babytreat;
+				PRODUCT_NAME = BabyTreat;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_COMPILATION_MODE = singlefile;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7DB7B4D0B9B020A805624C5C /* Release configuration for PBXProject "BabyTreat" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D1622930DF763E77C7E78532 /* Release configuration for PBXNativeTarget "BabyTreat" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 47SD75X688;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Derived/InfoPlists/BabyTreat-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Baby Treat";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.babytreat;
+				PRODUCT_NAME = BabyTreat;
+				SDKROOT = iphoneos;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		018915B0200E1217F62A93DB /* Build configuration list for PBXNativeTarget "BabyTreat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				58391B8FFEBDBCAA9FF6CEC0 /* Debug configuration for PBXNativeTarget "BabyTreat" */,
+				D1622930DF763E77C7E78532 /* Release configuration for PBXNativeTarget "BabyTreat" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		3B9497098DEBC0466094E04D /* Build configuration list for PBXProject "BabyTreat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				162F575F99E3104B4C3A8D3D /* Debug configuration for PBXProject "BabyTreat" */,
+				7DB7B4D0B9B020A805624C5C /* Release configuration for PBXProject "BabyTreat" */,
+			);
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7768D36F9400F21BC1C1A5FC /* Project object */;
+}

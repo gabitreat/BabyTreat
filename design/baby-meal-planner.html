@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15484C">
+<title>Diversificare — planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geomini:wght@400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* palette */
+  --malachite:#15484C;   /* structure + type      */
+  --lagoon:#30B8B2;      /* active / on track     */
+  --bubblegum:#F66483;   /* needs attention       */
+  --sugar:#A6480A;       /* ratings + cookbook    */
+  --marigold:#EAA221;    /* allergen rotation     */
+
+  /* tints */
+  --lagoon-soft:#E3F4F3;
+  --bubble-soft:#FDEAEF;
+  --sugar-soft:#F8EEE6;
+  --marigold-soft:#FCF2DE;
+
+  /* surfaces */
+  --milk:#F9FCFB;
+  --ink:#15484C;
+  --muted:#3E6B6F;
+  --line:#D5E4E2;
+  --shade:0 5px 18px rgba(48,184,178,.26);
+  --shade-sm:0 3px 10px rgba(48,184,178,.20);
+  --shade-pink:0 6px 22px rgba(246,100,131,.42);
+  --shade-pink-sm:0 3px 10px rgba(246,100,131,.34);
+  --ui:Geomini,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --r:14px;
+  --pad:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--milk);
+  color:var(--ink);
+  font-family:var(--ui);
+  font-size:16.7px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:540px;margin:0 auto;min-height:100vh;padding-bottom:96px;position:relative}
+
+/* ---------- header ---------- */
+.top{
+  position:sticky;top:0;z-index:20;
+  background:linear-gradient(158deg,#1B6165 0%,#15484C 52%,#103A3E 100%);
+  border-radius:0 0 20px 20px;
+  padding:calc(14px + env(safe-area-inset-top)) var(--pad) 14px;
+  color:#EAF6F5;
+  box-shadow:var(--shade);
+}
+.top-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.baby{font-family:var(--ui);font-size:26.7px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin:0;color:#fff}
+.eyebrow{font-size:11.7px;letter-spacing:.14em;text-transform:uppercase;color:#8FE7E1;font-weight:600}
+.agepill{
+  display:inline-flex;align-items:center;gap:7px;margin-top:9px;
+  background:rgba(48,184,178,.24);color:#8FE7E1;
+  border-radius:999px;padding:5px 12px;font-size:13.7px;font-weight:600;
+}
+.agepill span{font-weight:400;color:#BCE4E1}
+
+/* milestone progress — stages turn over on the 23rd */
+.stage{margin-top:13px}
+.stage-track{height:6px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden}
+.stage-fill{height:100%;border-radius:99px;background:var(--lagoon);transition:width .6s cubic-bezier(.2,.8,.3,1)}
+.stage-meta{
+  display:flex;justify-content:space-between;gap:10px;margin-top:7px;
+  font-size:11.7px;font-weight:500;color:#BCE4E1;
+}
+
+/* ---------- layout ---------- */
+main{padding:20px var(--pad) 8px}
+section{margin-bottom:30px}
+h2.sec{
+  font-family:var(--ui);font-size:19.7px;font-weight:700;
+  letter-spacing:-.015em;margin:0 0 4px;
+}
+.sub{font-size:13.7px;color:var(--muted);margin:0 0 14px}
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--r);
+  padding:15px;margin-bottom:11px;
+}
+
+/* ---------- meal cards ---------- */
+.meal{display:flex;gap:13px;align-items:flex-start}
+.swatches{display:flex;flex-direction:column;gap:3px;flex:0 0 auto;padding-top:3px}
+.sw{width:11px;height:11px;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(21,72,76,.14)}
+.meal-body{flex:1;min-width:0}
+.slot{font-size:11.7px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.dish{font-family:var(--ui);font-size:17.7px;font-weight:700;margin:2px 0 7px;letter-spacing:-.012em}
+.variant{font-size:14.2px;color:#5C554D;display:flex;gap:7px;margin-top:3px}
+.vlabel{
+  flex:0 0 auto;font-size:10.7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:#12615D;background:var(--lagoon-soft);border-radius:4px;padding:2px 6px;margin-top:1px;height:fit-content;
+}
+.flag{
+  margin-top:10px;font-size:13.2px;color:#9C2245;
+  background:var(--bubble-soft);border-radius:9px;padding:8px 10px;line-height:1.35;
+  border-left:2px solid var(--bubblegum);
+}
+
+/* ---------- meal logging ---------- */
+.meal-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mcheck{
+  flex:0 0 auto;width:27px;height:27px;border-radius:9px;padding:0;
+  border:1.5px solid #B6CFCD;background:#fff;cursor:pointer;
+  display:grid;place-items:center;transition:background .15s,border-color .15s,transform .15s;
+}
+.mcheck:active{transform:scale(.9)}
+.mcheck.on{background:var(--lagoon);border-color:var(--lagoon)}
+.mcheck.on::after{
+  content:"";width:6px;height:11px;border:solid #fff;
+  border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px);
+}
+.logrow{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  margin-top:12px;padding-top:11px;border-top:1px solid #EDF3F2;
+}
+.logchip{
+  font-size:11.7px;font-weight:700;padding:4px 10px;border-radius:99px;
+  background:var(--lagoon-soft);color:#12615D;
+}
+.logchip.refuz{background:var(--bubble-soft);color:#9C2245}
+.logchip.star-chip{background:var(--sugar-soft);color:var(--sugar);letter-spacing:1px}
+.logbtn{
+  font-family:inherit;font-size:12.7px;font-weight:700;color:#12615D;
+  background:none;border:none;padding:2px 0;cursor:pointer;text-decoration:underline;
+  text-underline-offset:3px;
+}
+.lognote{
+  font-size:13.7px;color:#2C585B;line-height:1.45;margin-top:9px;
+  background:#F4F9F8;border-radius:9px;padding:9px 11px;
+}
+.portions{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}
+.pbtn{
+  font-family:inherit;font-size:12.9px;font-weight:600;padding:11px 8px;border-radius:11px;
+  border:1px solid var(--line);background:#fff;cursor:pointer;color:#2C585B;
+  transition:background .15s,border-color .15s;
+}
+.pbtn.on{background:var(--lagoon);border-color:var(--lagoon);color:#fff}
+.pbtn.refuz.on{background:var(--bubblegum);border-color:var(--bubblegum);color:#3D0A1B}
+.lognote-in{
+  width:100%;min-height:92px;font-family:inherit;font-size:14.7px;line-height:1.45;
+  border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+  background:#fff;color:var(--ink);resize:vertical;-webkit-appearance:none;
+}
+.lognote-in:focus{outline:2px solid var(--lagoon);outline-offset:1px}
+
+/* ---------- allergen meter ---------- */
+.allerg{display:flex;flex-direction:column;gap:17px}
+.al{display:flex;flex-direction:column;gap:7px}
+.al-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.al-name{font-weight:700;font-size:14.7px;color:var(--ink)}
+.track{height:7px;background:#E4EDEC;border-radius:99px;overflow:hidden}
+.fill{height:100%;border-radius:99px;transition:width .5s ease}
+.al-days{flex:0 0 auto;font-size:12.7px;color:var(--muted);font-variant-numeric:tabular-nums}
+.al-sub{font-size:11.9px;color:var(--muted);line-height:1.35}
+.al-sub b{color:#12615D;font-weight:700}
+.al-days.due{color:#BE2A50;font-weight:700}
+
+/* ---------- food palette (signature) ---------- */
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:11px}
+.food{
+  border:none;background:none;padding:0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  font-family:inherit;
+}
+.chip{
+  width:100%;aspect-ratio:1;border-radius:12px;position:relative;box-shadow:inset 0 0 0 1px rgba(21,72,76,.12);
+  transition:transform .18s cubic-bezier(.2,.8,.3,1);
+}
+.food:active .chip{transform:scale(.93)}
+.food.planned .chip{background:transparent!important;border:1.5px dashed #B6CFCD}
+.food.weak .chip{opacity:.32}
+.chip .stars{
+  position:absolute;left:0;right:0;bottom:5px;text-align:center;
+  font-size:9.7px;color:rgba(255,255,255,.95);letter-spacing:1px;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);
+}
+.food-name{font-size:12.2px;line-height:1.2;color:#245256;text-align:center;word-break:break-word}
+.food.weak .food-name,.food.planned .food-name{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.2px;color:var(--muted);margin-bottom:14px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* ---------- week nav ---------- */
+.weeknav{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.warrow{
+  flex:0 0 auto;width:40px;height:40px;border-radius:12px;
+  border:1px solid var(--line);background:#fff;color:var(--malachite);
+  display:grid;place-items:center;cursor:pointer;font-family:inherit;
+  transition:background .15s,transform .15s;
+}
+.warrow:active{background:var(--lagoon-soft);transform:scale(.94)}
+.wlabel{flex:1;text-align:center;min-width:0}
+.wlabel .rng{
+  display:block;font-family:var(--ui);font-size:19.7px;
+  font-weight:700;letter-spacing:-.015em;line-height:1.2;
+}
+.wlabel .rel{font-size:12.7px;color:var(--muted)}
+.backtoday{
+  display:block;margin:0 auto 14px;font-family:inherit;font-size:13.2px;
+  color:var(--lagoon);background:none;border:none;cursor:pointer;font-weight:700;
+}
+.newfood{
+  display:flex;align-items:center;gap:9px;margin:0 0 16px;
+  background:var(--bubble-soft);border-left:2px solid var(--bubblegum);
+  border-radius:9px;padding:9px 12px;font-size:14.7px;font-weight:600;color:#9C2245;
+}
+.newfood .newbadge{margin-left:0}
+.newfood.partial{background:var(--sugar-soft);border-left-color:var(--sugar);color:#6B3207}
+.nf-item{display:flex;flex-direction:column;gap:1px;font-size:14.7px;font-weight:600;line-height:1.25}
+.nf-k{font-size:10.2px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;opacity:.85}
+.note{
+  background:var(--lagoon-soft);border-left:2px solid var(--lagoon);
+  border-radius:9px;padding:9px 12px;font-size:13.2px;color:#0F5652;line-height:1.4;
+}
+
+/* ---------- week ---------- */
+.day{
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:13px 15px 15px;margin-bottom:10px;
+}
+.day.today{
+  border-color:var(--bubblegum);
+  box-shadow:var(--shade-pink);
+  overflow:hidden;
+  padding-top:0;
+}
+.dname{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  font-size:15.4px;font-weight:700;color:var(--ink);letter-spacing:-.012em;
+  padding-bottom:9px;border-bottom:1px solid #E8F0EF;
+}
+/* today gets a full-bleed dark header — the strongest thing on the screen */
+.day.today .dname{
+  background:var(--bubblegum);color:#3D0A1B;
+  margin:0 -15px;padding:13px 15px;
+  font-size:16.4px;border-bottom:none;
+  box-shadow:var(--shade-pink-sm);
+}
+.day.today .dname + .dline{margin-top:14px}
+.day.today .dtoday{background:rgba(255,255,255,.88);color:#9C2245}
+.dtoday{
+  font-size:10.7px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+  color:#12615D;background:var(--lagoon-soft);border-radius:5px;padding:2px 7px;flex:0 0 auto;
+}
+.dline{margin-top:12px}
+.swrow{display:flex;gap:3px;margin-bottom:5px}
+.swrow .sw{width:9px;height:9px;border-radius:2px}
+.dslot{
+  font-size:11.7px;font-weight:700;color:var(--muted);
+  letter-spacing:.02em;margin-bottom:2px;
+}
+.dtext{font-size:15.7px;line-height:1.4;color:var(--ink)}
+.dempty{font-size:14.4px;color:var(--muted);margin-top:10px}
+
+.proposal{
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:13px 15px;margin-bottom:16px;
+}
+.prop-head{
+  font-size:10.7px;letter-spacing:.13em;text-transform:uppercase;
+  font-weight:700;color:var(--muted);margin-bottom:11px;
+}
+.prop-head.spaced{margin-top:15px;padding-top:14px;border-top:1px solid #EDF3F2}
+.prop{display:flex;gap:12px;align-items:flex-start}
+.prop + .prop{margin-top:13px;padding-top:13px;border-top:1px solid #EDF3F2}
+.prop-chip{
+  flex:0 0 auto;width:38px;height:38px;border-radius:11px;
+  box-shadow:inset 0 0 0 1px rgba(21,72,76,.12);
+}
+.prop-body{flex:1;min-width:0}
+.prop-name{font-size:16.4px;font-weight:700;color:var(--ink);letter-spacing:-.012em;margin:1px 0 2px}
+.prop-why{font-size:12.4px;color:#12615D;font-weight:600}
+.prop-note{
+  font-size:12.4px;color:#754D06;background:var(--marigold-soft);
+  border-radius:8px;padding:7px 9px;margin-top:7px;line-height:1.4;
+}
+.rot.gap{display:inline-flex;align-items:center;gap:6px}
+.rot.gap i{width:9px;height:9px;border-radius:2px;box-shadow:inset 0 0 0 1px rgba(21,72,76,.14)}
+.rot.fresh{
+  border-color:var(--bubblegum);background:var(--bubble-soft);
+  color:#9C2245;font-weight:700;
+}
+
+.nut{display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #EDF3F2}
+.nut:last-child{border-bottom:none;padding-bottom:0}
+.nut:first-child{padding-top:0}
+.nut-i{
+  flex:0 0 auto;width:19px;height:19px;border-radius:6px;margin-top:1px;
+  display:grid;place-items:center;
+}
+.nut.ok .nut-i{background:var(--lagoon)}
+.nut.ok .nut-i::after{
+  content:"";width:4px;height:8px;border:solid #fff;
+  border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px);
+}
+.nut.warn .nut-i{background:var(--marigold)}
+.nut.warn .nut-i::after{content:"!";color:#5A3B04;font-size:12.7px;font-weight:700;line-height:1}
+.nut-b{flex:1;min-width:0}
+.nut-l{font-size:14.4px;font-weight:600;color:var(--ink);line-height:1.3}
+.nut-d{font-size:12.4px;color:var(--muted);margin-top:2px;line-height:1.35}
+.nut.warn .nut-d{color:#754D06;font-weight:600}
+
+/* ---------- recipes ---------- */
+.rec{width:100%;text-align:left;font-family:inherit;cursor:pointer}
+.rec-top{display:flex;gap:12px;align-items:flex-start}
+.rec h3{font-family:var(--ui);font-size:17.2px;font-weight:700;margin:0 0 4px;letter-spacing:-.012em}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{font-size:11.7px;padding:3px 8px;border-radius:6px;background:#E6EEED;color:#33585B}
+.tag.alg{background:var(--marigold-soft);color:#754D06;font-weight:600}
+.tag.frz{background:var(--lagoon-soft);color:#12615D}
+
+/* ---------- recipe sources ---------- */
+.srccard{padding:16px}
+.src-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.src-name{font-size:17.4px;font-weight:700;color:var(--ink);letter-spacing:-.012em}
+.src-auth{font-size:12.7px;color:var(--muted);margin-top:1px}
+.src-open{
+  flex:0 0 auto;font-size:12.9px;font-weight:700;color:#12615D;text-decoration:none;
+  background:var(--lagoon-soft);border-radius:9px;padding:7px 11px;
+}
+.src-desc{font-size:13.7px;color:#2C585B;line-height:1.45;margin:11px 0 13px}
+.secgrid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.secpill{
+  display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;
+  color:var(--ink);text-decoration:none;background:#EEF4F3;border:1px solid var(--line);
+  border-radius:99px;padding:7px 13px;
+}
+.secpill.tagged{background:var(--marigold-soft);border-color:#EBD9AE}
+.secpill-tag{
+  font-size:9.7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:#754D06;background:rgba(234,162,33,.28);border-radius:4px;padding:1px 5px;
+}
+.src-search{display:flex;gap:8px}
+.src-in{
+  flex:1;min-width:0;font-family:inherit;font-size:14.7px;color:var(--ink);
+  border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff;
+  -webkit-appearance:none;
+}
+.src-in:focus{outline:2px solid var(--lagoon);outline-offset:1px}
+.src-go{
+  flex:0 0 auto;font-family:inherit;font-size:13.7px;font-weight:700;color:#fff;
+  background:var(--malachite);border:none;border-radius:11px;padding:10px 16px;cursor:pointer;
+}
+.srclink{
+  display:inline-block;margin-top:18px;font-size:13.9px;font-weight:700;
+  color:#12615D;text-decoration:none;background:var(--lagoon-soft);
+  border-radius:10px;padding:10px 13px;
+}
+
+/* ---------- shopping ---------- */
+.catcard{
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;margin-bottom:10px;
+}
+.catcard.done{border-color:var(--lagoon);box-shadow:0 0 0 2px var(--lagoon-soft)}
+.cathead{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--malachite);color:#fff;padding:11px 15px;
+  font-size:15.4px;font-weight:700;letter-spacing:-.012em;
+}
+.catcard.done .cathead{background:var(--lagoon)}
+.catcount{
+  font-size:11.7px;font-weight:700;font-variant-numeric:tabular-nums;
+  background:rgba(255,255,255,.18);border-radius:99px;padding:2px 9px;letter-spacing:0;
+}
+.catbody{padding:4px 15px 8px}
+.item{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid #EDF3F2;cursor:pointer;width:100%;background:none;border-left:none;border-right:none;border-top:none;font-family:inherit;font-size:15.7px;text-align:left;color:var(--ink)}
+.catbody .item:last-child{border-bottom:none}
+.box{flex:0 0 auto;width:22px;height:22px;border-radius:7px;border:1.5px solid #B6CFCD;display:grid;place-items:center;transition:.15s}
+.item.done .box{background:var(--lagoon);border-color:var(--lagoon)}
+.item.done .box::after{content:"";width:6px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.item.done .iname{text-decoration:line-through;color:var(--muted)}
+.iqty{margin-left:auto;font-size:13.2px;color:var(--muted)}
+
+/* ---------- sheet ---------- */
+.scrim{
+  position:fixed;inset:0;background:rgba(21,72,76,.5);z-index:40;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:540px;margin:0 auto;
+  background:var(--milk);border-radius:20px 20px 0 0;
+  max-height:88vh;overflow-y:auto;padding:8px var(--pad) 34px;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.3,1);
+  -webkit-overflow-scrolling:touch;
+}
+.sheet.open{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:99px;background:#C2D8D6;margin:8px auto 14px}
+.sheet h3{font-family:var(--ui);font-size:22.7px;font-weight:700;margin:0 0 4px;letter-spacing:-.02em}
+.fieldlabel{font-size:11.7px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:18px 0 6px}
+.sheet ul{margin:0;padding-left:19px}
+.sheet li{margin-bottom:4px;font-size:15.2px}
+.sheet p{margin:0;font-size:15.2px;color:#2C585B}
+.rate{display:flex;gap:8px;margin-top:8px}
+.star{
+  width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:#fff;
+  font-size:17.7px;cursor:pointer;display:grid;place-items:center;padding:0;color:#A8C2C1;
+}
+.star.on{background:var(--sugar-soft);border-color:#E3C4A6;color:var(--sugar)}
+.statusrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.stbtn{
+  font-family:inherit;font-size:13.7px;padding:8px 13px;border-radius:99px;
+  border:1px solid var(--line);background:#fff;cursor:pointer;color:#2C585B;
+}
+.stbtn.on{background:var(--lagoon);border-color:var(--lagoon);color:#fff;font-weight:600}
+
+/* ---------- tabs ---------- */
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:540px;margin:0 auto;
+  background:rgba(249,252,251,.97);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);
+  display:grid;grid-template-columns:repeat(5,1fr);
+  padding:7px 4px calc(7px + env(safe-area-inset-bottom));
+}
+.tab{
+  border:none;background:none;font-family:inherit;cursor:pointer;padding:5px 2px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);
+}
+.tab svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab span{font-size:10.7px;font-weight:600;letter-spacing:.01em}
+.tab.on{color:var(--lagoon)}
+
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:15.2px}
+:focus-visible{outline:2px solid var(--lagoon);outline-offset:2px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div class="top-row">
+      <h1 class="baby">Bebe</h1>
+      <div class="eyebrow" id="todayLabel"></div>
+    </div>
+    <div class="agepill" id="agePill"></div>
+    <div class="stage" id="stage"></div>
+  </header>
+
+  <main id="view"></main>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab on" data-tab="azi"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8h14M7 3v3M17 3v3"/><circle cx="12" cy="14" r="4"/></svg><span>Azi</span></button>
+    <button class="tab" data-tab="sapt"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Săptămâna</span></button>
+    <button class="tab" data-tab="alim"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Alimente</span></button>
+    <button class="tab" data-tab="ret"><svg viewBox="0 0 24 24"><path d="M4 4v16a1 1 0 0 0 1 1h15V3H5a1 1 0 0 0-1 1z"/><path d="M9 8h7M9 12h7"/></svg><span>Rețete</span></button>
+    <button class="tab" data-tab="cump"><svg viewBox="0 0 24 24"><path d="M6 6h15l-2 9H8L6 6z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/></svg><span>Cumpărături</span></button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+
+<script>
+/* ============================================================
+   DATA MODEL — mirrors the future Supabase schema
+   babies · foods · recipes · menu_entries · journal · shopping
+   ============================================================ */
+
+const BABY = {
+  name:"Bebe", dob:"2025-12-23", formula:"Töpfer HA 1",
+  supplements:[{name:"Vitamina D", form:"picături", daily:true}],
+  holds:[{what:"Lactate", until:"2026-08-23", why:"APLV neconfirmat — se așteaptă luna a 8-a"}],
+};
+
+// Meal slots unlock with age. `from` = luni împlinite; null = dată nestabilită încă.
+const SLOTS = [
+  {key:"md",      label:"Mic dejun", short:"MD", from:0},
+  {key:"pranz",   label:"Prânz",     short:"PR", from:0},
+  {key:"cina",    label:"Cină",      short:"CN", from:8},
+  {key:"gustare", label:"Gustare",   short:"GU", from:null},
+];
+
+const FOODS = [
+  // category, status: accepted | weak | planned
+  {id:"dovlecel",  name:"Dovlecel",   cat:"Legume",   color:"#7FA65C", status:"accepted", rating:4},
+  {id:"broccoli",  name:"Broccoli",   cat:"Legume",   color:"#4E7A3A", status:"accepted", rating:4},
+  {id:"cartofd",   name:"Cartof dulce",cat:"Legume",  color:"#D97A34", status:"accepted", rating:5},
+  {id:"cartof",    name:"Cartof alb", cat:"Legume",   color:"#E3D2AE", status:"accepted", rating:4},
+  {id:"pastarnac", name:"Păstârnac",  cat:"Legume",   color:"#EADCBE", status:"accepted", rating:3},
+  {id:"radpatr",   name:"Rădăcină pătrunjel",cat:"Legume",color:"#E0D4B4",status:"accepted",rating:3},
+  {id:"telina",    name:"Țelină",     cat:"Legume",   color:"#E8E0C8", status:"accepted", rating:3},
+  {id:"ardei",     name:"Ardei gras", cat:"Legume",   color:"#D6462F", status:"accepted", rating:3},
+  {id:"usturoi",   name:"Usturoi",    cat:"Legume",   color:"#EDE6DC", status:"accepted", rating:3},
+
+  {id:"mar",       name:"Măr",        cat:"Fructe",   color:"#C24C4C", status:"accepted", rating:5},
+  {id:"para",      name:"Pară",       cat:"Fructe",   color:"#BFC96F", status:"accepted", rating:5},
+  {id:"banana",    name:"Banană",     cat:"Fructe",   color:"#EFCF6B", status:"accepted", rating:5},
+  {id:"afine",     name:"Afine",      cat:"Fructe",   color:"#4B4A8C", status:"accepted", rating:4},
+  {id:"piersica",  name:"Piersică",   cat:"Fructe",   color:"#E9A05C", status:"accepted", rating:4},
+  {id:"pepene",    name:"Pepene verde",cat:"Fructe",  color:"#E0556B", status:"accepted", rating:4},
+  {id:"mango",     name:"Mango",      cat:"Fructe",   color:"#E9A93B", status:"weak",     rating:1,
+   tried:"2026-07-23", retry:"2026-08-17", note:"Prima introducere 23 iulie — refuzat. De reîncercat fără presiune."},
+
+  {id:"ovaz",      name:"Ovăz",       cat:"Cereale",  color:"#D9C7A3", status:"accepted", rating:5},
+  {id:"hipp",      name:"Cereale HiPP",cat:"Cereale", color:"#C9B18C", status:"accepted", rating:4},
+
+  {id:"ou",        name:"Ou",         cat:"Proteine", color:"#F0C244", status:"accepted", rating:4, allergen:true},
+  {id:"pui",       name:"Pui",        cat:"Proteine", color:"#E3C9A8", status:"accepted", rating:4},
+  {id:"curcan",    name:"Curcan",     cat:"Proteine", color:"#D9B893", status:"accepted", rating:4},
+  {id:"somon",     name:"Somon",      cat:"Proteine", color:"#E88060", status:"accepted", rating:3, allergen:true},
+  {id:"linte",     name:"Linte",      cat:"Proteine", color:"#A8763E", status:"weak",     rating:2},
+
+  {id:"avocado",   name:"Avocado",    cat:"Grăsimi",  color:"#6E8C3F", status:"accepted", rating:4},
+  {id:"arahide",   name:"Unt de arahide",cat:"Grăsimi",color:"#B57A3C",status:"accepted", rating:4, allergen:true},
+
+  {id:"vita",      name:"Vită",       cat:"Planificate", color:"#8C3A32", status:"planned", kind:"proteina", priority:true,
+   note:"Avizat de medic pe 24 iulie. Prima porție: luni 27 iulie."},
+  {id:"conopida",  name:"Conopidă",   cat:"Planificate", color:"#EFEBE0", status:"planned", kind:"veg", season:[6,7,8,9,10,11], priority:true},
+  {id:"mazare",    name:"Mazăre",     cat:"Planificate", color:"#7BA05B", status:"planned", kind:"veg", season:[5,6,7]},
+  {id:"dovleac",   name:"Dovleac",    cat:"Planificate", color:"#E08A2E", status:"planned", kind:"veg", season:[9,10,11,12]},
+  {id:"fasoleverde",name:"Fasole verde",cat:"Planificate",color:"#6E9B4E",status:"planned", kind:"veg", season:[6,7,8,9]},
+  {id:"spanac",    name:"Spanac",     cat:"Planificate", color:"#3F6B34", status:"planned", kind:"veg", season:[3,4,5,9,10,11]},
+  {id:"caisa",     name:"Caisă",      cat:"Planificate", color:"#E8A24F", status:"planned", kind:"fruct", season:[6,7]},
+  {id:"kiwi",      name:"Kiwi",       cat:"Planificate", color:"#8FA83E", status:"planned", kind:"fruct", season:[11,12,1,2,3]},
+  {id:"capsuni",   name:"Căpșuni",    cat:"Planificate", color:"#D2374C", status:"planned", kind:"fruct", season:[5,6]},
+  // adăugate după verificarea sezonului în România (august)
+  {id:"morcov",    name:"Morcov",     cat:"Planificate", color:"#E07B2A", status:"planned", kind:"veg",   season:[6,7,8,9,10,11], priority:true},
+  {id:"sfecla",    name:"Sfeclă roșie",cat:"Planificate",color:"#8E2547", status:"planned", kind:"veg",   season:[6,7,8,9,10,11]},
+  {id:"gulie",     name:"Gulie",      cat:"Planificate", color:"#BFCBA8", status:"planned", kind:"veg",   season:[5,6,7,8,9]},
+  {id:"rosii",     name:"Roșii",      cat:"Planificate", color:"#CC3A28", status:"planned", kind:"veg",   season:[6,7,8,9],
+   note:"Acide — pot irita pielea din jurul gurii. Multe surse le amână spre 9–10 luni."},
+  {id:"vinete",    name:"Vinete",     cat:"Planificate", color:"#5B3A63", status:"planned", kind:"veg",   season:[7,8,9],
+   note:"Se decojesc și se coc bine. De regulă după 8–10 luni."},
+  {id:"prune",     name:"Prune",      cat:"Planificate", color:"#5C3B6E", status:"planned", kind:"fruct", season:[7,8,9], priority:true,
+   note:"Efect laxativ — util la constipație, dar se începe cu porție mică."},
+  {id:"nectarine", name:"Nectarine",  cat:"Planificate", color:"#E8823F", status:"planned", kind:"fruct", season:[7,8,9]},
+  {id:"pepeneg",   name:"Pepene galben",cat:"Planificate",color:"#EFC46A",status:"planned", kind:"fruct", season:[7,8,9]},
+  {id:"zmeura",    name:"Zmeură",     cat:"Planificate", color:"#C7325A", status:"planned", kind:"fruct", season:[6,7,8]},
+  {id:"mure",      name:"Mure",       cat:"Planificate", color:"#3B2A52", status:"planned", kind:"fruct", season:[7,8,9]},
+
+  {id:"iaurt",     name:"Iaurt",      cat:"Planificate", color:"#F2EEE4", status:"planned", kind:"proteina", hold:"2026-08-23"},
+  {id:"branza",    name:"Brânză de vaci",cat:"Planificate",color:"#F5F1E6",status:"planned", kind:"proteina", hold:"2026-08-23"},
+
+  {id:"naut",      name:"Năut",       cat:"Planificate", color:"#D7B57E", status:"planned", kind:"proteina"},
+  {id:"quinoa",    name:"Quinoa",     cat:"Planificate", color:"#D6C9A8", status:"planned", kind:"cereale"},
+  {id:"mei",       name:"Mei",        cat:"Planificate", color:"#E0CFA0", status:"planned", kind:"cereale"},
+];
+
+/* Grupe nutriționale per aliment.
+   Cartoful dulce e legumă ȘI sursă de amidon — se numără la ambele.
+   "asf" = aliment de origine animală (OMS: zilnic). */
+const GROUPS = {
+  dovlecel:["veg"], broccoli:["veg"], pastarnac:["veg","amidon"], radpatr:["veg"],
+  telina:["veg"], ardei:["veg"], usturoi:["veg"], conopida:["veg"], morcov:["veg"],
+  sfecla:["veg"], gulie:["veg"], rosii:["veg"], vinete:["veg"], spanac:["veg","fier"],
+  fasoleverde:["veg"], dovleac:["veg"], mazare:["veg","proteina"],
+  cartofd:["veg","amidon"], cartof:["amidon"], avocado:["veg","grasime"],
+
+  mar:["fruct"], para:["fruct"], banana:["fruct","amidon"], afine:["fruct"],
+  piersica:["fruct"], pepene:["fruct"], mango:["fruct"], caisa:["fruct"],
+  nectarine:["fruct"], pepeneg:["fruct"], zmeura:["fruct"], mure:["fruct"],
+  prune:["fruct"], kiwi:["fruct"], capsuni:["fruct"],
+
+  ovaz:["amidon"], hipp:["amidon","fier"], quinoa:["amidon","proteina"], mei:["amidon"],
+
+  ou:["proteina","asf","grasime","fier"], pui:["proteina","asf","fier"],
+  curcan:["proteina","asf","fier"], somon:["proteina","asf","grasime","omega3"],
+  vita:["proteina","asf","fier"], linte:["proteina","amidon","fier"],
+  naut:["proteina","amidon","fier"], arahide:["grasime","proteina"],
+
+  iaurt:["asf","proteina","lactate"], branza:["asf","proteina","lactate"],
+  unt:["grasime","lactate"],
+};
+const groupsOf = id => GROUPS[id] || [];
+const hasGroup = (ids,g) => ids.some(i=>groupsOf(i).includes(g));
+
+// meal_logs: cât a mâncat la fiecare masă
+const PORTIONS = [
+  {v:"tot",         label:"Tot"},
+  {v:"majoritatea", label:"Aproape tot"},
+  {v:"jumatate",    label:"Jumătate"},
+  {v:"putin",       label:"Câteva linguri"},
+  {v:"refuzat",     label:"A refuzat"},
+];
+const pLabel = v => (PORTIONS.find(x=>x.v===v)||{}).label || "";
+
+// allergens to re-expose on rotation — target every 7 days
+const ALLERGENS = [
+  {id:"ou",      name:"Ou",             last:"2026-07-22", color:"#F0C244"},
+  {id:"arahide", name:"Unt de arahide", last:"2026-07-21", color:"#B57A3C"},
+  {id:"somon",   name:"Somon",          last:"2026-07-21", color:"#E88060"},
+];
+
+const RECIPES = [
+  {id:"r1", title:"Terci de ovăz cu pară și carob", age:6, protein:null,
+   foods:["ovaz","para"],
+   ing:["3 linguri fulgi de ovăz fini","150 ml apă (sau lapte de cocos)","1/2 pară coaptă","1 linguriță carob"],
+   steps:["Fierbe ovăzul în apă 5–6 min, amestecând.","Rade para și adaug-o la final, off heat.","Presară carobul și omogenizează."],
+   spoon:"Textură cremoasă, ușor groasă — se ia bine pe linguriță.",
+   blw:"Felii groase de pară crudă (bine coaptă) alături, ținute în mână.",
+   freeze:"Da — porții de 60 ml, până la 1 lună.", store:"Frigider 48h.",
+   nutrients:["fibre","fier vegetal","calciu"], allergens:[], rating:5},
+
+  {id:"r2", title:"Somon cu broccoli și cartof", age:6, protein:"somon",
+   foods:["somon","broccoli","cartof"],
+   ing:["40 g file de somon fără piele","2 buchețele broccoli","1 cartof mic","1 linguriță ulei de măsline"],
+   steps:["Gătește totul la abur 12–14 min.","Verifică somonul de oase, fărâmițează-l.","Pasează cartoful, amestecă cu uleiul."],
+   spoon:"Piure de cartof cu somon mărunțit, broccoli pasat deasupra.",
+   blw:"Buchețel de broccoli întreg cu codiță (mâner natural) + baton de cartof.",
+   freeze:"Da, dar doar piureul — 1 lună.", store:"Frigider 24h (pește).",
+   nutrients:["omega-3","proteine","vitamina C"], allergens:["pește"], rating:3},
+
+  {id:"r3", title:"Curcan cu dovlecel și cartof", age:6, protein:"curcan",
+   foods:["curcan","dovlecel","cartof"],
+   ing:["40 g piept de curcan","1/2 dovlecel mic","1 cartof mic","1 linguriță ulei de măsline"],
+   steps:["Fierbe curcanul 20 min la foc mic.","Adaugă legumele ultimele 10 min.","Pasează cu 2–3 linguri din supă."],
+   spoon:"Piure fin, subțiat cu zeama de fierbere.",
+   blw:"Fâșii de curcan groase cât un deget + batoane de dovlecel fiert.",
+   freeze:"Da — 1 lună.", store:"Frigider 48h.",
+   nutrients:["fier","proteine","potasiu"], allergens:[], rating:4},
+
+  {id:"r4", title:"Vită cu broccoli și cartof dulce", age:7, protein:"vita", isNew:true,
+   foods:["vita","broccoli","cartofd"],
+   ing:["40 g pulpă de vită","2 buchețele broccoli","1/2 cartof dulce","1 linguriță ulei de măsline"],
+   steps:["Fierbe vita înăbușit 45–50 min până se desface.","Adaugă legumele ultimele 12 min.","Pasează sau mărunțește fin."],
+   spoon:"Piure de cartof dulce cu vită mărunțită foarte fin.",
+   blw:"Fâșie de vită fiartă lung (se destramă în gură) + baton de cartof dulce.",
+   freeze:"Da — 1 lună.", store:"Frigider 48h.",
+   nutrients:["fier hemic","zinc","vitamina C","beta-caroten"], allergens:[], rating:0},
+
+  {id:"r5", title:"Ou pufos cu avocado", age:6, protein:"ou",
+   foods:["ou","avocado"],
+   ing:["1 ou întreg","1 linguriță ulei de măsline","1/4 avocado copt"],
+   steps:["Bate oul, gătește-l la foc mic până e complet închegat.","Pasează avocado separat.","Servește-le alăturat, nu amestecate."],
+   spoon:"Avocado pasat cu bucățele mici de ou.",
+   blw:"Omletă tăiată în fâșii late de 2 cm — se ține foarte bine în pumn.",
+   freeze:"Nu.", store:"Se consumă în ziua respectivă.",
+   nutrients:["colină","proteine","grăsimi sănătoase"], allergens:["ou"], rating:4},
+
+  {id:"r6", title:"Ovăz cu banană și unt de arahide", age:6, protein:"arahide",
+   foods:["ovaz","banana","arahide"],
+   ing:["3 linguri fulgi de ovăz","150 ml apă","1/2 banană","1 linguriță rasă unt de arahide 100%"],
+   steps:["Fierbe ovăzul 5–6 min.","Zdrobește banana și adaug-o.","Dizolvă untul de arahide în terciul cald — niciodată în bulgări."],
+   spoon:"Cremos, se subțiază cu puțină apă dacă e prea gros.",
+   blw:"Jumătate de banană cu coaja păstrată la bază, ca mâner.",
+   freeze:"Da — 1 lună.", store:"Frigider 48h.",
+   nutrients:["fibre","grăsimi sănătoase","magneziu"], allergens:["arahide"], rating:5},
+
+  {id:"r8", title:"Terci de ovăz cu lapte de cocos", age:6, protein:null,
+   foods:["ovaz"],
+   ing:["3 linguri fulgi de ovăz fini","100 ml lapte de cocos + 50 ml apă","1 fruct copt (pară, caisă, banană)","1 linguriță carob (opțional)"],
+   steps:["Fierbe ovăzul în amestecul de cocos și apă, 5–6 min, la foc mic.","Ia de pe foc, adaugă fructul ras sau zdrobit.","Dacă folosești carob, presară-l acum și omogenizează."],
+   spoon:"Mai cremos decât varianta cu apă — se subțiază cu apă dacă e prea gros.",
+   blw:"Felii groase din același fruct, alături, ținute în mână.",
+   freeze:"Da — porții de 60 ml, până la 1 lună.", store:"Frigider 48h.",
+   nutrients:["fibre","grăsimi sănătoase","fier vegetal"], allergens:[],
+   flag:"Laptele de cocos se folosește doar în rețete, de 1–2 ori pe săptămână. Niciodată ca înlocuitor al formulei.", rating:0},
+
+  {id:"r7", title:"Linte cu cartof dulce și dovlecel", age:6, protein:"linte",
+   foods:["linte","cartofd","dovlecel"],
+   ing:["2 linguri linte roșie","1/2 cartof dulce","1/2 dovlecel mic","1 linguriță ulei de măsline"],
+   steps:["Spală lintea bine, fierbe-o 15 min.","Adaugă legumele cubulețe, încă 10 min.","Pasează parțial — textură cu corp."],
+   spoon:"Piure gros, portocaliu.",
+   blw:"Se poate face chiftele mici presate din compoziția răcită.",
+   freeze:"Da — 1 lună.", store:"Frigider 48h.",
+   nutrients:["fier vegetal","fibre","proteine"], allergens:[],
+   flag:"Acceptare redusă până acum — se reîncearcă fără presiune.", rating:2},
+];
+
+// menu_entries: date + slot + dish   (three weeks seeded)
+const MENU = [
+  /* ---- 20–26 iulie · săptămâna curentă · aliment nou: mango (reîncercare) ---- */
+  {date:"2026-07-20", md:{dish:"Ovăz + piersică", foods:["ovaz","piersica"]}, pranz:{dish:"Curcan + broccoli + cartof alb", foods:["curcan","broccoli","cartof"]}},
+  {date:"2026-07-21", md:{dish:"Ovăz + banană + unt de arahide", foods:["ovaz","banana","arahide"], recipe:"r6"}, pranz:{dish:"Somon + dovlecel + cartof dulce", foods:["somon","dovlecel","cartofd"]}},
+  {date:"2026-07-22", md:{dish:"Cereale HiPP + afine", foods:["hipp","afine"]}, pranz:{dish:"Ou + avocado + broccoli", foods:["ou","avocado","broccoli"], recipe:"r5"}},
+  {date:"2026-07-23", md:{dish:"Mango + ovăz", foods:["mango","ovaz"], isNew:true}, pranz:{dish:"Pui + țelină + cartof alb + ardei gras", foods:["pui","telina","cartof","ardei"]}},
+  {date:"2026-07-24", md:{dish:"Ovăz + pară", foods:["ovaz","para"]}, pranz:{dish:"Curcan + dovlecel + usturoi", foods:["curcan","dovlecel","usturoi"]}},
+  {date:"2026-07-25", md:{dish:"Cereale HiPP + pepene verde", foods:["hipp","pepene"]}, pranz:{dish:"Linte + pui + cartof dulce", foods:["linte","pui","cartofd"]}},
+  {date:"2026-07-26", md:{dish:"Ovăz + măr", foods:["ovaz","mar"]}, pranz:{dish:"Somon + broccoli + cartof alb", foods:["somon","broccoli","cartof"], recipe:"r2"}},
+
+  /* ---- 27 iulie – 2 august · legumă nouă: conopidă · fruct nou: caisă · proteină nouă: vită
+         Amidon redus: 3 din 7 prânzuri fără cartof/cereale. ---- */
+  {date:"2026-07-27", md:{dish:"Ovăz cu lapte de cocos + pară", foods:["ovaz","para"], recipe:"r8"}, pranz:{dish:"Vită + broccoli + cartof dulce + ulei de măsline", foods:["vita","broccoli","cartofd"], recipe:"r4", isNew:true}},
+  {date:"2026-07-28", md:{dish:"Cereale HiPP + afine", foods:["hipp","afine"]}, pranz:{dish:"Somon + dovlecel + broccoli", foods:["somon","dovlecel","broccoli"]}},
+  {date:"2026-07-29", md:{dish:"Ovăz + banană + unt de arahide", foods:["ovaz","banana","arahide"], recipe:"r6"}, pranz:{dish:"Curcan + conopidă + cartof dulce + ulei de măsline", foods:["curcan","conopida","cartofd"], isNew:true}},
+  {date:"2026-07-30", md:{dish:"Ovăz + pară + carob", foods:["ovaz","para"], recipe:"r1"}, pranz:{dish:"Ou + avocado + broccoli", foods:["ou","avocado","broccoli"], recipe:"r5"}},
+  {date:"2026-07-31", md:{dish:"Ovăz cu lapte de cocos + caisă", foods:["ovaz","caisa"], recipe:"r8", isNew:true}, pranz:{dish:"Pui + țelină + ardei gras + cartof dulce + ulei de măsline", foods:["pui","telina","ardei","cartofd"]}},
+  {date:"2026-08-01", md:{dish:"Cereale HiPP + măr", foods:["hipp","mar"]}, pranz:{dish:"Vită + conopidă + dovlecel + ulei de măsline", foods:["vita","conopida","dovlecel"], recipe:"r4"}},
+  {date:"2026-08-02", md:{dish:"Cereale HiPP + carob + piersică", foods:["hipp","piersica"]}, pranz:{dish:"Somon + broccoli + cartof dulce", foods:["somon","broccoli","cartofd"], recipe:"r2"}},
+];
+
+/* Surse externe de rețete. Doar titlu + link + categorie — conținutul rămâne
+   la sursă (drepturi de autor). Fiecare deschide pagina originală. */
+const SOURCES = [
+  { id:"flaveur", name:"Flaveur", author:"Cristina Nenu", url:"https://flaveur.ro",
+    desc:"Rețete și diversificare, în română. Are categorii fără lactate și fără ou — utile cât APLV-ul e neconfirmat.",
+    // căutare pe site după ingredient
+    search:q => `https://flaveur.ro/?s=${encodeURIComponent(q)}`,
+    // secțiuni pe vârstă / tip, potrivite etapei lui
+    sections:[
+      {label:"Prânz 7 luni",      url:"https://flaveur.ro/category/retete-bebelusi-7-luni-pranz/", age:7},
+      {label:"Mic dejun 7 luni",  url:"https://flaveur.ro/category/retete-bebelusi-7-luni-mic-dejun/", age:7},
+      {label:"Prânz 8 luni+",     url:"https://flaveur.ro/category/retete-bebelusi-8-luni-pranz/", age:8},
+      {label:"Cină 8 luni+",      url:"https://flaveur.ro/category/retete-bebelusi-8-luni-cina/", age:8},
+      {label:"Fără lactate",      url:"https://flaveur.ro/category/retete-fara-lactate/", tag:"APLV"},
+      {label:"Fără ou",           url:"https://flaveur.ro/category/retete-fara-ou/", tag:"APLV"},
+      {label:"Pentru constipație",url:"https://flaveur.ro/category/retete-pentru-tratarea-constipatiei/"},
+      {label:"Meniuri săptămânale",url:"https://flaveur.ro/category/meniuri-saptamanale-8-luni/", age:8},
+    ],
+  },
+];
+
+const SHOPPING = [
+  {cat:"Legume", items:[["Broccoli","3 buchete"],["Dovlecel","3 buc"],["Cartof alb","1 kg"],["Cartof dulce","3 buc"],["Țelină","1 rădăcină"],["Ardei gras","1 buc"],["Usturoi","1 căpățână"],["Avocado","2 buc"]]},
+  {cat:"Fructe", items:[["Piersică","2 buc"],["Banană","3 buc"],["Afine","1 caserolă"],["Mango","1 buc"],["Pară","2 buc"],["Pepene verde","1 felie"],["Măr","2 buc"]]},
+  {cat:"Proteine", items:[["Piept de curcan","250 g"],["File de somon","200 g"],["Piept de pui","250 g"],["Ouă","6 buc"],["Linte roșie","1 pungă"]]},
+  {cat:"Cămară", items:[["Fulgi de ovăz fini","1 pungă"],["Cereale HiPP","1 cutie"],["Unt de arahide 100%","1 borcan"],["Lapte de cocos","1 conservă"],["Ulei de măsline","—"]]},
+];
+
+/* ============================================================
+   STATE + STORAGE
+   ============================================================ */
+const TODAY = new Date("2026-07-24T09:00:00");
+let state = { foods:{}, checked:{}, logs:{}, tab:"azi", week:0 };
+
+const Store = {
+  async load(){
+    if(!window.storage) return null;
+    try{ const r = await window.storage.get("bmp:state"); return r ? JSON.parse(r.value) : null; }
+    catch(e){ return null; }
+  },
+  async save(){
+    if(!window.storage) return;
+    try{ await window.storage.set("bmp:state", JSON.stringify(state)); }catch(e){}
+  }
+};
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+const DAYS = ["Duminică","Luni","Marți","Miercuri","Joi","Vineri","Sâmbătă"];
+const MONTHS = ["ian","feb","mar","apr","mai","iun","iul","aug","sep","oct","noi","dec"];
+const $ = s => document.querySelector(s);
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+// Monday of the week containing d (Romanian weeks start Monday)
+function mondayOf(d){ const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-((x.getDay()+6)%7)); return x; }
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+const daysBetween = (a,b) => Math.round((new Date(b) - new Date(a)) / 864e5);
+const food = id => FOODS.find(f=>f.id===id);
+const recipe = id => RECIPES.find(r=>r.id===id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+const KIND_BY_CAT = {Legume:"veg", Fructe:"fruct", Proteine:"proteina", Cereale:"cereale", "Grăsimi":"grasime"};
+function kindOf(f){ return f.kind || KIND_BY_CAT[f.cat] || "altul"; }
+function dayLabel(d){
+  const dt = new Date(d+"T12:00:00");
+  return `${DAYS[dt.getDay()].toLowerCase()} ${dt.getDate()} ${MONTHS[dt.getMonth()]}`;
+}
+
+// Ultima expunere reală la un alergen: din jurnal, nu din meniul planificat.
+// O masă refuzată nu contează ca reexpunere. Orice cantitate mâncată contează.
+function allergenState(a){
+  const today = iso(TODAY);
+  let last = null, confirmed = false, next = null;
+  MENU.forEach(m=>{
+    activeSlots().forEach(sl=>{
+      const e = m[sl.key];
+      if(!e || !foodsOf(e).includes(a.id)) return;
+      const lg  = state.logs[m.date+":"+sl.key];
+      const ate = lg ? (lg.portion ? lg.portion !== "refuzat" : !!lg.eaten) : false;
+      if(m.date <= today && ate){
+        if(!last || m.date > last){ last = m.date; confirmed = true; }
+      } else if(m.date >= today && !ate){
+        if(!next || m.date < next) next = m.date;
+      }
+    });
+  });
+  if(!last) last = a.last;                       // baseline dinainte de jurnal
+  return { last, confirmed, next, days: daysBetween(last, today), today };
+}
+
+/* Regula de prânz, revizuită după OMS (amidonul se limitează):
+   obligatoriu proteină + legumă + grăsime. Amidonul e opțional, nu implicit. */
+const LUNCH_REQUIRED = [
+  {g:"proteina", label:"proteină"},
+  {g:"veg",      label:"legumă"},
+  {g:"grasime",  label:"grăsime"},
+];
+function lunchGaps(entry){
+  const ids = foodsOf(entry);
+  if(!ids.length) return [];
+  const oilNamed = /ulei/i.test(entry.dish || "");
+  return LUNCH_REQUIRED
+    .filter(r => !(r.g === "grasime" && oilNamed))
+    .filter(r => !hasGroup(ids, r.g))
+    .map(r => r.label);
+}
+
+// Verificare nutrițională pe săptămână, după OMS 2023 + ESPGHAN
+function weekNutrition(entries){
+  const days = entries.filter(Boolean);
+  let asf=0, fv=0, iron=0, meals=0, starch=0;
+  const gaps = [];
+  days.forEach(m=>{
+    let a=false, f=false, v=false, ir=false;
+    activeSlots().forEach(sl=>{
+      const ids = foodsOf(m[sl.key]);
+      if(!ids.length) return;
+      meals++;
+      if(hasGroup(ids,"amidon")) starch++;
+      if(hasGroup(ids,"asf"))    a  = true;
+      if(hasGroup(ids,"fruct"))  f  = true;
+      if(hasGroup(ids,"veg"))    v  = true;
+      if(hasGroup(ids,"fier"))   ir = true;
+    });
+    if(a) asf++;
+    if(f && v) fv++;
+    if(ir) iron++;
+    const g = lunchGaps(m.pranz);
+    if(g.length) gaps.push({date:m.date, gaps:g});
+  });
+  return {
+    days: days.length, asf, fv, iron, meals, starch, gaps,
+    starchPct: meals ? Math.round(starch/meals*100) : 0,
+    starchFree: meals - starch,
+  };
+}
+
+/* ============================================================
+   REGULI SĂPTĂMÂNALE
+   1. o legumă nouă + un fruct nou în fiecare săptămână
+   2. alimentele deja acceptate rămân în rotație (max 14 zile pauză)
+   ============================================================ */
+
+// Ce s-a introdus vreodată ca aliment nou, și când
+function introducedMap(){
+  const out = {};
+  MENU.forEach(m => SLOTS.forEach(sl=>{
+    const e = m[sl.key];
+    if(!e || !e.isNew) return;
+    foodsOf(e).forEach(i=>{ if(!out[i] || m.date < out[i]) out[i] = m.date; });
+  }));
+  return out;
+}
+
+// Propune următorul aliment nou: de sezon întâi, apoi prioritate, apoi ordinea listei
+function suggestNew(kind, when){
+  const month = when.getMonth()+1;
+  const already = introducedMap();
+  const pool = FOODS
+    .map((f,i)=>({f,i}))
+    .filter(({f}) => kindOf(f)==="veg" || kindOf(f)==="fruct")
+    .filter(({f}) => kindOf(f)===kind)
+    .filter(({f}) => (state.foods[f.id]?.status || f.status) === "planned")
+    .filter(({f}) => !already[f.id])
+    .filter(({f}) => !f.hold || iso(when) >= f.hold);   // lactatele: abia de la 8 luni
+  if(!pool.length) return null;
+  pool.forEach(o=>{
+    o.inSeason = !o.f.season || o.f.season.includes(month);
+    o.pri = o.f.priority ? 0 : 1;
+  });
+  pool.sort((a,b)=> (b.inSeason - a.inSeason) || (a.pri - b.pri) || (a.i - b.i));
+  return pool[0].f;
+}
+
+// Alimente acceptate care ies din rotație (>14 zile fără să apară)
+function rotationCheck(refDate){
+  const to = iso(refDate), from = iso(addDays(refDate,-13));
+  const seen = new Set();
+  MENU.forEach(m=>{
+    if(m.date < from || m.date > to) return;
+    SLOTS.forEach(sl => foodsOf(m[sl.key]).forEach(i=>seen.add(i)));
+  });
+  const intro = introducedMap();
+  return FOODS
+    .filter(f => (state.foods[f.id]?.status || f.status) === "accepted" && !seen.has(f.id))
+    .map(f => ({
+      f,
+      since: intro[f.id] || null,
+      recent: intro[f.id] ? daysBetween(intro[f.id], to) <= 42 : false
+    }))
+    .sort((a,b)=> (b.recent - a.recent));
+}
+
+// Regula 2, partea activă: ce alimente tolerate să reintroduci în săptămâna
+// care se planifică, ca să nu treacă de pragul de 14 zile. Ordonate după
+// riscul de a se pierde (recent introduse întâi), apoi după vechimea absenței.
+function rotationReturns(weekStart){
+  // ce apare deja în săptămâna în curs de planificare
+  const wkEnd = addDays(weekStart, 6);
+  const inWeek = new Set();
+  MENU.forEach(m=>{
+    if(m.date < iso(weekStart) || m.date > iso(wkEnd)) return;
+    SLOTS.forEach(sl => foodsOf(m[sl.key]).forEach(i=>inWeek.add(i)));
+  });
+  // dacă ar lipsi și în ziua de dinaintea săptămânii -> ar depăși pragul
+  return rotationCheck(addDays(weekStart,-1))
+    .filter(x => !inWeek.has(x.f.id))
+    .map(x => ({
+      f: x.f,
+      recent: x.recent,
+      kind: kindOf(x.f),
+      absent: x.since ? daysBetween(x.since, iso(weekStart)) : null,
+    }));
+}
+
+function activeSlots(){ const m = ageInfo().months; return SLOTS.filter(s => s.from !== null && m >= s.from); }
+
+// pale chips need dark star overlays, dark chips need light ones
+function isPale(hex){
+  const n = parseInt(hex.slice(1),16);
+  return (0.299*((n>>16)&255) + 0.587*((n>>8)&255) + 0.114*(n&255)) > 175;
+}
+
+function foodStatus(f){ return state.foods[f.id]?.status || f.status; }
+function foodRating(f){ const r = state.foods[f.id]?.rating; return r===undefined ? (f.rating||0) : r; }
+
+// milestone logic: a new stage begins on the 23rd of each month
+function ageInfo(){
+  const dob = new Date(BABY.dob+"T00:00:00");
+  let m = (TODAY.getFullYear()-dob.getFullYear())*12 + (TODAY.getMonth()-dob.getMonth());
+  if(TODAY.getDate() < dob.getDate()) m--;
+  const start = new Date(TODAY.getFullYear(), TODAY.getMonth(), dob.getDate());
+  if(start > TODAY) start.setMonth(start.getMonth()-1);
+  const next = new Date(start); next.setMonth(next.getMonth()+1);
+  const total   = Math.round((next-start)/864e5);
+  const elapsed = Math.floor((TODAY-start)/864e5);
+  return { months:m, nextMonths:m+1, next, total, elapsed,
+           daysToNext: Math.ceil((next-TODAY)/864e5),
+           pct: Math.min(100, (elapsed/total)*100) };
+}
+
+// a slot can name its own foods AND link a recipe — the slot's own list wins
+function foodsOf(e){
+  if(!e) return [];
+  if(e.foods && e.foods.length) return e.foods;
+  return e.recipe ? recipe(e.recipe).foods : [];
+}
+function swatchesFor(entry){
+  return foodsOf(entry).slice(0,4).map(id=>{
+    const f = food(id);
+    return f ? `<i class="sw" style="background:${f.color}"></i>` : "";
+  }).join("");
+}
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+function viewAzi(){
+  const d = MENU.find(m=>m.date===iso(TODAY));
+  const a = ageInfo();
+
+  const meals = !d ? `<div class="empty">Nu e planificat meniu pentru azi.</div>` :
+    activeSlots().map(sl=>{
+      const e = d[sl.key]; if(!e) return "";
+      const r = e.recipe ? recipe(e.recipe) : null;
+      const key = iso(TODAY)+":"+sl.key;
+      const lg = state.logs[key] || {};
+      const logged = lg.portion || lg.rating || lg.note;
+      return `<div class="card"><div class="meal">
+        <div class="swatches">${swatchesFor(e)}</div>
+        <div class="meal-body">
+          <div class="meal-head">
+            <div class="slot">${sl.label}</div>
+            <button class="mcheck ${lg.eaten?"on":""}" data-eaten="${key}"
+              aria-label="Marchează ${sl.label} ca servit" aria-pressed="${!!lg.eaten}"></button>
+          </div>
+          <div class="dish">${esc(e.dish)}${e.isNew?'<span class="newbadge">nou</span>':""}</div>
+          ${r ? `<div class="variant"><span class="vlabel">Linguriță</span><span>${esc(r.spoon)}</span></div>
+                 <div class="variant"><span class="vlabel">BLW</span><span>${esc(r.blw)}</span></div>` : ""}
+          ${r && r.flag ? `<div class="flag">${esc(r.flag)}</div>` : ""}
+          ${r ? `<div class="tags"><button class="tag" data-recipe="${r.id}" style="border:none;cursor:pointer;font-family:inherit">Vezi rețeta →</button></div>` : ""}
+          <div class="logrow">
+            ${lg.portion?`<span class="logchip ${lg.portion==="refuzat"?"refuz":""}">${pLabel(lg.portion)}</span>`:""}
+            ${lg.rating?`<span class="logchip star-chip">${"★".repeat(lg.rating)}</span>`:""}
+            <button class="logbtn" data-log="${key}">${logged?"Editează":"Cantitate și notiță"}</button>
+          </div>
+          ${lg.note?`<div class="lognote">${esc(lg.note)}</div>`:""}
+        </div></div></div>`;
+    }).join("");
+
+  const upcoming = SLOTS.filter(sl => sl.from !== null && a.months < sl.from);
+  const pending  = SLOTS.filter(sl => sl.from === null);
+  const roadmap = [
+    ...upcoming.map(sl => `${sl.label} — de la ${sl.from} luni, peste ${a.daysToNext} zile`),
+    ...pending.map(sl => `${sl.label} — dată nestabilită încă`)
+  ];
+
+  const al = ALLERGENS.map(x=>{
+    const st  = allergenState(x);
+    const due = st.days >= 7;
+    const pct = Math.min(100, (st.days/7)*100);
+    const when = st.days === 0 ? "azi" : st.days === 1 ? "ieri" : "acum "+st.days+" zile";
+    const hints = [];
+    if(st.next) hints.push(`planificat <b>${st.next === st.today ? "azi" : dayLabel(st.next)}</b>`);
+    if(!st.confirmed) hints.push("estimat din meniu");
+    return `<div class="al">
+      <div class="al-top">
+        <div class="al-name">${x.name}</div>
+        <div class="al-days ${due?"due":""}">${due ? "de repetat" : when}</div>
+      </div>
+      <div class="track"><div class="fill" style="width:${pct}%;background:${due?"var(--bubblegum)":"var(--marigold)"}"></div></div>
+      ${hints.length?`<div class="al-sub">${hints.join(" · ")}</div>`:""}
+    </div>`;
+  }).join("");
+
+  return `
+    <section>
+      <h2 class="sec">Mesele de azi</h2>
+      <p class="sub">${(()=>{
+        const ks = activeSlots().filter(sl=>d&&d[sl.key]).map(sl=>iso(TODAY)+":"+sl.key);
+        const n = ks.filter(k=>state.logs[k]&&(state.logs[k].eaten||state.logs[k].portion)).length;
+        return ks.length ? `${n} din ${ks.length} mese notate` : "Laptele rămâne sursa principală.";
+      })()}</p>
+      ${meals}
+      ${roadmap.length ? `<div class="note">Urmează: ${roadmap.join(" · ")}</div>` : ""}
+    </section>
+    <section>
+      <h2 class="sec">Alergeni de repetat</h2>
+      <p class="sub">Ținta: reexpunere cel puțin o dată la 7 zile. Se numără din jurnal — o masă refuzată nu contează.</p>
+      <div class="card allerg">${al}</div>
+    </section>`;
+}
+
+function proposalBlock(sv, sf, when, returns){
+  const month = when.getMonth()+1;
+  const row = (label,f) => !f ? "" : `<div class="prop">
+      <div class="prop-chip" style="background:${f.color}"></div>
+      <div class="prop-body">
+        <div class="nf-k">${label}</div>
+        <div class="prop-name">${esc(f.name)}</div>
+        <div class="prop-why">${
+          !f.season ? "disponibil tot anul"
+          : f.season.includes(month) ? "de sezon în "+MONTHS[when.getMonth()]
+          : "în afara sezonului în "+MONTHS[when.getMonth()]
+        }${f.priority ? " · prioritate" : ""}</div>
+        ${f.note?`<div class="prop-note">${esc(f.note)}</div>`:""}
+      </div>
+    </div>`;
+
+  const ret = (returns||[]).slice(0,4);
+  const retRows = ret.map(r=>`<div class="prop">
+      <div class="prop-chip" style="background:${r.f.color};box-shadow:inset 0 0 0 1px rgba(21,72,76,.12)"></div>
+      <div class="prop-body">
+        <div class="nf-k">${r.kind==="fruct"?"fruct":r.kind==="veg"?"legumă":"proteină"} de readus</div>
+        <div class="prop-name">${esc(r.f.name)}</div>
+        <div class="prop-why">${r.recent ? "recent acceptat · riscă să iasă din rotație"
+          : r.absent ? "lipsește de ~"+r.absent+" zile" : "acceptat, dar absent"}</div>
+      </div>
+    </div>`).join("");
+
+  if(!sv && !sf && !retRows) return "";
+  return `<div class="proposal">
+    ${(sv||sf) ? `<div class="prop-head">Alimente noi</div>${row("legumă nouă", sv)}${row("fruct nou", sf)}` : ""}
+    ${retRows ? `<div class="prop-head ${(sv||sf)?"spaced":""}">Menține în rotație</div>${retRows}` : ""}
+  </div>`;
+}
+
+function viewSapt(){
+  const start = addDays(mondayOf(TODAY), state.week*7);
+  const end   = addDays(start, 6);
+  const dates = Array.from({length:7}, (_,i)=>addDays(start,i));
+  const entries = dates.map(d => MENU.find(m => m.date === iso(d)) || null);
+
+  const rel = state.week===0 ? "săptămâna curentă"
+            : state.week===1 ? "săptămâna viitoare"
+            : state.week===-1 ? "săptămâna trecută"
+            : state.week>0 ? `peste ${state.week} săptămâni`
+            : `acum ${Math.abs(state.week)} săptămâni`;
+
+  const range = start.getMonth()===end.getMonth()
+    ? `${start.getDate()} – ${end.getDate()} ${MONTHS[end.getMonth()]}`
+    : `${start.getDate()} ${MONTHS[start.getMonth()]} – ${end.getDate()} ${MONTHS[end.getMonth()]}`;
+
+  const nav = `<div class="weeknav">
+      <button class="warrow" data-week="-1" aria-label="Săptămâna anterioară">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="wlabel"><span class="rng">${range}</span><span class="rel">${rel}</span></div>
+      <button class="warrow" data-week="1" aria-label="Săptămâna următoare">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+    ${state.week!==0 ? '<button class="backtoday" data-weekreset="1">↩ Înapoi la săptămâna curentă</button>' : ''}`;
+
+  if(entries.every(e => !e)){
+    const msg = state.week > 0
+      ? "Meniul nu e planificat încă.<br>Se pregătește duminica dinainte."
+      : "Nu există meniu salvat pentru această săptămână.";
+    return nav + `<div class="empty">${msg}</div>` +
+      (state.week >= 0 ? proposalBlock(suggestNew("veg",start), suggestNew("fruct",start), start, rotationReturns(start)) : "");
+  }
+
+  // regula săptămânală: o legumă nouă + un fruct nou
+  const fresh = [];
+  entries.forEach(m=>{
+    if(!m) return;
+    activeSlots().forEach(sl=>{
+      const e = m[sl.key];
+      if(!e || !e.isNew) return;
+      foodsOf(e).map(food).filter(Boolean).forEach(f=>{
+        const st = state.foods[f.id]?.status || f.status;
+        if(st !== "accepted" && !fresh.find(x=>x.id===f.id)) fresh.push(f);
+      });
+    });
+  });
+  const newVeg   = fresh.find(f=>kindOf(f)==="veg");
+  const newFruit = fresh.find(f=>kindOf(f)==="fruct");
+  const other    = fresh.filter(f=>!["veg","fruct"].includes(kindOf(f)));
+  const slot = (label,f) => `<div class="nf-item"><span class="nf-k">${label}</span>${
+    f ? esc(f.name) : '<span style="opacity:.8">niciunul</span>'}</div>`;
+  const newBanner = `<div class="newfood ${(newVeg&&newFruit)?"":"partial"}">
+      ${slot("legumă nouă", newVeg)}${slot("fruct nou", newFruit)}
+      ${other.map(f=>slot("și", f)).join("")}
+    </div>`;
+
+  const days = dates.map((dt,i)=>{
+    const m = entries[i];
+    const isToday = iso(dt) === iso(TODAY);
+    const head = `<div class="dname"><span>${DAYS[dt.getDay()]} ${dt.getDate()} ${MONTHS[dt.getMonth()]}</span>${
+      isToday ? '<span class="dtoday">azi</span>' : ""}</div>`;
+    if(!m) return `<div class="day">${head}<div class="dempty">Nedefinit</div></div>`;
+    const line = sl => {
+      const e = m[sl.key]; if(!e) return "";
+      return `<div class="dline">
+        <div class="swrow">${swatchesFor(e)}</div>
+        <div class="dslot">${sl.label}</div>
+        <div class="dtext">${esc(e.dish)}${e.isNew?'<span class="newbadge">nou</span>':""}</div>
+      </div>`;
+    };
+    return `<div class="day ${isToday?"today":""}">${head}
+      ${activeSlots().map(line).join("")}</div>`;
+  }).join("");
+
+  const used = new Set();
+  entries.forEach(m=>{
+    if(!m) return;
+    foodsOf(m.pranz).forEach(i=>used.add(i));
+  });
+  const proteins = ["pui","curcan","somon","vita","ou","linte"];
+  const rot = proteins.map(p=>`<span class="rot ${used.has(p)?"on":""}">${food(p).name}</span>`).join("");
+  const missing = proteins.filter(p=>!used.has(p)).length;
+
+  return `<section>
+      ${nav}
+      ${newBanner}
+      ${(()=>{
+        const rr = rotationReturns(start);
+        const needNew = !newVeg || !newFruit;
+        if(!needNew && !rr.length) return "";
+        return proposalBlock(
+          newVeg ? null : suggestNew("veg", start),
+          newFruit ? null : suggestNew("fruct", start), start, rr);
+      })()}
+      ${days}
+    </section>
+    <section>
+      <h2 class="sec">Verificare nutrițională</h2>
+      <p class="sub">După OMS 2023 și ESPGHAN. Nu înlocuiește evaluarea medicului.</p>
+      <div class="card">${(()=>{
+        const n = weekNutrition(entries);
+        const row = (ok,label,detail) => `<div class="nut ${ok?"ok":"warn"}">
+            <span class="nut-i"></span>
+            <div class="nut-b"><div class="nut-l">${label}</div><div class="nut-d">${detail}</div></div>
+          </div>`;
+        const held = (BABY.holds||[]).filter(h=>iso(end) < h.until);
+        return [
+          row(n.asf===n.days, "Aliment de origine animală, zilnic",
+              `${n.asf} din ${n.days} zile`),
+          row(n.fv===n.days, "Fructe și legume, zilnic",
+              `${n.fv} din ${n.days} zile`),
+          row(n.iron===n.days, "Sursă de fier, zilnic",
+              `${n.iron} din ${n.days} zile`),
+          row(n.starchFree >= 2, "Amidon limitat",
+              `${n.starchPct}% din mese · ${n.starchFree} mese fără amidon`),
+          row(n.gaps.length===0, "Prânzuri complete (proteină + legumă + grăsime)",
+              n.gaps.length ? n.gaps.map(g=>`${dayLabel(g.date)}: lipsește ${g.gaps.join(", ")}`).join(" · ")
+                            : `${n.days} din ${n.days}`),
+          ...(BABY.supplements||[]).map(su=>row(true, su.name, `${su.form}, zilnic`)),
+          ...held.map(h=>row(true, h.what+" — în așteptare", h.why)),
+        ].join("");
+      })()}</div>
+    </section>
+    <section>
+      <h2 class="sec">Ies din rotație</h2>
+      <p class="sub">${(()=>{
+        const g = rotationCheck(end);
+        if(!g.length) return "Toate alimentele acceptate au apărut în ultimele 14 zile.";
+        const r = g.filter(x=>x.recent).length;
+        return r ? `${g.length} alimente lipsesc de peste 14 zile, din care ${r} recent introduse.`
+                 : `${g.length} alimente acceptate lipsesc de peste 14 zile.`;
+      })()}</p>
+      <div class="rotation">${rotationCheck(end).map(x=>`
+        <span class="rot gap ${x.recent?"fresh":""}">
+          <i style="background:${x.f.color}"></i>${esc(x.f.name)}
+        </span>`).join("") || ""}</div>
+    </section>
+    <section>
+      <h2 class="sec">Rotația proteinelor</h2>
+      <p class="sub">${missing===0 ? "Toate proteinele sunt acoperite." : `${missing} din 6 lipsesc din această săptămână.`}</p>
+      <div class="rotation">${rot}</div>
+    </section>`;
+}
+
+function viewAlim(){
+  const cats = ["Legume","Fructe","Cereale","Proteine","Grăsimi","Planificate"];
+  const blocks = cats.map(c=>{
+    const list = FOODS.filter(f=>f.cat===c);
+    if(!list.length) return "";
+    const chips = list.map(f=>{
+      const st = foodStatus(f);
+      const rt = foodRating(f);
+      const stars = st==="accepted" && rt ? "★".repeat(rt) : "";
+      return `<button class="food ${st}" data-food="${f.id}">
+        <div class="chip" style="background:${f.color}">${stars?`<div class="stars" style="${isPale(f.color)?"color:rgba(21,72,76,.9);text-shadow:none":""}">${stars}</div>`:""}</div>
+        <div class="food-name">${esc(f.name)}</div>
+      </button>`;
+    }).join("");
+    return `<section><h2 class="sec">${c}</h2><div class="palette">${chips}</div></section>`;
+  }).join("");
+
+  return `<p class="sub" style="margin-top:-6px">Apasă pe un aliment ca să îi schimbi statusul sau nota.</p>
+    <div class="legend">
+      <span><i style="background:#7FA65C"></i>acceptat</span>
+      <span><i style="background:#7FA65C;opacity:.32"></i>acceptare redusă</span>
+      <span><i style="border:1.5px dashed #B6CFCD"></i>de introdus</span>
+    </div>${blocks}`;
+}
+
+function viewRet(){
+  const cards = RECIPES.map(r=>{
+    const sw = r.foods.map(id=>{const f=food(id);return f?`<i class="sw" style="background:${f.color}"></i>`:""}).join("");
+    const rt = r.rating ? "★".repeat(r.rating) : "netestat";
+    return `<button class="card rec" data-recipe="${r.id}">
+      <div class="rec-top">
+        <div class="swatches">${sw}</div>
+        <div style="flex:1">
+          <h3>${esc(r.title)}</h3>
+          <div style="font-size:13.2px;color:var(--muted)">${r.age}+ luni · <span style="color:${r.rating?"var(--sugar)":"var(--muted)"}">${rt}</span></div>
+          <div class="tags">
+            ${r.allergens.map(a=>`<span class="tag alg">${a}</span>`).join("")}
+            ${r.freeze.startsWith("Da")?'<span class="tag frz">se congelează</span>':""}
+            ${r.nutrients.slice(0,2).map(n=>`<span class="tag">${n}</span>`).join("")}
+          </div>
+        </div>
+      </div></button>`;
+  }).join("");
+  const months = ageInfo().months;
+  const sourceBlocks = SOURCES.map(src=>{
+    const secs = src.sections
+      .filter(sec => !sec.age || sec.age <= months + 1)   // etapa curentă + următoarea
+      .map(sec => `<a class="secpill ${sec.tag?"tagged":""}" href="${sec.url}" target="_blank" rel="noopener">
+          ${esc(sec.label)}${sec.tag?`<span class="secpill-tag">${sec.tag}</span>`:""}</a>`).join("");
+    return `<div class="card srccard">
+      <div class="src-head">
+        <div>
+          <div class="src-name">${esc(src.name)}</div>
+          <div class="src-auth">${esc(src.author)}</div>
+        </div>
+        <a class="src-open" href="${src.url}" target="_blank" rel="noopener">Deschide ↗</a>
+      </div>
+      <p class="src-desc">${esc(src.desc)}</p>
+      <div class="secgrid">${secs}</div>
+      <div class="src-search">
+        <input class="src-in" type="search" placeholder="caută un ingredient..."
+          data-srcsearch="${src.id}" enterkeyhint="search">
+        <button class="src-go" data-srcgo="${src.id}">Caută</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  return `<section>
+      <h2 class="sec">Cookbook</h2>
+      <p class="sub">${RECIPES.length} rețete proprii din ținta de 100 până la 1 an.</p>${cards}
+    </section>
+    <section>
+      <h2 class="sec">Surse de rețete</h2>
+      <p class="sub">Rețetele se deschid la sursă. Secțiunile se potrivesc vârstei lui.</p>
+      ${sourceBlocks}
+    </section>`;
+}
+
+function viewCump(){
+  const blocks = SHOPPING.map(g=>{
+    const gTotal = g.items.length;
+    const gDone  = g.items.filter(([n])=>state.checked[g.cat+":"+n]).length;
+    const complete = gDone === gTotal;
+    const items = g.items.map(([n,q])=>{
+      const key = g.cat+":"+n;
+      return `<button class="item ${state.checked[key]?"done":""}" data-check="${esc(key)}">
+        <span class="box"></span><span class="iname">${esc(n)}</span><span class="iqty">${esc(q)}</span>
+      </button>`;
+    }).join("");
+    return `<div class="catcard ${complete?"done":""}">
+      <div class="cathead"><span>${g.cat}</span><span class="catcount">${gDone}/${gTotal}</span></div>
+      <div class="catbody">${items}</div>
+    </div>`;
+  }).join("");
+  const total = SHOPPING.reduce((s,g)=>s+g.items.length,0);
+  const done = Object.values(state.checked).filter(Boolean).length;
+  return `<section><h2 class="sec">Lista de duminică</h2>
+    <p class="sub">${done} din ${total} adunate · pentru meniul 20–26 iulie</p>${blocks}</section>`;
+}
+
+/* ============================================================
+   SHEETS
+   ============================================================ */
+function openSheet(html){
+  $("#sheet").innerHTML = `<div class="grab"></div>${html}`;
+  $("#sheet").classList.add("open");
+  $("#scrim").classList.add("open");
+}
+function closeSheet(){
+  $("#sheet").classList.remove("open");
+  $("#scrim").classList.remove("open");
+}
+
+function sheetRecipe(id){
+  const r = recipe(id);
+  openSheet(`
+    <h3>${esc(r.title)}</h3>
+    <p style="color:var(--muted);font-size:13.7px">${r.age}+ luni · ${r.allergens.length?"alergeni: "+r.allergens.join(", "):"fără alergeni"}</p>
+    ${r.flag?`<div class="flag" style="margin-top:12px">${esc(r.flag)}</div>`:""}
+    <div class="fieldlabel">Ingrediente</div>
+    <ul>${r.ing.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+    <div class="fieldlabel">Preparare</div>
+    <ul>${r.steps.map(i=>`<li>${esc(i)}</li>`).join("")}</ul>
+    <div class="fieldlabel">Variantă linguriță</div><p>${esc(r.spoon)}</p>
+    <div class="fieldlabel">Variantă BLW</div><p>${esc(r.blw)}</p>
+    <div class="fieldlabel">Congelare</div><p>${esc(r.freeze)}</p>
+    <div class="fieldlabel">Păstrare</div><p>${esc(r.store)}</p>
+    <div class="fieldlabel">Nutrienți principali</div>
+    <div class="tags">${r.nutrients.map(n=>`<span class="tag">${n}</span>`).join("")}</div>
+    <div class="fieldlabel">Rating bebe</div>
+    <div class="rate">${[1,2,3,4,5].map(n=>`<button class="star ${n<=r.rating?"on":""}" data-rrate="${r.id}:${n}">★</button>`).join("")}</div>
+    ${SOURCES.map(src=>{
+      const q = r.foods.map(id=>food(id)?.name).filter(Boolean).slice(0,2).join(" ");
+      return `<a class="srclink" href="${src.search(q)}" target="_blank" rel="noopener">
+        Caută variante pe ${src.name} →</a>`;
+    }).join("")}
+  `);
+}
+
+function sheetLog(key){
+  const [date, slotKey] = key.split(":");
+  const sl = SLOTS.find(x=>x.key===slotKey);
+  const m  = MENU.find(x=>x.date===date);
+  const e  = m ? m[slotKey] : null;
+  const lg = state.logs[key] || {};
+  openSheet(`
+    <h3>${sl.label}</h3>
+    <p style="color:var(--muted);font-size:13.7px">${e?esc(e.dish):""}</p>
+
+    <div class="fieldlabel">Cât a mâncat</div>
+    <div class="portions">${PORTIONS.map(pp=>`
+      <button class="pbtn ${lg.portion===pp.v?"on":""} ${pp.v==="refuzat"?"refuz":""}"
+        data-portion="${key}|${pp.v}">${pp.label}</button>`).join("")}</div>
+
+    <div class="fieldlabel">Cum i-a plăcut</div>
+    <div class="rate">${[1,2,3,4,5].map(n=>`
+      <button class="star ${n<=(lg.rating||0)?"on":""}" data-lograte="${key}|${n}">★</button>`).join("")}</div>
+
+    <div class="fieldlabel">Notiță</div>
+    <textarea class="lognote-in" data-lognote="${key}"
+      placeholder="Reacții, textură, ce a mers și ce nu..."></textarea>
+  `);
+  const ta = document.querySelector("[data-lognote]");
+  if(ta) ta.value = lg.note || "";
+}
+
+function sheetFood(id){
+  const f = food(id);
+  const st = foodStatus(f), rt = foodRating(f);
+  const opts = [["accepted","Acceptat"],["weak","Acceptare redusă"],["planned","De introdus"]];
+  openSheet(`
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+      <div style="width:52px;height:52px;border-radius:14px;background:${f.color};flex:0 0 auto;${st==="planned"?"background:transparent;border:1.5px dashed #B6CFCD":""}"></div>
+      <div><h3 style="margin:0">${esc(f.name)}</h3>
+      <p style="color:var(--muted);font-size:13.7px;margin:0">${f.cat}${f.allergen?" · alergen de rotit":""}</p></div>
+    </div>
+    ${f.note?`<div class="flag" style="margin-top:12px">${esc(f.note)}</div>`:""}
+    ${f.retry?`<div class="note" style="margin-top:10px">De reîncercat după ${new Date(f.retry+"T00:00:00").getDate()} ${MONTHS[new Date(f.retry+"T00:00:00").getMonth()]}.</div>`:""}
+    <div class="fieldlabel">Status</div>
+    <div class="statusrow">${opts.map(([v,l])=>`<button class="stbtn ${st===v?"on":""}" data-fstatus="${f.id}:${v}">${l}</button>`).join("")}</div>
+    <div class="fieldlabel">Cât i-a plăcut</div>
+    <div class="rate">${[1,2,3,4,5].map(n=>`<button class="star ${n<=rt?"on":""}" data-frate="${f.id}:${n}">★</button>`).join("")}</div>
+  `);
+}
+
+/* ============================================================
+   RENDER + EVENTS
+   ============================================================ */
+function render(){
+  const a = ageInfo();
+  $("#agePill").innerHTML = `${a.months} luni`;
+  $("#stage").innerHTML = `
+    <div class="stage-track"><div class="stage-fill" style="width:${Math.max(2.5,a.pct).toFixed(1)}%"></div></div>
+    <div class="stage-meta">
+      <span>ziua ${a.elapsed+1} din ${a.total}</span>
+      <span>${a.nextMonths} luni pe ${a.next.getDate()} ${MONTHS[a.next.getMonth()]}</span>
+    </div>`;
+  $("#todayLabel").textContent = `${DAYS[TODAY.getDay()]} ${TODAY.getDate()} ${MONTHS[TODAY.getMonth()]}`;
+  const views = {azi:viewAzi, sapt:viewSapt, alim:viewAlim, ret:viewRet, cump:viewCump};
+  $("#view").innerHTML = views[state.tab]();
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on", t.dataset.tab===state.tab));
+  window.scrollTo(0,0);
+}
+
+document.addEventListener("click", e=>{
+  const tab = e.target.closest("[data-tab]");
+  if(tab){ state.tab = tab.dataset.tab; Store.save(); render(); return; }
+
+  const ea = e.target.closest("[data-eaten]");
+  if(ea){
+    const k = ea.dataset.eaten, cur = state.logs[k] || {};
+    state.logs[k] = Object.assign({}, cur, {eaten: !cur.eaten});
+    Store.save(); render(); return;
+  }
+
+  const lo = e.target.closest("[data-log]");
+  if(lo){ sheetLog(lo.dataset.log); return; }
+
+  const po = e.target.closest("[data-portion]");
+  if(po){
+    const [k,v] = po.dataset.portion.split("|");
+    const cur = state.logs[k] || {};
+    const off = cur.portion === v;
+    state.logs[k] = Object.assign({}, cur, {
+      portion: off ? null : v,
+      eaten: off ? cur.eaten : v !== "refuzat"
+    });
+    Store.save(); sheetLog(k); render(); return;
+  }
+
+  const lr = e.target.closest("[data-lograte]");
+  if(lr){
+    const [k,n] = lr.dataset.lograte.split("|");
+    const cur = state.logs[k] || {};
+    state.logs[k] = Object.assign({}, cur, {rating: cur.rating === +n ? 0 : +n});
+    Store.save(); sheetLog(k); render(); return;
+  }
+
+  const sg = e.target.closest("[data-srcgo]");
+  if(sg){
+    const src = SOURCES.find(x=>x.id===sg.dataset.srcgo);
+    const inp = document.querySelector(`[data-srcsearch="${sg.dataset.srcgo}"]`);
+    const q = (inp && inp.value.trim()) || "";
+    window.open(q ? src.search(q) : src.url, "_blank", "noopener");
+    return;
+  }
+
+  const wk = e.target.closest("[data-week]");
+  if(wk){ state.week += +wk.dataset.week; Store.save(); render(); return; }
+
+  const wr = e.target.closest("[data-weekreset]");
+  if(wr){ state.week = 0; Store.save(); render(); return; }
+
+  const rec = e.target.closest("[data-recipe]");
+  if(rec){ sheetRecipe(rec.dataset.recipe); return; }
+
+  const fd = e.target.closest("[data-food]");
+  if(fd){ sheetFood(fd.dataset.food); return; }
+
+  const chk = e.target.closest("[data-check]");
+  if(chk){
+    const k = chk.dataset.check;
+    state.checked[k] = !state.checked[k];
+    Store.save(); render(); return;
+  }
+
+  const fs = e.target.closest("[data-fstatus]");
+  if(fs){
+    const [id,v] = fs.dataset.fstatus.split(":");
+    state.foods[id] = Object.assign({}, state.foods[id], {status:v});
+    Store.save(); sheetFood(id); render(); return;
+  }
+
+  const fr = e.target.closest("[data-frate]");
+  if(fr){
+    const [id,n] = fr.dataset.frate.split(":");
+    state.foods[id] = Object.assign({}, state.foods[id], {rating:+n});
+    Store.save(); sheetFood(id); render(); return;
+  }
+
+  const rr = e.target.closest("[data-rrate]");
+  if(rr){
+    const [id,n] = rr.dataset.rrate.split(":");
+    recipe(id).rating = +n;
+    sheetRecipe(id); render(); return;
+  }
+
+  if(e.target.id === "scrim") closeSheet();
+});
+
+document.addEventListener("keydown", e=>{
+  const si = e.target.closest && e.target.closest("[data-srcsearch]");
+  if(si && e.key === "Enter"){
+    const src = SOURCES.find(x=>x.id===si.dataset.srcsearch);
+    const q = si.value.trim();
+    window.open(q ? src.search(q) : src.url, "_blank", "noopener");
+  }
+});
+
+let noteTimer;
+document.addEventListener("input", e=>{
+  const t = e.target.closest && e.target.closest("[data-lognote]");
+  if(!t) return;
+  const k = t.dataset.lognote;
+  state.logs[k] = Object.assign({}, state.logs[k], {note: t.value});
+  clearTimeout(noteTimer);
+  noteTimer = setTimeout(()=>Store.save(), 600);
+});
+
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeSheet(); });
+
+(async function init(){
+  const saved = await Store.load();
+  if(saved) state = Object.assign(state, saved);
+  render();
+})();
+</script>
+</body>
+</html>

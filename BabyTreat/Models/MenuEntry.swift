@@ -1,0 +1,79 @@
+import Foundation
+import SwiftData
+
+enum MealSlot: String, Codable, CaseIterable, Identifiable {
+    case breakfast = "md"
+    case lunch     = "pranz"
+    case dinner    = "cina"
+    case snack     = "gustare"
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .breakfast: "Breakfast"
+        case .lunch:     "Lunch"
+        case .dinner:    "Dinner"
+        case .snack:     "Snack"
+        }
+    }
+
+    var short: String {
+        switch self {
+        case .breakfast: "BF"
+        case .lunch:     "LU"
+        case .dinner:    "DI"
+        case .snack:     "SN"
+        }
+    }
+
+    /// Months completed before this slot unlocks. `nil` means no date has been
+    /// set yet — snack is still open (OQ-2), so it never unlocks on its own.
+    var unlocksAtMonths: Int? {
+        switch self {
+        case .breakfast, .lunch: 0
+        case .dinner:            8
+        case .snack:             nil
+        }
+    }
+
+    func isUnlocked(atAgeMonths months: Int) -> Bool {
+        guard let unlocksAtMonths else { return false }
+        return months >= unlocksAtMonths
+    }
+}
+
+@Model
+final class MenuEntry {
+    /// Normalised to start-of-day so `date + slot` is a stable key.
+    var date: Date
+    var slotRaw: String
+    var dish: String
+    var foodIDs: [String]
+    var recipeID: String?
+    /// Marks the planned first exposure to a food — drives the "one new food per
+    /// day" rule and the introduction history.
+    var isNewFood: Bool
+
+    init(
+        date: Date,
+        slot: MealSlot,
+        dish: String,
+        foodIDs: [String],
+        recipeID: String? = nil,
+        isNewFood: Bool = false,
+        calendar: Calendar = .current
+    ) {
+        self.date = calendar.startOfDay(for: date)
+        self.slotRaw = slot.rawValue
+        self.dish = dish
+        self.foodIDs = foodIDs
+        self.recipeID = recipeID
+        self.isNewFood = isNewFood
+    }
+
+    var slot: MealSlot {
+        get { MealSlot(rawValue: slotRaw) ?? .lunch }
+        set { slotRaw = newValue.rawValue }
+    }
+}

@@ -8,6 +8,9 @@ struct BabyTreatApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: [Medicine.self, TemperatureReading.self, SleepRecord.self, PlaytimeRecord.self, NursingRecord.self])
+        .modelContainer(for: [
+            Medicine.self, TemperatureReading.self, SleepRecord.self, PlaytimeRecord.self, NursingRecord.self,
+            Food.self, Recipe.self, MenuEntry.self, MealLog.self, ShoppingItem.self,
+        ])
     }
 }

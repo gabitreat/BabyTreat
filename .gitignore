@@ -15,10 +15,10 @@ DerivedData/
 .build/
 .swiftpm/
 
-# Tuist generated artifacts
-*.xcodeproj
-*.xcworkspace
-Derived/
+# Tuist is retired for now (D-13) — the .xcodeproj is the source of truth and is
+# tracked. Derived/ holds generated sources the project compiles, so it is
+# tracked too. Do NOT run `tuist generate`: it would overwrite the real project.
+# Project.swift / Package.swift are kept for reference only.
 graph.png
 
 # Claude Code local settings
