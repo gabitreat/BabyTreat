@@ -22,11 +22,6 @@ struct GridView: View {
                         GridButton(title: "Nursing", color: .blue, destination: NursingView())
                         GridButton(title: "Formula", color: .teal, destination: FormulaView())
                     }
-
-                    // Meals spans the full width — it is a whole section, not a
-                    // single logging action like the tiles above.
-                    GridButton(title: "Meals", color: MealTheme.malachite, destination: MealsView())
-                        .frame(maxHeight: .infinity)
                 }
                 .ignoresSafeArea()
 
