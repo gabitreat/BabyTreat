@@ -326,7 +326,7 @@ enum MealSeed {
         foods().forEach { context.insert($0) }
         recipes().forEach { context.insert($0) }
         menu().forEach { context.insert($0) }
-        shopping(weekStart: MealRules.mondayOf(.now)).forEach { context.insert($0) }
+        shopping(weekStart: MealRules.shoppingWeekStart(for: .now)).forEach { context.insert($0) }
 
         try? context.save()
         UserDefaults.standard.set(version, forKey: versionKey)
