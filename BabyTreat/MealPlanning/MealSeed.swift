@@ -276,24 +276,65 @@ enum MealSeed {
 
     static let shoppingCategories = ["Vegetables", "Fruit", "Protein", "Pantry"]
 
-    static func shopping(weekStart: Date) -> [ShoppingItem] {
-        let list: [(String, [(String, String)])] = [
-            ("Vegetables", [("Broccoli", "3 heads"), ("Zucchini", "3"), ("White potato", "1 kg"), ("Sweet potato", "3"),
-                            ("Celeriac", "1 root"), ("Bell pepper", "1"), ("Garlic", "1 bulb"), ("Avocado", "2")]),
-            ("Fruit", [("Peach", "2"), ("Banana", "3"), ("Blueberries", "1 punnet"), ("Mango", "1"),
-                       ("Pear", "2"), ("Watermelon", "1 slice"), ("Apple", "2")]),
-            ("Protein", [("Turkey breast", "250 g"), ("Salmon fillet", "200 g"), ("Chicken breast", "250 g"),
-                         ("Eggs", "6"), ("Red lentils", "1 bag")]),
-            ("Pantry", [("Fine oat flakes", "1 bag"), ("HiPP cereal", "1 box"), ("100% peanut butter", "1 jar"),
-                        ("Coconut milk", "1 tin"), ("Olive oil", "—")]),
-        ]
+    /// Typical amounts for a week, by food ID. A food with no hint falls back to
+    /// the number of meals it appears in — better an honest "2 meals" than a
+    /// made-up weight.
+    static let quantityHints: [String: String] = [
+        "broccoli": "3 heads", "dovlecel": "3", "cartof": "1 kg", "cartofd": "3",
+        "telina": "1 root", "ardei": "1", "usturoi": "1 bulb", "avocado": "2",
+        "piersica": "2", "banana": "3", "afine": "1 punnet", "mango": "1",
+        "para": "2", "pepene": "1 slice", "mar": "2",
+        "curcan": "250 g", "somon": "200 g", "pui": "250 g", "ou": "6",
+        "linte": "1 bag", "vita": "250 g",
+        "ovaz": "1 bag", "hipp": "1 box", "arahide": "1 jar",
+    ]
 
-        return list.flatMap { category, items in
-            items.map {
-                ShoppingItem(category: category, name: $0.0, quantity: $0.1,
-                             weekStart: weekStart, calendar: MealRules.calendar)
-            }
+    /// Recipe ingredients that are not modelled as foods, so the menu can never
+    /// surface them. Always on the list.
+    static let pantryStaples: [(name: String, quantity: String)] = [
+        ("Olive oil", "—"),
+        ("Coconut milk", "1 tin"),
+    ]
+
+    /// Which shopping section a food belongs under. Planned foods have no
+    /// section of their own — a new vegetable is shopped for as a vegetable.
+    static func shoppingCategory(for food: Food) -> String {
+        switch food.category {
+        case categoryVegetables: return "Vegetables"
+        case categoryFruit:      return "Fruit"
+        case categoryProtein:    return "Protein"
+        case categoryGrains, categoryFats: return "Pantry"
+        default: break
         }
+        switch food.kind {
+        case .veg:      return "Vegetables"
+        case .fruct:    return "Fruit"
+        case .proteina: return "Protein"
+        default:        return "Pantry"
+        }
+    }
+
+    /// Builds the week's list from the week's menu, so newly introduced foods —
+    /// the whole point of planning ahead — are actually bought.
+    static func shopping(weekStart: Date, menu: [MenuEntry], foodsByID: [String: Food]) -> [ShoppingItem] {
+        var items = MealRules.foodsUsed(weekStart: weekStart, menu: menu).compactMap { used -> ShoppingItem? in
+            guard let food = foodsByID[used.id] else { return nil }
+            let quantity = quantityHints[food.id] ?? "\(used.meals) meal\(used.meals == 1 ? "" : "s")"
+            return ShoppingItem(
+                category: shoppingCategory(for: food),
+                name: food.name,
+                quantity: quantity,
+                weekStart: weekStart,
+                foodID: food.id,
+                calendar: MealRules.calendar
+            )
+        }
+
+        items += pantryStaples.map {
+            ShoppingItem(category: "Pantry", name: $0.name, quantity: $0.quantity,
+                         weekStart: weekStart, calendar: MealRules.calendar)
+        }
+        return items
     }
 
     // MARK: - Install
@@ -323,10 +364,15 @@ enum MealSeed {
             try? context.delete(model: ShoppingItem.self)
         }
 
-        foods().forEach { context.insert($0) }
+        let seedFoods = foods()
+        let seedMenu = menu()
+        seedFoods.forEach { context.insert($0) }
         recipes().forEach { context.insert($0) }
-        menu().forEach { context.insert($0) }
-        shopping(weekStart: MealRules.shoppingWeekStart(for: .now)).forEach { context.insert($0) }
+        seedMenu.forEach { context.insert($0) }
+
+        let byID = Dictionary(seedFoods.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        shopping(weekStart: MealRules.shoppingWeekStart(for: .now), menu: seedMenu, foodsByID: byID)
+            .forEach { context.insert($0) }
 
         try? context.save()
         UserDefaults.standard.set(version, forKey: versionKey)

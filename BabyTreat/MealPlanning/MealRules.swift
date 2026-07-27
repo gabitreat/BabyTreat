@@ -378,6 +378,31 @@ enum MealRules {
         return WeekIntroductions(newVegetable: newVeg, newFruit: newFruit, crowdedDays: Array(crowded))
     }
 
+    // MARK: - Shopping
+
+    /// Every food the week's menu actually calls for, with how many meals it
+    /// appears in, in first-appearance order.
+    ///
+    /// The shopping list has to be derived from the plan rather than fixed, or
+    /// it silently omits exactly the foods that need buying — the new
+    /// introductions, which by definition were never on last week's list.
+    static func foodsUsed(weekStart: Date, menu: [MenuEntry]) -> [(id: String, meals: Int)] {
+        let start = mondayOf(weekStart)
+        let end = addDays(6, to: start)
+
+        var order: [String] = []
+        var counts: [String: Int] = [:]
+        for entry in menu.sorted(by: { ($0.date, $0.slot.displayOrder) < ($1.date, $1.slot.displayOrder) }) {
+            let day = startOfDay(entry.date)
+            guard day >= start, day <= end else { continue }
+            for id in entry.foodIDs {
+                if counts[id] == nil { order.append(id) }
+                counts[id, default: 0] += 1
+            }
+        }
+        return order.map { (id: $0, meals: counts[$0] ?? 0) }
+    }
+
     // MARK: - Protein rotation
 
     static let rotationProteins = ["pui", "curcan", "somon", "vita", "ou", "linte"]

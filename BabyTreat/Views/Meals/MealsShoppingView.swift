@@ -4,8 +4,40 @@ import SwiftData
 struct MealsShoppingView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var items: [ShoppingItem]
+    @Query private var menu: [MenuEntry]
+    @Query private var foods: [Food]
 
     private static let order = MealSeed.shoppingCategories
+
+    private var foodsByID: [String: Food] {
+        Dictionary(foods.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+    }
+
+    /// True once the shown list was built from a menu, so its lines carry food
+    /// IDs and can be diffed against the plan.
+    private var isMenuDerived: Bool {
+        listItems.contains { $0.foodID != nil }
+    }
+
+    /// Foods this week's menu calls for that are not on the list yet. This is
+    /// what catches the new introductions — they were never on last week's list,
+    /// so a carried-over list is always missing exactly them.
+    ///
+    /// Only meaningful for a menu-derived list. A hand-written or legacy list is
+    /// not diffed at all rather than guessed at.
+    private var missingFoods: [Food] {
+        guard isMenuDerived else { return [] }
+        let onList = Set(listItems.compactMap(\.foodID))
+        return MealRules.foodsUsed(weekStart: currentWeek, menu: menu)
+            .filter { !onList.contains($0.id) }
+            .compactMap { foodsByID[$0.id] }
+    }
+
+    /// Foods on this week's menu at all — used to tell the user what a rebuild
+    /// would give them, when the current list cannot be diffed.
+    private var weekFoodCount: Int {
+        MealRules.foodsUsed(weekStart: currentWeek, menu: menu).count
+    }
 
     /// The week we are shopping *for* right now.
     private var currentWeek: Date { MealRules.shoppingWeekStart(for: .now) }
@@ -54,6 +86,43 @@ struct MealsShoppingView: View {
                             Button("Create from the base list") { startList(for: currentWeek) }
                                 .font(.system(size: 13.5, weight: .semibold))
                                 .foregroundStyle(MealTheme.lagoon)
+                        }
+                    }
+                }
+
+                if !listItems.isEmpty, !isMenuDerived, weekFoodCount > 0 {
+                    MealCard(background: MealTheme.marigoldSoft, border: MealTheme.marigold.opacity(0.45)) {
+                        VStack(alignment: .leading, spacing: 9) {
+                            Eyebrow(text: "Not linked to the menu", color: MealTheme.sugar)
+                            Text("This list was written before lists were built from the week's menu, so it can't be checked against the plan — including this week's new foods. Rebuilding covers all \(weekFoodCount) foods on the menu, but clears what you've ticked.")
+                                .font(.system(size: 13))
+                                .foregroundStyle(MealTheme.muted)
+                            Button("Rebuild from this week's menu") { startList(for: currentWeek) }
+                                .font(.system(size: 13.5, weight: .semibold))
+                                .foregroundStyle(MealTheme.sugar)
+                        }
+                    }
+                }
+
+                if !listItems.isEmpty, !missingFoods.isEmpty {
+                    MealCard(background: MealTheme.marigoldSoft, border: MealTheme.marigold.opacity(0.45)) {
+                        VStack(alignment: .leading, spacing: 9) {
+                            Eyebrow(text: "On the menu, not on the list", color: MealTheme.sugar)
+                            ForEach(missingFoods) { food in
+                                HStack(spacing: 9) {
+                                    Circle().fill(food.color).frame(width: 11, height: 11)
+                                    Text(food.name)
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(MealTheme.ink)
+                                    if food.status == .planned {
+                                        MealBadge(text: "new food", tint: MealTheme.sugar, soft: .white)
+                                    }
+                                    Spacer()
+                                }
+                            }
+                            Button("Add \(missingFoods.count == 1 ? "it" : "them") to the list") { addMissing() }
+                                .font(.system(size: 13.5, weight: .semibold))
+                                .foregroundStyle(MealTheme.sugar)
                         }
                     }
                 }
@@ -121,7 +190,32 @@ struct MealsShoppingView: View {
     /// weeks ago is noise, not history.
     private func startList(for week: Date) {
         for item in listItems { modelContext.delete(item) }
-        MealSeed.shopping(weekStart: week).forEach { modelContext.insert($0) }
+        MealSeed.shopping(weekStart: week, menu: menu, foodsByID: foodsByID)
+            .forEach { modelContext.insert($0) }
+        try? modelContext.save()
+    }
+
+    /// Adds only what is missing, onto the list as it stands — so the ticks
+    /// already made survive.
+    private func addMissing() {
+        guard let activeWeek else { return }
+        let counts = Dictionary(
+            MealRules.foodsUsed(weekStart: currentWeek, menu: menu).map { ($0.id, $0.meals) },
+            uniquingKeysWith: { a, _ in a }
+        )
+        for food in missingFoods {
+            let meals = counts[food.id] ?? 1
+            modelContext.insert(
+                ShoppingItem(
+                    category: MealSeed.shoppingCategory(for: food),
+                    name: food.name,
+                    quantity: MealSeed.quantityHints[food.id] ?? "\(meals) meal\(meals == 1 ? "" : "s")",
+                    weekStart: activeWeek,
+                    foodID: food.id,
+                    calendar: MealRules.calendar
+                )
+            )
+        }
         try? modelContext.save()
     }
 }
