@@ -42,25 +42,12 @@ struct MealsShoppingView: View {
     /// The week we are shopping *for* right now.
     private var currentWeek: Date { MealRules.shoppingWeekStart(for: .now) }
 
-    /// The list to show. Deliberately **not** an exact match on the current
-    /// week: the newest list at or before this week stays on screen until a new
-    /// one is started, so it remains available all week instead of vanishing the
-    /// moment the week rolls over. Falls back to the earliest list if only
-    /// future-dated ones exist.
-    private var activeWeek: Date? {
-        let weeks = Set(items.map { MealRules.startOfDay($0.weekStart) })
-        guard !weeks.isEmpty else { return nil }
-        return weeks.filter { $0 <= currentWeek }.max() ?? weeks.min()
-    }
-
+    /// The list is scoped strictly to the current shopping week. It is not
+    /// carried over: when the week turns, `ensureCurrentWeekList` builds a new
+    /// one from the new week's menu. Within the week it persists untouched, so
+    /// ticks survive.
     private var listItems: [ShoppingItem] {
-        guard let activeWeek else { return [] }
-        return items.filter { MealRules.startOfDay($0.weekStart) == activeWeek }
-    }
-
-    private var isStale: Bool {
-        guard let activeWeek else { return false }
-        return activeWeek < currentWeek
+        items.filter { MealRules.startOfDay($0.weekStart) == currentWeek }
     }
 
     private var grouped: [(category: String, items: [ShoppingItem])] {
@@ -79,28 +66,9 @@ struct MealsShoppingView: View {
 
                 if listItems.isEmpty {
                     MealCard(background: MealTheme.lagoonSoft, border: MealTheme.lagoon.opacity(0.3)) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("No list yet.")
-                                .font(.system(size: 14))
-                                .foregroundStyle(MealTheme.muted)
-                            Button("Create from the base list") { startList(for: currentWeek) }
-                                .font(.system(size: 13.5, weight: .semibold))
-                                .foregroundStyle(MealTheme.lagoon)
-                        }
-                    }
-                }
-
-                if !listItems.isEmpty, !isMenuDerived, weekFoodCount > 0 {
-                    MealCard(background: MealTheme.marigoldSoft, border: MealTheme.marigold.opacity(0.45)) {
-                        VStack(alignment: .leading, spacing: 9) {
-                            Eyebrow(text: "Not linked to the menu", color: MealTheme.sugar)
-                            Text("This list was written before lists were built from the week's menu, so it can't be checked against the plan — including this week's new foods. Rebuilding covers all \(weekFoodCount) foods on the menu, but clears what you've ticked.")
-                                .font(.system(size: 13))
-                                .foregroundStyle(MealTheme.muted)
-                            Button("Rebuild from this week's menu") { startList(for: currentWeek) }
-                                .font(.system(size: 13.5, weight: .semibold))
-                                .foregroundStyle(MealTheme.sugar)
-                        }
+                        Text("Nothing planned for this week yet. Plan the week in the Week tab and the list builds itself.")
+                            .font(.system(size: 14))
+                            .foregroundStyle(MealTheme.muted)
                     }
                 }
 
@@ -143,7 +111,7 @@ struct MealsShoppingView: View {
                         MealCard(background: .white, dashed: true) {
                             HStack(spacing: 8) {
                                 Image(systemName: "arrow.clockwise")
-                                Text(isStale ? "Start this week's list" : "Start a fresh list")
+                                Text("Rebuild from this week's menu")
                                     .fontWeight(.semibold)
                                 Spacer()
                             }
@@ -157,6 +125,7 @@ struct MealsShoppingView: View {
             .padding(.horizontal, MealTheme.pad)
             .padding(.vertical, 20)
         }
+        .task { ensureCurrentWeekList() }
     }
 
     private var header: some View {
@@ -165,16 +134,9 @@ struct MealsShoppingView: View {
                 Text("Shopping list")
                     .font(.system(size: 17, weight: .bold))
                     .foregroundStyle(MealTheme.ink)
-                if let activeWeek {
-                    HStack(spacing: 6) {
-                        Text("week of \(activeWeek.mealDayLabel)")
-                            .font(.system(size: 12))
-                            .foregroundStyle(MealTheme.muted)
-                        if isStale {
-                            MealBadge(text: "carried over", tint: MealTheme.sugar, soft: MealTheme.sugarSoft)
-                        }
-                    }
-                }
+                Text("week of \(currentWeek.mealDayLabel)")
+                    .font(.system(size: 12))
+                    .foregroundStyle(MealTheme.muted)
             }
             Spacer()
             if !listItems.isEmpty {
@@ -185,9 +147,34 @@ struct MealsShoppingView: View {
         }
     }
 
-    /// Replaces the shown list with a fresh, unchecked one for `week`. The old
-    /// list is removed rather than accumulating — a half-ticked list from three
-    /// weeks ago is noise, not history.
+    /// Runs whenever the tab is opened. Builds this week's list if there isn't
+    /// one, and clears out lists from weeks already gone — a shopping list is
+    /// for shopping, not a record, and a stack of half-ticked old ones is noise.
+    ///
+    /// Note this flips on **Sunday**, not Monday: `shoppingWeekStart` treats
+    /// Sunday as belonging to the week ahead, so the new list is ready on the
+    /// planning day rather than appearing after the shopping is done.
+    private func ensureCurrentWeekList() {
+        var changed = false
+
+        for item in items where MealRules.startOfDay(item.weekStart) < currentWeek {
+            modelContext.delete(item)
+            changed = true
+        }
+
+        // Only build once the week actually has a menu — otherwise the list
+        // would be two pantry staples and nothing else, which reads as broken.
+        if listItems.isEmpty, weekFoodCount > 0 {
+            MealSeed.shopping(weekStart: currentWeek, menu: menu, foodsByID: foodsByID)
+                .forEach { modelContext.insert($0) }
+            changed = true
+        }
+
+        if changed { try? modelContext.save() }
+    }
+
+    /// Replaces this week's list with a fresh, unchecked one — for when the
+    /// menu changed enough that patching in the missing lines isn't worth it.
     private func startList(for week: Date) {
         for item in listItems { modelContext.delete(item) }
         MealSeed.shopping(weekStart: week, menu: menu, foodsByID: foodsByID)
@@ -198,7 +185,6 @@ struct MealsShoppingView: View {
     /// Adds only what is missing, onto the list as it stands — so the ticks
     /// already made survive.
     private func addMissing() {
-        guard let activeWeek else { return }
         let counts = Dictionary(
             MealRules.foodsUsed(weekStart: currentWeek, menu: menu).map { ($0.id, $0.meals) },
             uniquingKeysWith: { a, _ in a }
@@ -210,7 +196,7 @@ struct MealsShoppingView: View {
                     category: MealSeed.shoppingCategory(for: food),
                     name: food.name,
                     quantity: MealSeed.quantityHints[food.id] ?? "\(meals) meal\(meals == 1 ? "" : "s")",
-                    weekStart: activeWeek,
+                    weekStart: currentWeek,
                     foodID: food.id,
                     calendar: MealRules.calendar
                 )
