@@ -11,9 +11,13 @@ struct MealsWeekView: View {
 
     @State private var weekOffset = 0
     @State private var editTarget: MealEditTarget?
+    /// What the planner did, last time it was asked. Cleared once it is read.
+    @State private var planNotes: [String] = []
 
     private var today: Date { MealRules.startOfDay(.now) }
-    private var weekStart: Date { MealRules.addDays(weekOffset * 7, to: MealRules.mondayOf(today)) }
+    /// Opens on the week being planned *for*, which from Sunday is next week —
+    /// the same turnover the shopping list uses.
+    private var weekStart: Date { MealRules.addDays(weekOffset * 7, to: MealRules.planningWeekStart(for: today)) }
     private var weekEnd: Date { MealRules.addDays(6, to: weekStart) }
     private var months: Int { MealRules.ageMonths(on: weekStart, birthDate: birthDate) }
     private var activeSlots: [MealSlot] { MealRules.activeSlots(atAgeMonths: months) }
@@ -34,6 +38,7 @@ struct MealsWeekView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
                 weekPicker
+                planner
                 proposals
                 nutritionSummary
                 days
@@ -41,6 +46,7 @@ struct MealsWeekView: View {
             .padding(.horizontal, MealTheme.pad)
             .padding(.vertical, 20)
         }
+        .onChange(of: weekOffset) { planNotes = [] }
         .sheet(item: $editTarget) { target in
             MealEditSheet(
                 date: target.date,
@@ -54,6 +60,7 @@ struct MealsWeekView: View {
                         entry.foodIDs = foodIDs
                         entry.recipeID = recipeID
                         entry.isNewFood = isNew
+                        entry.markEditedByHand()
                     } else {
                         modelContext.insert(
                             MenuEntry(date: target.date, slot: target.slot, dish: dish, foodIDs: foodIDs,
@@ -79,8 +86,8 @@ struct MealsWeekView: View {
                 Text("\(weekStart.mealDayLabel) – \(weekEnd.mealDayLabel)")
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(MealTheme.ink)
-                if weekOffset == 0 {
-                    Text("current week")
+                if let caption = weekCaption {
+                    Text(caption)
                         .font(.system(size: 11.5))
                         .foregroundStyle(MealTheme.muted)
                 }
@@ -89,6 +96,93 @@ struct MealsWeekView: View {
             Button { weekOffset += 1 } label: { Image(systemName: "chevron.right") }
         }
         .foregroundStyle(MealTheme.lagoon)
+    }
+
+    /// On Sunday the tab already shows next week, so "current week" would be a
+    /// lie — say which week it is instead.
+    private var weekCaption: String? {
+        if weekStart == MealRules.mondayOf(today) { return "current week" }
+        if weekOffset == 0 { return "the week ahead" }
+        return nil
+    }
+
+    // MARK: - Planner
+
+    /// Empty slots in unlocked meals — what the planner would fill.
+    private var emptySlotCount: Int {
+        (0..<7).reduce(0) { total, offset in
+            let day = MealRules.addDays(offset, to: weekStart)
+            let planned = Set(weekEntries.filter { MealRules.startOfDay($0.date) == day }.map(\.slotRaw))
+            return total + activeSlots.filter { !planned.contains($0.rawValue) }.count
+        }
+    }
+
+    private var generatedCount: Int { weekEntries.filter(\.wasGenerated).count }
+
+    /// Planning a week that has already been eaten is not useful, and would
+    /// rewrite the record the allergen and rotation checks read from.
+    private var isPlannable: Bool { weekStart >= MealRules.planningWeekStart(for: today) }
+
+    @ViewBuilder
+    private var planner: some View {
+        if isPlannable, emptySlotCount > 0 || generatedCount > 0 || !planNotes.isEmpty {
+            MealCard(background: .white, border: MealTheme.lagoon.opacity(0.35)) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "wand.and.stars")
+                            .foregroundStyle(MealTheme.lagoon)
+                        Text(emptySlotCount > 0 ? "Plan this week" : "Planned automatically")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundStyle(MealTheme.ink)
+                        Spacer()
+                    }
+
+                    Text(emptySlotCount > 0
+                         ? "Fills \(emptySlotCount) empty \(emptySlotCount == 1 ? "meal" : "meals") using the rules below: a new vegetable and a new fruit, the 7-day allergen loop, protein rotation, and foods due back."
+                         : "Meals you edit are yours — planning again keeps them and rebuilds the rest.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(MealTheme.muted)
+
+                    if !planNotes.isEmpty {
+                        VStack(alignment: .leading, spacing: 6) {
+                            ForEach(planNotes, id: \.self) { note in
+                                HStack(alignment: .top, spacing: 7) {
+                                    Circle().fill(MealTheme.lagoon).frame(width: 5, height: 5)
+                                        .padding(.top, 6)
+                                    Text(note)
+                                        .font(.system(size: 12.5))
+                                        .foregroundStyle(MealTheme.ink)
+                                    Spacer(minLength: 0)
+                                }
+                            }
+                        }
+                        .padding(.top, 2)
+                    }
+
+                    HStack(spacing: 16) {
+                        if emptySlotCount > 0 {
+                            Button("Plan \(emptySlotCount) \(emptySlotCount == 1 ? "meal" : "meals")") {
+                                run { MealPlanner.fill(weekStart: weekStart, birthDate: birthDate, in: modelContext) }
+                            }
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(MealTheme.lagoon)
+                        }
+                        if generatedCount > 0 {
+                            Button("Plan again") {
+                                run { MealPlanner.replan(weekStart: weekStart, birthDate: birthDate, in: modelContext) }
+                            }
+                            .font(.system(size: 14, weight: emptySlotCount > 0 ? .regular : .semibold))
+                            .foregroundStyle(emptySlotCount > 0 ? MealTheme.muted : MealTheme.lagoon)
+                        }
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+
+    private func run(_ planning: () -> MealPlanner.Plan) {
+        planNotes = planning().notes
     }
 
     // MARK: - Proposals

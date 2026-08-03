@@ -30,10 +30,13 @@ enum MealRules {
         return calendar.date(byAdding: .day, value: -offset, to: day) ?? day
     }
 
-    /// Which week a shopping list belongs to. Sunday is the planning day, so a
-    /// list made on Sunday is for the week that *starts tomorrow*, not the week
-    /// that is ending — `mondayOf` alone files it six days into the past.
-    static func shoppingWeekStart(for date: Date) -> Date {
+    /// The week currently being planned *for*. Sunday is the planning day, so
+    /// from Sunday this is the week that starts tomorrow, not the week that is
+    /// ending — `mondayOf` alone files Sunday six days into the past.
+    ///
+    /// The menu and the shopping list both turn over on this, so the new week's
+    /// meals and the list to shop for them appear together.
+    static func planningWeekStart(for date: Date) -> Date {
         let day = startOfDay(date)
         if calendar.component(.weekday, from: day) == 1 {    // Sunday
             return mondayOf(addDays(1, to: day))

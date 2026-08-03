@@ -173,6 +173,7 @@ struct MealsTodayView: View {
             entry.foodIDs = foodIDs
             entry.recipeID = recipeID
             entry.isNewFood = isNew
+            entry.markEditedByHand()
         } else {
             modelContext.insert(
                 MenuEntry(date: target.date, slot: target.slot, dish: dish, foodIDs: foodIDs,

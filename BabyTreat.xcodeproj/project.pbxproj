@@ -43,6 +43,7 @@
 		2E51B2DC2314D9FC17E0F3AB /* MealsShoppingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B102F49EE81C19F14D5FE73 /* MealsShoppingView.swift */; };
 		FC215E74DB6870806219081D /* MealEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67799169630E818D0A190FB1 /* MealEditSheet.swift */; };
 		EA64EC9850300D2DF612D500 /* MealLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E388206D56246112A83362 /* MealLogSheet.swift */; };
+		9D02FB3E27F2CEFDAEEB0BF6 /* MealPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C72BC7CA2177800935A9713 /* MealPlanner.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -95,6 +96,7 @@
 		5B102F49EE81C19F14D5FE73 /* MealsShoppingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsShoppingView.swift; sourceTree = "<group>"; };
 		67799169630E818D0A190FB1 /* MealEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealEditSheet.swift; sourceTree = "<group>"; };
 		68E388206D56246112A83362 /* MealLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealLogSheet.swift; sourceTree = "<group>"; };
+		8C72BC7CA2177800935A9713 /* MealPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -217,6 +219,7 @@
 		AA705FE705C2E79D900A9C73 /* MealPlanning */ = {
 			isa = PBXGroup;
 			children = (
+				8C72BC7CA2177800935A9713 /* MealPlanner.swift */,
 				717F719308068A4FE0A13053 /* MealTheme.swift */,
 				63A80E6A34243F21F6F34399 /* MealRules.swift */,
 				A1F2EACA760862AC52E5C47B /* MealSeed.swift */,
@@ -297,6 +300,7 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				9D02FB3E27F2CEFDAEEB0BF6 /* MealPlanner.swift in Sources */,
 				FC215E74DB6870806219081D /* MealEditSheet.swift in Sources */,
 				EA64EC9850300D2DF612D500 /* MealLogSheet.swift in Sources */,
 				951FC375BF5F522DF604D0F6 /* Food.swift in Sources */,

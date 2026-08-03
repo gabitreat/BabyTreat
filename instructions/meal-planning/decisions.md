@@ -23,6 +23,54 @@ is usually the interesting part.
 
 ---
 
+## D-15 · 2026-08-03 · The week is generated from the existing rules, not new ones
+
+`MealPlanner` builds a week of meals. It adds **no nutrition rules of its own** —
+every decision it makes is one of the rules already in `MealRules`, and it
+verifies its own output with `weekNutrition` and `lunchGaps` rather than
+asserting correctness because it followed them.
+
+**Constraints it applies, in the order it resolves them:**
+
+1. Allergen days first — each allergen lands on the day its 7-day loop falls due,
+   clamped into the week, and no two share a day.
+2. Introductions next — the new vegetable and new fruit from `suggestNewFood`,
+   spaced apart and kept **off** allergen days.
+3. Protein rotation — spread first, longest-unserved next, never the same
+   protein two days running.
+4. Lunch composition, then the daily targets (animal-source food, fruit and
+   vegetable, iron), then the starch-free heuristic.
+
+**Deliberate properties:**
+
+- **Deterministic.** Same inputs, same week. A plan that cannot be re-derived
+  cannot be argued with.
+- **Only fills empty slots.** A meal written or edited by hand is never
+  overwritten; `MenuEntry.isGenerated` is cleared the moment one is edited, and
+  "Plan again" only discards meals that still carry the flag.
+- **Auto-runs once per week**, when the Meals section opens, and only if the week
+  ahead is completely empty. A week deliberately cleared stays cleared.
+
+**Known-soft:** dinner composition. `rules.md` specifies only lunch, so a
+generated dinner is a vegetable, a starch and oil — the day's protein and
+animal-source food come from lunch. This is a choice, not a rule; it needs
+confirming before dinner unlocks on 2026-08-23.
+
+**Where:** `BabyTreat/MealPlanning/MealPlanner.swift`, `MealsWeekView.planner`
+
+## D-16 · 2026-08-03 · Menu and shopping list share one week turnover, on Sunday
+
+`shoppingWeekStart` became `planningWeekStart` and now drives the Week tab, the
+auto-planner and the shopping list alike. From Sunday it means the week that
+starts tomorrow.
+
+**Why:** Sunday is the planning day. A list that appears on Monday arrives after
+the shopping, and a menu that turns over on a different day from the list it is
+built from is how the list ends up missing the week's new foods.
+
+**Where:** `MealRules.planningWeekStart(for:)`, `MealsWeekView.weekStart`,
+`MealsShoppingView.currentWeek`
+
 ## D-7 · 2026-07-26 · Meal planning ships inside the BabyTreat iOS app
 
 Resolves OQ-4. Not a separate app, not a web tool.

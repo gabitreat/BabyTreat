@@ -66,6 +66,12 @@ final class MenuEntry {
     /// Marks the planned first exposure to a food — drives the "one new food per
     /// day" rule and the introduction history.
     var isNewFood: Bool
+    /// Set by `MealPlanner`, cleared the moment the meal is edited by hand.
+    /// Re-planning a week only throws away meals that still carry it.
+    ///
+    /// Optional so stores written before the planner existed migrate cleanly;
+    /// read it through `wasGenerated`.
+    var isGenerated: Bool?
 
     init(
         date: Date,
@@ -88,4 +94,10 @@ final class MenuEntry {
         get { MealSlot(rawValue: slotRaw) ?? .lunch }
         set { slotRaw = newValue.rawValue }
     }
+
+    var wasGenerated: Bool { isGenerated ?? false }
+
+    /// Call from every edit path. A meal the caregiver has touched is theirs,
+    /// and must survive a re-plan.
+    func markEditedByHand() { isGenerated = false }
 }

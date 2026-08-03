@@ -40,7 +40,7 @@ struct MealsShoppingView: View {
     }
 
     /// The week we are shopping *for* right now.
-    private var currentWeek: Date { MealRules.shoppingWeekStart(for: .now) }
+    private var currentWeek: Date { MealRules.planningWeekStart(for: .now) }
 
     /// The list is scoped strictly to the current shopping week. It is not
     /// carried over: when the week turns, `ensureCurrentWeekList` builds a new
@@ -151,9 +151,10 @@ struct MealsShoppingView: View {
     /// one, and clears out lists from weeks already gone — a shopping list is
     /// for shopping, not a record, and a stack of half-ticked old ones is noise.
     ///
-    /// Note this flips on **Sunday**, not Monday: `shoppingWeekStart` treats
+    /// Note this flips on **Sunday**, not Monday: `planningWeekStart` treats
     /// Sunday as belonging to the week ahead, so the new list is ready on the
-    /// planning day rather than appearing after the shopping is done.
+    /// planning day rather than appearing after the shopping is done. The menu
+    /// turns over on the same rule, so the list is built from the right week.
     private func ensureCurrentWeekList() {
         var changed = false
 

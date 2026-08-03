@@ -371,7 +371,7 @@ enum MealSeed {
         seedMenu.forEach { context.insert($0) }
 
         let byID = Dictionary(seedFoods.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
-        shopping(weekStart: MealRules.shoppingWeekStart(for: .now), menu: seedMenu, foodsByID: byID)
+        shopping(weekStart: MealRules.planningWeekStart(for: .now), menu: seedMenu, foodsByID: byID)
             .forEach { context.insert($0) }
 
         try? context.save()

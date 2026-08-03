@@ -100,6 +100,38 @@ Protein rotation across: pui, curcan, somon, vită, ou, linte. L1142.
 | Iaurt, Brânză de vaci | Hold until 2026-08-23 (APLV) | L543–544 |
 | Vită | Cleared by the doctor on 24 July. First portion Monday 27 July. | L518–519 |
 
+## Generating a week
+
+`MealPlanner` (D-15) composes the rules above into a week. It introduces nothing
+new — the order it resolves them in is the only thing it adds:
+
+1. **Allergen days.** Each allergen goes on the day its 7-day loop falls due,
+   clamped into the week. No two share a day, so a reaction stays attributable.
+2. **Introductions.** New vegetable and new fruit from `suggestNew`, spaced
+   apart and kept off allergen days.
+3. **Protein rotation.** Least-used this week, then longest-unserved; never the
+   same protein two days running. A lentil lunch gets a non-allergen meat
+   alongside it, because lentils are the one rotation protein that is not an
+   animal-source food.
+4. **Composition.** Lunch = protein + vegetable + fat. Three lunches are planned
+   starch-free (see § Known-soft rules).
+5. **Iron.** Salmon is the one rotation protein without iron, so a salmon day
+   gets the iron-fortified cereal at breakfast.
+
+It fills empty slots only, and checks the finished week with `weekNutrition`
+before reporting on it.
+
+**Dinner composition is not specified anywhere.** Until it is, a generated
+dinner is a vegetable, a starch and oil, with the day's protein coming from
+lunch. Dinner unlocks 2026-08-23.
+
+## The planning week starts on Sunday
+
+Menu and shopping list turn over together, on `MealRules.planningWeekStart`:
+from Sunday, "this week" means the week that starts tomorrow (D-16). Sunday is
+the planning day, so the new menu and the list to shop for it appear before the
+shopping rather than after.
+
 ## Copyright
 
 External recipes are **linked to source only, never copied in**. `SOURCES`,
