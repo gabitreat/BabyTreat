@@ -125,6 +125,19 @@ before reporting on it.
 dinner is a vegetable, a starch and oil, with the day's protein coming from
 lunch. Dinner unlocks 2026-08-23.
 
+## Reactions and combinations
+
+Both feed back into the planner as `MealPlanner.Constraints` (D-17, D-18):
+
+- A paused, held or blocked food is not scheduled at all.
+- A food whose pause has expired outranks everything else — an unresolved
+  question is worth more than an untested food.
+- A confirmed negative pair is kept off the same plate. **Neither food is
+  downgraded**; both stay available separately.
+
+`MealRules` is untouched by either engine: these come from observed reactions,
+not from nutrition guidance, and they change as flags are cleared.
+
 ## The planning week starts on Sunday
 
 Menu and shopping list turn over together, on `MealRules.planningWeekStart`:

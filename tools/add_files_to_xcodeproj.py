@@ -35,6 +35,40 @@ GROUPS = {
 }
 
 
+def group_for(directory, src):
+    """Group id owning `directory`, creating the PBXGroup if it is new.
+
+    Returns (group_id, updated_src). A directory under a known parent gets a
+    derived id and is attached to that parent, so a new source folder does not
+    need this table edited first.
+    """
+    known = GROUPS.get(directory)
+    if known and f"\t\t{known} " in src:
+        return known, src
+
+    parent_dir, _, name = directory.rpartition("/")
+    if not parent_dir:
+        raise SystemExit(f"no group mapped for directory {directory!r}")
+
+    gid = known or oid("group:" + name)
+    parent_id, src = group_for(parent_dir, src)
+
+    src = src.replace(
+        "/* End PBXGroup section */",
+        f'\t\t{gid} /* {name} */ = {{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n'
+        f'\t\t\t);\n\t\t\tpath = {name};\n\t\t\tsourceTree = "<group>";\n\t\t}};\n'
+        '/* End PBXGroup section */', 1)
+
+    pattern = re.compile(
+        r'(\t\t' + parent_id + r' /\* .*? \*/ = \{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = \(\n)')
+    src, count = pattern.subn(lambda m: m.group(1) + f'\t\t\t\t{gid} /* {name} */,\n', src, count=1)
+    if count != 1:
+        raise SystemExit(f"FAILED to attach new group {name} to {parent_id}")
+
+    GROUPS[directory] = gid
+    return gid, src
+
+
 def main(paths):
     if not paths:
         print(__doc__.strip(), file=sys.stderr)
@@ -54,10 +88,7 @@ def main(paths):
         if f"/* {name} */" in src:
             print(f"skipped (already in project): {name}")
             continue
-        group = GROUPS.get(directory)
-        if group is None:
-            print(f"no group mapped for directory {directory!r}", file=sys.stderr)
-            return 1
+        group, src = group_for(directory, src)
 
         fid, bid = oid("file:" + name), oid("build:" + name)
 

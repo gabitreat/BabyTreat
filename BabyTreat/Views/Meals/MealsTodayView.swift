@@ -96,8 +96,10 @@ struct MealsTodayView: View {
                 slot: target.slot,
                 dish: target.entry?.dish ?? "",
                 existing: target.entry.flatMap(log(for:)),
-                onSave: { portion, grams, note in
-                    setLog(target: target, portion: portion, grams: grams, note: note)
+                attribution: attribution(for: target),
+                nameForFood: { foodsByID[$0]?.name ?? $0 },
+                onSave: { draft in
+                    setLog(target: target, draft: draft)
                 },
                 onClear: {
                     if let entry = target.entry, let existing = log(for: entry) {
@@ -183,19 +185,39 @@ struct MealsTodayView: View {
         try? modelContext.save()
     }
 
-    private func setLog(target: MealEditTarget, portion: MealPortion, grams: Int?, note: String) {
+    private func setLog(target: MealEditTarget, draft: MealLogDraft) {
         if let entry = target.entry, let existing = log(for: entry) {
-            existing.portion = portion
-            existing.grams = grams
-            existing.note = note
+            existing.portion = draft.portion
+            existing.grams = draft.grams
+            existing.note = draft.note
+            existing.tolerance = draft.tolerance
+            existing.toleranceNote = draft.toleranceNote
+            existing.excludeFromTaste = draft.excludeFromTaste
+            // Re-recording a flag revives it; the old clearing no longer applies.
+            existing.clearedAt = nil
             existing.loggedAt = .now
         } else {
             modelContext.insert(
-                MealLog(date: target.date, slot: target.slot, portion: portion,
-                        grams: grams, note: note, calendar: MealRules.calendar)
+                MealLog(date: target.date, slot: target.slot, portion: draft.portion,
+                        grams: draft.grams, note: draft.note,
+                        tolerance: draft.tolerance, toleranceNote: draft.toleranceNote,
+                        excludeFromTaste: draft.excludeFromTaste, calendar: MealRules.calendar)
             )
         }
         try? modelContext.save()
+    }
+
+    /// Which food would carry a flag recorded against this meal. Computed from
+    /// the journal as it stands, before the meal being edited is written back.
+    private func attribution(for target: MealEditTarget) -> ToleranceEngine.Attribution? {
+        guard let entry = target.entry, !entry.foodIDs.isEmpty else { return nil }
+        let meals = LoggedMeal.join(menu: menu, logs: logs)
+        let probe = LoggedMeal(
+            date: MealRules.startOfDay(target.date), slot: target.slot, dish: entry.dish,
+            foodIDs: entry.foodIDs, portion: .refused, tolerance: nil,
+            isCleared: false, excludeFromTaste: false
+        )
+        return ToleranceEngine.attribution(for: probe, in: meals)
     }
 }
 

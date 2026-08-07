@@ -5,8 +5,15 @@ struct MealsFoodsView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var foods: [Food]
     @Query private var menu: [MenuEntry]
+    @Query private var logs: [MealLog]
 
     @State private var selected: Food?
+
+    private var foodsByID: [String: Food] {
+        Dictionary(foods.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+    }
+
+    private var loggedMeals: [LoggedMeal] { LoggedMeal.join(menu: menu, logs: logs) }
 
     private static let order = [
         MealSeed.categoryVegetables, MealSeed.categoryFruit, MealSeed.categoryGrains,
@@ -29,6 +36,17 @@ struct MealsFoodsView: View {
                     .font(.system(size: 13))
                     .foregroundStyle(MealTheme.muted)
 
+                ToleranceFlagsView(
+                    flags: ToleranceEngine.flags(in: loggedMeals),
+                    foodsByID: foodsByID,
+                    onClear: clear(_:)
+                )
+
+                PairInsightsView(
+                    effects: PairEffectEngine.analyze(meals: loggedMeals),
+                    foodsByID: foodsByID
+                )
+
                 rotationSection
 
                 ForEach(grouped, id: \.category) { group in
@@ -44,6 +62,20 @@ struct MealsFoodsView: View {
         .sheet(item: $selected) { food in
             FoodDetailSheet(food: food) { try? modelContext.save() }
         }
+    }
+
+    /// Marks every log that is still suppressing this food as cleared. The log
+    /// itself is kept — a reaction that happened stays in the record even once
+    /// the caregiver has decided to move past it.
+    private func clear(_ flag: ToleranceEngine.FoodFlag) {
+        let meals = loggedMeals
+        for meal in meals where meal.hasActiveFlag && meal.foodIDs.contains(flag.foodID) {
+            guard ToleranceEngine.suppressedFoodIDs(for: meal, in: meals).contains(flag.foodID) else { continue }
+            for log in logs where MealRules.startOfDay(log.date) == meal.date && log.slotRaw == meal.slot.rawValue {
+                log.clearedAt = .now
+            }
+        }
+        try? modelContext.save()
     }
 
     /// Detection half of the rotation rule — what has already slipped.

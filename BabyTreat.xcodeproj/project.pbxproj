@@ -44,6 +44,11 @@
 		FC215E74DB6870806219081D /* MealEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67799169630E818D0A190FB1 /* MealEditSheet.swift */; };
 		EA64EC9850300D2DF612D500 /* MealLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68E388206D56246112A83362 /* MealLogSheet.swift */; };
 		9D02FB3E27F2CEFDAEEB0BF6 /* MealPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C72BC7CA2177800935A9713 /* MealPlanner.swift */; };
+		9B594D304C71309691DEC29E /* ToleranceLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A874BE331687F6BF086D7C2 /* ToleranceLevel.swift */; };
+		AC1705F41816230DDE1DD4C2 /* LoggedMeal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8783A278AEB023C3B0927748 /* LoggedMeal.swift */; };
+		E175E35F6FC757831BD0D01C /* ToleranceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F0D7F3774B180A48301FF5 /* ToleranceEngine.swift */; };
+		B1B47E70CCDD3B0ED32FD4AF /* PairEffectEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C7304633A434BF4A7589DC1 /* PairEffectEngine.swift */; };
+		70B6CA0B5E31F8B443B107ED /* PairInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B192E06C8C3BA36815041E /* PairInsightsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -97,6 +102,11 @@
 		67799169630E818D0A190FB1 /* MealEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealEditSheet.swift; sourceTree = "<group>"; };
 		68E388206D56246112A83362 /* MealLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealLogSheet.swift; sourceTree = "<group>"; };
 		8C72BC7CA2177800935A9713 /* MealPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealPlanner.swift; sourceTree = "<group>"; };
+		9A874BE331687F6BF086D7C2 /* ToleranceLevel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToleranceLevel.swift; sourceTree = "<group>"; };
+		8783A278AEB023C3B0927748 /* LoggedMeal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggedMeal.swift; sourceTree = "<group>"; };
+		37F0D7F3774B180A48301FF5 /* ToleranceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToleranceEngine.swift; sourceTree = "<group>"; };
+		4C7304633A434BF4A7589DC1 /* PairEffectEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairEffectEngine.swift; sourceTree = "<group>"; };
+		27B192E06C8C3BA36815041E /* PairInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairInsightsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +121,7 @@
 		06580E702F35321600FBC564 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				9A874BE331687F6BF086D7C2 /* ToleranceLevel.swift */,
 				5CE25C27A8636D8F01F92039 /* Food.swift */,
 				3DC5A126782DA40EAAD88406 /* Recipe.swift */,
 				2B4B1F4766D8A2332193F459 /* MenuEntry.swift */,
@@ -161,6 +172,7 @@
 		574B75AB6E15F28E135AC551 /* BabyTreat */ = {
 			isa = PBXGroup;
 			children = (
+				21BA3B1F18C111800A138774 /* Logic */,
 				AA705FE705C2E79D900A9C73 /* MealPlanning */,
 				06580E702F35321600FBC564 /* Models */,
 				AD3508F41705AB2EA836F4C8 /* Views */,
@@ -230,6 +242,7 @@
 		2D8FDF06041B2BB0A2845F03 /* Meals */ = {
 			isa = PBXGroup;
 			children = (
+				27B192E06C8C3BA36815041E /* PairInsightsView.swift */,
 				67799169630E818D0A190FB1 /* MealEditSheet.swift */,
 				68E388206D56246112A83362 /* MealLogSheet.swift */,
 				DAE723EF14C2F3D52979A47C /* MealsTodayView.swift */,
@@ -239,6 +252,16 @@
 				5B102F49EE81C19F14D5FE73 /* MealsShoppingView.swift */,
 			);
 			path = Meals;
+			sourceTree = "<group>";
+		};
+		21BA3B1F18C111800A138774 /* Logic */ = {
+			isa = PBXGroup;
+			children = (
+				4C7304633A434BF4A7589DC1 /* PairEffectEngine.swift */,
+				37F0D7F3774B180A48301FF5 /* ToleranceEngine.swift */,
+				8783A278AEB023C3B0927748 /* LoggedMeal.swift */,
+			);
+			path = Logic;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -300,6 +323,11 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				70B6CA0B5E31F8B443B107ED /* PairInsightsView.swift in Sources */,
+				B1B47E70CCDD3B0ED32FD4AF /* PairEffectEngine.swift in Sources */,
+				E175E35F6FC757831BD0D01C /* ToleranceEngine.swift in Sources */,
+				AC1705F41816230DDE1DD4C2 /* LoggedMeal.swift in Sources */,
+				9B594D304C71309691DEC29E /* ToleranceLevel.swift in Sources */,
 				9D02FB3E27F2CEFDAEEB0BF6 /* MealPlanner.swift in Sources */,
 				FC215E74DB6870806219081D /* MealEditSheet.swift in Sources */,
 				EA64EC9850300D2DF612D500 /* MealLogSheet.swift in Sources */,

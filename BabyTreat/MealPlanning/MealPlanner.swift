@@ -55,6 +55,31 @@ enum MealPlanner {
     /// Days to leave between the two introductions of a week.
     private static let introductionSpacing = 3
 
+    /// What the journal says the planner is not allowed to do.
+    ///
+    /// Kept as a separate value rather than folded into the rules: these come
+    /// from observed reactions, not from nutrition guidance, and they change as
+    /// flags are cleared.
+    struct Constraints {
+        /// Foods paused, held or blocked by a recorded reaction.
+        var suppressed: Set<String> = []
+        /// Foods whose pause has run out — worth offering ahead of anything else.
+        var retry: Set<String> = []
+        /// `PairEffectEngine.key` values that must not share a meal.
+        var blockedPairs: Set<String> = []
+
+        static let none = Constraints()
+
+        static func from(menu: [MenuEntry], logs: [MealLog], asOf: Date = .now) -> Constraints {
+            let meals = LoggedMeal.join(menu: menu, logs: logs)
+            return Constraints(
+                suppressed: ToleranceEngine.suppressed(in: meals, asOf: asOf),
+                retry: ToleranceEngine.awaitingRetry(in: meals, asOf: asOf),
+                blockedPairs: PairEffectEngine.blockedPairs(from: PairEffectEngine.analyze(meals: meals))
+            )
+        }
+    }
+
     // MARK: - The planner
 
     static func plan(
@@ -63,7 +88,8 @@ enum MealPlanner {
         foods: [Food],
         recipes: [Recipe],
         menu: [MenuEntry],
-        logs: [MealLog]
+        logs: [MealLog],
+        constraints: Constraints = .none
     ) -> Plan {
         let start = MealRules.mondayOf(weekStart)
         let days = (0..<7).map { MealRules.addDays($0, to: start) }
@@ -90,10 +116,12 @@ enum MealPlanner {
             }
         }
 
-        /// Nothing may be served while it is on hold, or before its retry date —
-        /// this is what keeps dairy out until the APLV question is settled, and
-        /// mango out until 17 August.
+        /// Nothing may be served while it is on hold, before its retry date, or
+        /// while a recorded reaction is suppressing it — this is what keeps dairy
+        /// out until the APLV question is settled, mango out until 17 August, and
+        /// anything that caused symptoms off the menu entirely.
         func isAvailable(_ food: Food, on day: Date) -> Bool {
+            if constraints.suppressed.contains(food.id) { return false }
             if food.isHeld(on: day) { return false }
             if let retry = food.retryOn, day < MealRules.startOfDay(retry) { return false }
             return true
@@ -224,6 +252,10 @@ enum MealPlanner {
         func ranked(_ lhs: Food, _ rhs: Food) -> Bool {
             let usedLeft = timesUsed[lhs.id] ?? 0, usedRight = timesUsed[rhs.id] ?? 0
             if usedLeft != usedRight { return usedLeft < usedRight }
+            // A food whose pause has expired outranks everything else: an
+            // unresolved question is worth more than an untested food.
+            let retryLeft = constraints.retry.contains(lhs.id), retryRight = constraints.retry.contains(rhs.id)
+            if retryLeft != retryRight { return retryLeft }
             let returnsLeft = returning.contains(lhs.id), returnsRight = returning.contains(rhs.id)
             if returnsLeft != returnsRight { return returnsLeft }
             let seenLeft = lastServed[lhs.id] ?? .distantPast, seenRight = lastServed[rhs.id] ?? .distantPast
@@ -231,8 +263,18 @@ enum MealPlanner {
             return lhs.name < rhs.name
         }
 
+        /// A confirmed negative pair is kept off the same plate. Note it blocks
+        /// the *combination* only — both foods stay in the pool for other meals,
+        /// which is the whole reason for measuring pairs rather than foods.
+        func formsBlockedPair(_ food: Food, with used: Set<String>) -> Bool {
+            guard !constraints.blockedPairs.isEmpty else { return false }
+            return used.contains { constraints.blockedPairs.contains(PairEffectEngine.key(food.id, $0)) }
+        }
+
         func choose(from pool: [Food], dayIndex: Int, excluding used: Set<String>) -> Food? {
-            let allowed = pool.filter { !used.contains($0.id) && canPlan($0, on: days[dayIndex]) }
+            let allowed = pool.filter {
+                !used.contains($0.id) && canPlan($0, on: days[dayIndex]) && !formsBlockedPair($0, with: used)
+            }
             let notYesterdays = allowed.filter { servedOnDay[$0.id] != dayIndex - 1 }
             return (notYesterdays.isEmpty ? allowed : notYesterdays).min(by: ranked)
         }
@@ -393,10 +435,23 @@ enum MealPlanner {
             }
         }
 
+        var constraintNotes: [String] = []
+        if !constraints.suppressed.isEmpty {
+            let names = constraints.suppressed.compactMap { foodsByID[$0]?.name }.sorted()
+            constraintNotes.append("Kept out after a reaction: \(names.joined(separator: ", "))")
+        }
+        if !constraints.retry.isEmpty {
+            let names = constraints.retry.compactMap { foodsByID[$0]?.name }.sorted()
+            constraintNotes.append("Due to be retried: \(names.joined(separator: ", "))")
+        }
+        if !constraints.blockedPairs.isEmpty {
+            constraintNotes.append("\(constraints.blockedPairs.count) food pair\(constraints.blockedPairs.count == 1 ? "" : "s") kept off the same plate")
+        }
+
         return Plan(
             weekStart: start,
             meals: meals,
-            notes: notes(
+            notes: constraintNotes + notes(
                 meals: meals,
                 introduced: introducedThisWeek,
                 allergenDay: allergenDay,
@@ -497,7 +552,8 @@ enum MealPlanner {
         let menu = (try? context.fetch(FetchDescriptor<MenuEntry>())) ?? []
         let logs = (try? context.fetch(FetchDescriptor<MealLog>())) ?? []
         return plan(weekStart: weekStart, birthDate: birthDate,
-                    foods: foods, recipes: recipes, menu: menu, logs: logs)
+                    foods: foods, recipes: recipes, menu: menu, logs: logs,
+                    constraints: .from(menu: menu, logs: logs))
     }
 
     @MainActor

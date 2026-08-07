@@ -23,6 +23,68 @@ is usually the interesting part.
 
 ---
 
+## D-17 · 2026-08-03 · "Didn't like it" is not a reaction, and never suppresses
+
+Reactions are recorded on `MealLog` at four levels. The first, `dislike`, is
+deliberately not a reaction at all.
+
+| Level | Consequence |
+|-------|-------------|
+| dislike | nothing. Stays on the menu. |
+| mild | paused 21 days, then `.retry` |
+| moderate | held indefinitely, pediatrician flag, manual clearing |
+| severe | blocked, clearing needs an explicit confirmation |
+
+**Why the split:** at the table both look identical — a refused bowl. They call
+for opposite responses. A disliked food has to keep coming back; that is the only
+thing that produces acceptance. A food that caused symptoms has to go away.
+Collapsing them would quietly remove foods for being unpopular.
+
+The question is **only asked when the portion was "a few spoons" or "refused"**.
+Above that it would appear after nearly every meal and be tapped past within a
+week.
+
+**Attribution.** A flag is pinned on one food only when exactly one food in the
+meal has fewer than two clean prior exposures. Two unproven foods → both are
+paused and retested separately, because guessing gets it wrong in both
+directions: it clears a real trigger and removes an innocent food. Zero unproven
+foods → the reaction is recorded but nothing is suppressed; there is no candidate.
+
+**Where:** `BabyTreat/Logic/ToleranceEngine.swift`, `Models/ToleranceLevel.swift`
+
+## D-18 · 2026-08-03 · Combination effects are measured on the pair, not the food
+
+`PairEffectEngine` compares how two foods score together against how they score
+apart, in both directions — a combination that gets refused, and a carrier that
+rescues something otherwise rejected.
+
+```
+rateA    = mean portion score of meals with A and NOT B
+rateB    = mean portion score of meals with B and NOT A
+expected = (rateA + rateB) / 2
+observed = mean of meals with both
+delta    = observed − expected
+```
+
+**The `NOT B` exclusion is the load-bearing part.** Score A over every meal
+containing A and the shared meals are counted in both terms, so a food only ever
+served alongside one partner has `rateA == observed` and a delta pinned near
+zero — invisible in exactly the case worth finding. Verified: with rice served
+5× alone and 6× with fish, excluding fish gives `rate(rice) = 1.00`; including it
+gives 0.78.
+
+**A confirmed negative blocks the pair, not either food.** Both stay individually
+available, because individually there is nothing wrong with either. Downgrading a
+food for something that only happens in combination is the failure this exists to
+prevent.
+
+Guards: 3 shared meals minimum, 6 to confirm, and 4 *non-shared* meals for each
+food. Below that it reports what needs serving apart instead of a verdict.
+Physiological flags are excluded from the taste maths — a reaction is not a
+preference — but dislikes are kept, since a taste refusal is the signal itself.
+
+**Where:** `BabyTreat/Logic/PairEffectEngine.swift`, `Views/Meals/PairInsightsView.swift`
+
 ## D-15 · 2026-08-03 · The week is generated from the existing rules, not new ones
 
 `MealPlanner` builds a week of meals. It adds **no nutrition rules of its own** —
