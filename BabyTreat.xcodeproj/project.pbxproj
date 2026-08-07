@@ -49,6 +49,7 @@
 		E175E35F6FC757831BD0D01C /* ToleranceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F0D7F3774B180A48301FF5 /* ToleranceEngine.swift */; };
 		B1B47E70CCDD3B0ED32FD4AF /* PairEffectEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C7304633A434BF4A7589DC1 /* PairEffectEngine.swift */; };
 		70B6CA0B5E31F8B443B107ED /* PairInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27B192E06C8C3BA36815041E /* PairInsightsView.swift */; };
+		E08C05A6468B4FF0A7E224CA /* EnergyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B752D3C453152E86B24341E /* EnergyEngine.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -107,6 +108,7 @@
 		37F0D7F3774B180A48301FF5 /* ToleranceEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToleranceEngine.swift; sourceTree = "<group>"; };
 		4C7304633A434BF4A7589DC1 /* PairEffectEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairEffectEngine.swift; sourceTree = "<group>"; };
 		27B192E06C8C3BA36815041E /* PairInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PairInsightsView.swift; sourceTree = "<group>"; };
+		6B752D3C453152E86B24341E /* EnergyEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnergyEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -172,6 +174,7 @@
 		574B75AB6E15F28E135AC551 /* BabyTreat */ = {
 			isa = PBXGroup;
 			children = (
+				D2495DA22000C4BCF0C89C8C /* Nutrition */,
 				21BA3B1F18C111800A138774 /* Logic */,
 				AA705FE705C2E79D900A9C73 /* MealPlanning */,
 				06580E702F35321600FBC564 /* Models */,
@@ -264,6 +267,14 @@
 			path = Logic;
 			sourceTree = "<group>";
 		};
+		D2495DA22000C4BCF0C89C8C /* Nutrition */ = {
+			isa = PBXGroup;
+			children = (
+				6B752D3C453152E86B24341E /* EnergyEngine.swift */,
+			);
+			path = Nutrition;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -323,6 +334,7 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				E08C05A6468B4FF0A7E224CA /* EnergyEngine.swift in Sources */,
 				70B6CA0B5E31F8B443B107ED /* PairInsightsView.swift in Sources */,
 				B1B47E70CCDD3B0ED32FD4AF /* PairEffectEngine.swift in Sources */,
 				E175E35F6FC757831BD0D01C /* ToleranceEngine.swift in Sources */,

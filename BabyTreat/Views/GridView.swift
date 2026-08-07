@@ -1,29 +1,33 @@
 import SwiftUI
 
 struct GridView: View {
+    /// Rows are sized from this, so adding a tile below does not need the
+    /// layout touched. Keep it in step with the tiles in `body`.
+    private static let tileCount = 6
+
     var body: some View {
         NavigationView {
             ZStack {
-                VStack(spacing: 0) {
-                    // Top row
-                    HStack(spacing: 0) {
-                        GridButton(title: "Sleep", color: .purple, destination: SleepView())
-                        GridButton(title: "Playtime", color: .green, destination: PlaytimeView())
-                    }
+                // Was a hardcoded 3×2 stack of HStacks, which a seventh tile
+                // broke. The grid sizes its rows to fill exactly the space the
+                // tab bar leaves, so nothing ends up hidden behind it.
+                GeometryReader { geo in
+                    let rows = CGFloat((Self.tileCount + 1) / 2)
+                    let height = geo.size.height / rows
 
-                    // Middle row
-                    HStack(spacing: 0) {
-                        GridButton(title: "Diaper", color: .orange, destination: DiaperView())
-                        GridButton(title: "Medicine", color: .red, destination: MedicineView())
-                    }
-
-                    // Bottom row
-                    HStack(spacing: 0) {
-                        GridButton(title: "Nursing", color: .blue, destination: NursingView())
-                        GridButton(title: "Formula", color: .teal, destination: FormulaView())
+                    LazyVGrid(
+                        columns: [GridItem(.flexible(), spacing: 0), GridItem(.flexible(), spacing: 0)],
+                        spacing: 0
+                    ) {
+                        GridButton(title: "Sleep", color: .purple, height: height, destination: SleepView())
+                        GridButton(title: "Playtime", color: .green, height: height, destination: PlaytimeView())
+                        GridButton(title: "Diaper", color: .orange, height: height, destination: DiaperView())
+                        GridButton(title: "Medicine", color: .red, height: height, destination: MedicineView())
+                        GridButton(title: "Nursing", color: .blue, height: height, destination: NursingView())
+                        GridButton(title: "Formula", color: .teal, height: height, destination: FormulaView())
                     }
                 }
-                .ignoresSafeArea()
+                .ignoresSafeArea(edges: .top)
 
                 // Settings gear icon
                 VStack {
@@ -51,6 +55,7 @@ struct GridView: View {
 struct GridButton<Destination: View>: View {
     let title: String
     let color: Color
+    var height: CGFloat?
     let destination: Destination
 
     var body: some View {
@@ -64,6 +69,7 @@ struct GridButton<Destination: View>: View {
                         .foregroundColor(.white)
                 )
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
+        .frame(height: height)
     }
 }
