@@ -45,8 +45,25 @@ final class Food {
     var groupsRaw: [String]
     /// Months (1–12) this food is in season in Romania. Empty = year-round.
     var season: [Int]
+    /// **The gating flag.** Drives rotation gating and exposure counting — egg,
+    /// salmon, peanut butter. Kept deliberately separate from `family`, which is
+    /// taxonomy and must never gate anything: collapsing the two is what causes
+    /// false blocks (coconut suppressed as a tree nut, carob as a peanut).
     var isAllergen: Bool
     var isPriority: Bool
+
+    /// Whether this counts toward rotation. Optional in the store so foods
+    /// written before roles existed migrate cleanly; read through `role`, which
+    /// treats a missing value as `.base` — the behaviour before this field.
+    var roleRaw: String?
+    /// Taxonomy, for **menu diversity only**. See `AllergenFamily`.
+    var familyRaw: String?
+    /// Earliest age this may be served at all.
+    var minAgeMonths: Int?
+    /// Age below which this must not be served as a **standalone drink**, even
+    /// though it is fine in cooking. Plant milks are not formulated as a main
+    /// drink under 12 months and using one as such risks real deficiency.
+    var drinkBlockedUnderMonths: Int?
     /// Suggestions will not propose this food before this date (APLV hold).
     var holdUntil: Date?
     var triedOn: Date?
@@ -65,6 +82,10 @@ final class Food {
         season: [Int] = [],
         isAllergen: Bool = false,
         isPriority: Bool = false,
+        role: IngredientRole = .base,
+        family: AllergenFamily = .none,
+        minAgeMonths: Int? = nil,
+        drinkBlockedUnderMonths: Int? = nil,
         holdUntil: Date? = nil,
         triedOn: Date? = nil,
         retryOn: Date? = nil,
@@ -81,6 +102,10 @@ final class Food {
         self.season = season
         self.isAllergen = isAllergen
         self.isPriority = isPriority
+        self.roleRaw = role.rawValue
+        self.familyRaw = family.rawValue
+        self.minAgeMonths = minAgeMonths
+        self.drinkBlockedUnderMonths = drinkBlockedUnderMonths
         self.holdUntil = holdUntil
         self.triedOn = triedOn
         self.retryOn = retryOn
@@ -122,4 +147,28 @@ final class Food {
     }
 
     func has(_ group: FoodGroup) -> Bool { groupsRaw.contains(group.rawValue) }
+
+    /// Missing means `.base` — the behaviour every food had before roles existed.
+    var role: IngredientRole {
+        get { roleRaw.flatMap(IngredientRole.init(rawValue:)) ?? .base }
+        set { roleRaw = newValue.rawValue }
+    }
+
+    var family: AllergenFamily {
+        get { familyRaw.flatMap(AllergenFamily.init(rawValue:)) ?? .none }
+        set { familyRaw = newValue.rawValue }
+    }
+
+    /// Old enough to be served at all.
+    func isAgeAppropriate(atAgeMonths months: Int) -> Bool {
+        guard let minAgeMonths else { return true }
+        return months >= minAgeMonths
+    }
+
+    /// Fine in cooking, not fine in a cup. Returns the explanation when the
+    /// child is too young, so the block can never appear without its reason.
+    func drinkBlockReason(atAgeMonths months: Int) -> String? {
+        guard let limit = drinkBlockedUnderMonths, months < limit else { return nil }
+        return "\(name) can be used in cooking from \(minAgeMonths ?? 6) months, but not as a drink before \(limit) months. Plant milks are not formulated as a main drink at this age and using one as such risks serious nutritional deficiency."
+    }
 }

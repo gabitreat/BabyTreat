@@ -114,9 +114,60 @@ enum MealSeed {
             Food(id: "iaurt",  name: "Yogurt",         category: categoryPlanned, colorHex: "#F2EEE4", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], holdUntil: dairyHoldUntil),
             Food(id: "branza", name: "Cottage cheese", category: categoryPlanned, colorHex: "#F5F1E6", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], holdUntil: dairyHoldUntil),
 
-            Food(id: "naut",   name: "Chickpeas", category: categoryPlanned, colorHex: "#D7B57E", status: .planned, kind: .proteina, groups: [.proteina, .amidon, .fier]),
+            Food(id: "naut",   name: "Chickpeas", category: categoryPlanned, colorHex: "#D7B57E", status: .planned, kind: .proteina, groups: [.proteina, .amidon, .fier], family: .legume),
             Food(id: "quinoa", name: "Quinoa",    category: categoryPlanned, colorHex: "#D6C9A8", status: .planned, kind: .cereale,  groups: [.amidon, .proteina]),
             Food(id: "mei",    name: "Millet",    category: categoryPlanned, colorHex: "#E0CFA0", status: .planned, kind: .cereale,  groups: [.amidon]),
+        ] + accents()
+    }
+
+    /// The accent tier: flavour and fat carriers, plus the additives that hide
+    /// inside formula and packaged food.
+    ///
+    /// None of these consume a rotation slot — they are logged, timestamped and
+    /// attributable, but counting a teaspoon of oil as an exposure would fill
+    /// the rotation meter with things that were never the point.
+    static func accents() -> [Food] {
+        [
+            // Two entries, not one. Canned is roughly 180–230 kcal/100 g and
+            // carton roughly 20–40 — a single row would make the calorie maths
+            // wrong by about a factor of six.
+            Food(id: "coconutcan", name: "Coconut milk, canned", category: categoryFats, colorHex: "#F3EFE7",
+                 status: .accepted, rating: 3, kind: .grasime, groups: [.grasime],
+                 role: .accent, family: .arecaceae, minAgeMonths: 6, drinkBlockedUnderMonths: 12,
+                 note: "~180–230 kcal/100 g, high in saturated fat, often contains carrageenan. Cooking only."),
+            Food(id: "coconutbox", name: "Coconut milk, carton", category: categoryFats, colorHex: "#F7F4EE",
+                 status: .accepted, rating: 3, kind: .grasime, groups: [.grasime],
+                 role: .accent, family: .arecaceae, minAgeMonths: 6, drinkBlockedUnderMonths: 12,
+                 note: "~20–40 kcal/100 g, diluted, usually fortified and often thickened. Cooking only."),
+
+            // Legume by family — for diversity scoring only. Studies find little
+            // cross-reactivity between legume members and specifically none
+            // between carob and peanut, so this must never gate on a peanut flag.
+            Food(id: "roscove", name: "Carob powder", category: categoryFats, colorHex: "#7A5230",
+                 status: .accepted, rating: 4, kind: .altul, groups: [],
+                 role: .accent, family: .legume, minAgeMonths: 6,
+                 note: "Caffeine- and theobromine-free cocoa substitute."),
+
+            // Its own row because a case exists of an infant reacting to an
+            // anti-regurgitation formula containing it. A background exposure
+            // nobody chose still has to be visible to the attribution engine.
+            Food(id: "e410", name: "Carob bean gum (E410)", category: categoryFats, colorHex: "#C9BBA6",
+                 status: .accepted, rating: 0, kind: .altul, groups: [],
+                 role: .additive, family: .legume,
+                 note: "Thickener in AR formulas and packaged foods. Logged so it can be a candidate."),
+
+            Food(id: "uleimasline", name: "Olive oil", category: categoryFats, colorHex: "#8A9A3B",
+                 status: .accepted, rating: 5, kind: .grasime, groups: [.grasime],
+                 role: .accent, family: .none, minAgeMonths: 6),
+            Food(id: "unt", name: "Butter", category: categoryFats, colorHex: "#F2D98B",
+                 status: .planned, rating: 0, kind: .grasime, groups: [.grasime, .lactate],
+                 role: .accent, family: .dairy, minAgeMonths: 6, holdUntil: dairyHoldUntil),
+            Food(id: "tahini", name: "Tahini", category: categoryFats, colorHex: "#D8C79B",
+                 status: .planned, rating: 0, kind: .grasime, groups: [.grasime, .proteina],
+                 isAllergen: true, role: .accent, family: .sesame, minAgeMonths: 6),
+            Food(id: "scortisoara", name: "Cinnamon", category: categoryFats, colorHex: "#A9603A",
+                 status: .accepted, rating: 3, kind: .altul, groups: [],
+                 role: .accent, family: .none, minAgeMonths: 6),
         ]
     }
 
@@ -351,6 +402,25 @@ enum MealSeed {
     /// status and rating edits made against the old seed are lost. `MealLog` is
     /// deliberately left alone: the journal is the caregiver's own record, and it
     /// re-associates by date and slot.
+    /// Inserts foods the store does not have yet, and touches nothing else.
+    ///
+    /// Deliberately not a `version` bump: a reinstall wipes foods, menu and
+    /// shopping list, taking every status and rating edit with it. Adding the
+    /// accent tier is no reason to lose a month of acceptance history, so new
+    /// foods arrive additively and existing rows are left exactly as they are.
+    @MainActor
+    @discardableResult
+    static func installMissingFoods(in context: ModelContext) -> Int {
+        let existing = Set(((try? context.fetch(FetchDescriptor<Food>())) ?? []).map(\.id))
+        guard !existing.isEmpty else { return 0 }   // first run is handled by installIfNeeded
+
+        let missing = foods().filter { !existing.contains($0.id) }
+        guard !missing.isEmpty else { return 0 }
+        missing.forEach { context.insert($0) }
+        try? context.save()
+        return missing.count
+    }
+
     @MainActor
     static func installIfNeeded(in context: ModelContext) {
         let installed = UserDefaults.standard.integer(forKey: versionKey)

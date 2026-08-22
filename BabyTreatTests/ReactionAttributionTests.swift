@@ -1,0 +1,135 @@
+import XCTest
+@testable import BabyTreat
+
+final class ReactionAttributionTests: XCTestCase {
+
+    private let calendar = MealRules.calendar
+
+    private func day(_ offset: Int) -> Date {
+        MealRules.addDays(offset, to: MealRules.startOfDay(Date(timeIntervalSince1970: 1_785_000_000)))
+    }
+
+    private func meal(_ offset: Int, _ slot: MealSlot, _ foods: [String], _ portion: MealPortion = .all) -> LoggedMeal {
+        LoggedMeal(date: day(offset), slot: slot, dish: foods.joined(separator: " + "),
+                   foodIDs: foods, portion: portion, tolerance: nil,
+                   isCleared: false, excludeFromTaste: false)
+    }
+
+    private func observed(_ offset: Int, hour: Int) -> Date {
+        calendar.date(bySettingHour: hour, minute: 0, second: 0, of: day(offset)) ?? day(offset)
+    }
+
+    /// The whole point of the design: a reaction noticed in the evening must not
+    /// automatically blame dinner.
+    func testEveningReactionDoesNotAutomaticallyBlameTheLatestMeal() {
+        let meals = [
+            meal(0, .breakfast, ["oats"]),
+            meal(0, .lunch, ["salmon"]),
+        ]
+        // 14:00 — lunch was 2 h ago, breakfast 6 h ago.
+        let candidates = ReactionAttribution.candidates(observedAt: observed(0, hour: 14), meals: meals)
+
+        XCTAssertEqual(candidates.count, 2, "both meals are candidates, not just the latest")
+        XCTAssertEqual(candidates.first?.foodID, "salmon")
+        XCTAssertEqual(try XCTUnwrap(candidates.first?.score), 0.80, accuracy: 0.001)
+        XCTAssertEqual(try XCTUnwrap(candidates.last?.score), 0.50, accuracy: 0.001)
+    }
+
+    /// A suspect eaten alone must outscore the same food in a mixed bowl.
+    func testWeightIsSplitAcrossFoodsInAMeal() {
+        let solo = [meal(0, .lunch, ["egg"])]
+        let mixed = [meal(0, .lunch, ["egg", "broccoli", "potato"])]
+        let at = observed(0, hour: 13)   // 1 h after lunch, weight 1.00
+
+        let soloScore = try? XCTUnwrap(ReactionAttribution.candidates(observedAt: at, meals: solo).first?.score)
+        let mixedScore = try? XCTUnwrap(ReactionAttribution.candidates(observedAt: at, meals: mixed).first?.score)
+
+        XCTAssertEqual(soloScore ?? 0, 1.00, accuracy: 0.001)
+        XCTAssertEqual(mixedScore ?? 0, 1.0 / 3.0, accuracy: 0.001)
+        XCTAssertGreaterThan(soloScore ?? 0, mixedScore ?? 0)
+    }
+
+    func testWindowBoundariesMatchTheTable() {
+        XCTAssertEqual(ReactionAttribution.window(hoursBefore: 0)?.weight, 1.00)
+        XCTAssertEqual(ReactionAttribution.window(hoursBefore: 1.9)?.weight, 1.00)
+        XCTAssertEqual(ReactionAttribution.window(hoursBefore: 2)?.weight, 0.80)
+        XCTAssertEqual(ReactionAttribution.window(hoursBefore: 3.9)?.weight, 0.80)
+        XCTAssertEqual(ReactionAttribution.window(hoursBefore: 4)?.weight, 0.50)
+        XCTAssertEqual(ReactionAttribution.window(hoursBefore: 9.9)?.weight, 0.50)
+        XCTAssertEqual(ReactionAttribution.window(hoursBefore: 10)?.weight, 0.25)
+        XCTAssertEqual(ReactionAttribution.window(hoursBefore: 24)?.weight, 0.10)
+        XCTAssertEqual(ReactionAttribution.window(hoursBefore: 47.9)?.weight, 0.10)
+        XCTAssertNil(ReactionAttribution.window(hoursBefore: 48), "beyond the horizon is discarded")
+        XCTAssertNil(ReactionAttribution.window(hoursBefore: -1), "a meal after the reaction is not a candidate")
+    }
+
+    func testRefusedMealsScoreNothing() {
+        let meals = [meal(0, .lunch, ["lentils"], .refused)]
+        XCTAssertTrue(ReactionAttribution.candidates(observedAt: observed(0, hour: 13), meals: meals).isEmpty)
+    }
+
+    func testMealsBeyond48HoursAreDiscarded() {
+        let meals = [meal(-3, .lunch, ["beef"]), meal(0, .lunch, ["chicken"])]
+        let candidates = ReactionAttribution.candidates(observedAt: observed(0, hour: 13), meals: meals)
+        XCTAssertEqual(candidates.map(\.foodID), ["chicken"])
+    }
+
+    /// A dislike is a taste signal, not a reaction.
+    func testDislikeProducesNoCandidates() {
+        let reaction = ReactionLog(observedAt: observed(0, hour: 13), severity: .dislike)
+        let meals = [meal(0, .lunch, ["mango"])]
+        XCTAssertTrue(ReactionAttribution.candidates(for: reaction, meals: meals).isEmpty)
+    }
+
+    func testEveryCandidateCarriesItsMechanism() {
+        let meals = [meal(0, .lunch, ["egg"])]
+        let candidate = ReactionAttribution.candidates(observedAt: observed(0, hour: 15), meals: meals).first
+        XCTAssertEqual(candidate?.leadingMechanism, "Acute FPIES — repetitive vomiting 1–4 h")
+    }
+
+    func testReactionLogRoundsToTheMinute() {
+        let messy = Date(timeIntervalSince1970: 1_785_000_037)
+        let log = ReactionLog(observedAt: messy, severity: .mild)
+        XCTAssertEqual(Calendar.current.component(.second, from: log.observedAt), 0)
+    }
+
+    // MARK: - Ingredient roles
+
+    func testOnlyBaseConsumesARotationSlot() {
+        XCTAssertTrue(IngredientRole.base.consumesRotationSlot)
+        XCTAssertFalse(IngredientRole.accent.consumesRotationSlot)
+        XCTAssertFalse(IngredientRole.additive.consumesRotationSlot)
+    }
+
+    /// Coconut must not be a tree nut, and carob must not gate on peanut.
+    func testTaxonomyDoesNotGateAllergens() {
+        let coconut = MealSeed.accents().first { $0.id == "coconutcan" }
+        XCTAssertEqual(coconut?.family, .arecaceae)
+        XCTAssertNotEqual(coconut?.family, .treeNut)
+        XCTAssertEqual(coconut?.isAllergen, false, "family is taxonomy; it must never set the gating flag")
+
+        let carob = MealSeed.accents().first { $0.id == "roscove" }
+        XCTAssertEqual(carob?.family, .legume)
+        XCTAssertEqual(carob?.isAllergen, false)
+    }
+
+    func testCoconutIsBlockedAsADrinkUnderTwelveMonths() {
+        let coconut = try? XCTUnwrap(MealSeed.accents().first { $0.id == "coconutbox" })
+        XCTAssertNotNil(coconut?.drinkBlockReason(atAgeMonths: 8))
+        XCTAssertNil(coconut?.drinkBlockReason(atAgeMonths: 12))
+        // …while cooking use is fine from 6 months.
+        XCTAssertTrue(coconut?.isAgeAppropriate(atAgeMonths: 7) ?? false)
+        XCTAssertFalse(coconut?.isAgeAppropriate(atAgeMonths: 5) ?? true)
+    }
+
+    func testCoconutIsSplitIntoTwoEntries() {
+        let ids = MealSeed.accents().map(\.id)
+        XCTAssertTrue(ids.contains("coconutcan"))
+        XCTAssertTrue(ids.contains("coconutbox"))
+    }
+
+    func testExistingFoodsDefaultToBaseRole() {
+        let broccoli = MealSeed.foods().first { $0.id == "broccoli" }
+        XCTAssertEqual(broccoli?.role, .base)
+    }
+}

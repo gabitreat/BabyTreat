@@ -29,6 +29,16 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       disableMainThreadChecker = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "37751796C69A7BAAC24BAC7F"
+               BuildableName = "BabyTreatTests.xctest"
+               BlueprintName = "BabyTreatTests"
+               ReferencedContainer = "container:BabyTreat.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

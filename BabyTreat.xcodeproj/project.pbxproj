@@ -55,6 +55,21 @@
 		F4442972A2C888B928683A93 /* TuistBundle+BabyTreat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6335F8D8A7DD01813CC6FF11 /* TuistBundle+BabyTreat.swift */; };
 		F96D08D97AD2E4DF747C59BC /* BabyTreatApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87AD284D39AC105EE8446BCC /* BabyTreatApp.swift */; };
 		FC215E74DB6870806219081D /* MealEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67799169630E818D0A190FB1 /* MealEditSheet.swift */; };
+		B5D93DCD5D0719E6ABA298D2 /* WeightBasis.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEBFC363870A05D78990079A /* WeightBasis.swift */; };
+		D04DB13DE57CA25F8256770D /* NutritionFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F451B05CEB74B5C14C8A28BA /* NutritionFacts.swift */; };
+		9D2C172B4A2B3989C4AB6B8E /* FoodProduct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5171BEF260E4491FFF0D61C3 /* FoodProduct.swift */; };
+		000D8562F81D3F1DC20A8A22 /* OFFError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 940FB162DB320CA676DF3436 /* OFFError.swift */; };
+		ED396CAB06E5551A54A41E88 /* OFFEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C9AA03797F31B1FEB47B886 /* OFFEndpoint.swift */; };
+		9C5A886456274C039A4C7B97 /* OFFDTO.swift in Sources */ = {isa = PBXBuildFile; fileRef = B353AC033EC5ACF72DE472DF /* OFFDTO.swift */; };
+		D6D434B8D6B6EBFD0E0C9B1B /* OFFMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB99F17168F05CB3537167A6 /* OFFMapper.swift */; };
+		3422F91ED98D38EA27F88955 /* OFFClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196AD596BEAF1D2241B4CB1F /* OFFClient.swift */; };
+		33D3040D5017E2DAA67A7315 /* MockOFFClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 480102DDBED1B918FC0BBD4A /* MockOFFClient.swift */; };
+		592F37E9023D10B1CD4ACCDF /* FoodProductStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD2EBF3701CA016782F95C98 /* FoodProductStore.swift */; };
+		24405CF8EB713A3C94BCD63D /* OpenFoodFactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56120A9869B5C4CF9E35923D /* OpenFoodFactsTests.swift */; };
+		57063EAE78B59200C5318692 /* IngredientClassification.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6719CE230795BA90295B643 /* IngredientClassification.swift */; };
+		45DEC57EF20E193D15785D33 /* ReactionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9376997CEFBE2DD51E7E5C /* ReactionLog.swift */; };
+		5FA2E97EFE5DA9B962BDE7A1 /* ReactionAttribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9956F2600B1AFA2DC405AD63 /* ReactionAttribution.swift */; };
+		1916180B50EAAE39126E520F /* ReactionAttributionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91264CCC3A670FA31C3ACE7F /* ReactionAttributionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -67,6 +82,16 @@
 			name = "Embed Frameworks";
 		};
 /* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXContainerItemProxy section */
+		DA76549D8650C71C74E32987 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7768D36F9400F21BC1C1A5FC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E5BE074951FF4B51E71B9FF5;
+			remoteInfo = BabyTreat;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		06580E6D2F352FE800FBC564 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -120,6 +145,22 @@
 		E851554DA80110390015313D /* MedicineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicineView.swift; sourceTree = "<group>"; };
 		F032565E8B26877C42F97443 /* CaloriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaloriesView.swift; sourceTree = "<group>"; };
 		F0E0DA4855B2E082835D4479 /* MealsRecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsRecipesView.swift; sourceTree = "<group>"; };
+		EEBFC363870A05D78990079A /* WeightBasis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightBasis.swift; sourceTree = "<group>"; };
+		F451B05CEB74B5C14C8A28BA /* NutritionFacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionFacts.swift; sourceTree = "<group>"; };
+		5171BEF260E4491FFF0D61C3 /* FoodProduct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodProduct.swift; sourceTree = "<group>"; };
+		940FB162DB320CA676DF3436 /* OFFError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OFFError.swift; sourceTree = "<group>"; };
+		8C9AA03797F31B1FEB47B886 /* OFFEndpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OFFEndpoint.swift; sourceTree = "<group>"; };
+		B353AC033EC5ACF72DE472DF /* OFFDTO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OFFDTO.swift; sourceTree = "<group>"; };
+		BB99F17168F05CB3537167A6 /* OFFMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OFFMapper.swift; sourceTree = "<group>"; };
+		196AD596BEAF1D2241B4CB1F /* OFFClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OFFClient.swift; sourceTree = "<group>"; };
+		480102DDBED1B918FC0BBD4A /* MockOFFClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockOFFClient.swift; sourceTree = "<group>"; };
+		BD2EBF3701CA016782F95C98 /* FoodProductStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodProductStore.swift; sourceTree = "<group>"; };
+		56120A9869B5C4CF9E35923D /* OpenFoodFactsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenFoodFactsTests.swift; sourceTree = "<group>"; };
+		AE101D4029BB943C8D08936F /* BabyTreatTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BabyTreatTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E6719CE230795BA90295B643 /* IngredientClassification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientClassification.swift; sourceTree = "<group>"; };
+		1B9376997CEFBE2DD51E7E5C /* ReactionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionLog.swift; sourceTree = "<group>"; };
+		9956F2600B1AFA2DC405AD63 /* ReactionAttribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionAttribution.swift; sourceTree = "<group>"; };
+		91264CCC3A670FA31C3ACE7F /* ReactionAttributionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionAttributionTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,12 +169,24 @@
 			files = (
 			);
 		};
+		B62931504ABEEA4369DE8262 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		06580E702F35321600FBC564 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				1B9376997CEFBE2DD51E7E5C /* ReactionLog.swift */,
+				E6719CE230795BA90295B643 /* IngredientClassification.swift */,
+				5171BEF260E4491FFF0D61C3 /* FoodProduct.swift */,
+				F451B05CEB74B5C14C8A28BA /* NutritionFacts.swift */,
+				EEBFC363870A05D78990079A /* WeightBasis.swift */,
 				41B8E00F2B12764F6F83FCF2 /* NutritionModels.swift */,
 				9A874BE331687F6BF086D7C2 /* ToleranceLevel.swift */,
 				5CE25C27A8636D8F01F92039 /* Food.swift */,
@@ -196,6 +249,7 @@
 		3EF636CB7D1427CA521BA65B /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				AE101D4029BB943C8D08936F /* BabyTreatTests.xctest */,
 				C00285F7C2EE1E323B83B531 /* BabyTreat.app */,
 			);
 			name = Products;
@@ -211,6 +265,7 @@
 		574B75AB6E15F28E135AC551 /* BabyTreat */ = {
 			isa = PBXGroup;
 			children = (
+				E75EFD359198E2CFBE6E1956 /* Services */,
 				D2495DA22000C4BCF0C89C8C /* Nutrition */,
 				21BA3B1F18C111800A138774 /* Logic */,
 				AA705FE705C2E79D900A9C73 /* MealPlanning */,
@@ -226,6 +281,7 @@
 		6D03373FE6FF55F3DFBA7FB0 = {
 			isa = PBXGroup;
 			children = (
+				843977F207ACAED8418A4719 /* BabyTreatTests */,
 				06DE605D3039F87500962294 /* BabyTreat.entitlements */,
 				141A3BE4F9F88F1DE169E5F1 /* Project */,
 				50044A4FD4CBF2952BC0CFBE /* Frameworks */,
@@ -292,6 +348,38 @@
 			path = Nutrition;
 			sourceTree = "<group>";
 		};
+		E75EFD359198E2CFBE6E1956 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				9956F2600B1AFA2DC405AD63 /* ReactionAttribution.swift */,
+				666736846E997B524A6A2903 /* OpenFoodFacts */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		666736846E997B524A6A2903 /* OpenFoodFacts */ = {
+			isa = PBXGroup;
+			children = (
+				BD2EBF3701CA016782F95C98 /* FoodProductStore.swift */,
+				480102DDBED1B918FC0BBD4A /* MockOFFClient.swift */,
+				196AD596BEAF1D2241B4CB1F /* OFFClient.swift */,
+				BB99F17168F05CB3537167A6 /* OFFMapper.swift */,
+				B353AC033EC5ACF72DE472DF /* OFFDTO.swift */,
+				8C9AA03797F31B1FEB47B886 /* OFFEndpoint.swift */,
+				940FB162DB320CA676DF3436 /* OFFError.swift */,
+			);
+			path = OpenFoodFacts;
+			sourceTree = "<group>";
+		};
+		843977F207ACAED8418A4719 /* BabyTreatTests */ = {
+			isa = PBXGroup;
+			children = (
+				91264CCC3A670FA31C3ACE7F /* ReactionAttributionTests.swift */,
+				56120A9869B5C4CF9E35923D /* OpenFoodFactsTests.swift */,
+			);
+			path = BabyTreatTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -310,6 +398,24 @@
 			productName = BabyTreat;
 			productReference = C00285F7C2EE1E323B83B531 /* BabyTreat.app */;
 			productType = "com.apple.product-type.application";
+		};
+		37751796C69A7BAAC24BAC7F /* BabyTreatTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 374E4DCE844CCC8D40C81EDF /* Build configuration list for PBXNativeTarget "BabyTreatTests" */;
+			buildPhases = (
+				CC3000269030EB160F3AE107 /* Sources */,
+				B62931504ABEEA4369DE8262 /* Frameworks */,
+				C53335C7A51E4B890FD7A340 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				72E154475CF5E1219B059D6F /* PBXTargetDependency */,
+			);
+			name = BabyTreatTests;
+			productName = BabyTreatTests;
+			productReference = AE101D4029BB943C8D08936F /* BabyTreatTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -334,6 +440,7 @@
 			projectRoot = "";
 			targets = (
 				E5BE074951FF4B51E71B9FF5 /* BabyTreat */,
+				37751796C69A7BAAC24BAC7F /* BabyTreatTests */,
 			);
 		};
 /* End PBXProject section */
@@ -345,12 +452,32 @@
 				9CC5FE73F37A7C3681026767 /* Assets.xcassets in Resources */,
 			);
 		};
+		C53335C7A51E4B890FD7A340 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				5FA2E97EFE5DA9B962BDE7A1 /* ReactionAttribution.swift in Sources */,
+				45DEC57EF20E193D15785D33 /* ReactionLog.swift in Sources */,
+				57063EAE78B59200C5318692 /* IngredientClassification.swift in Sources */,
+				592F37E9023D10B1CD4ACCDF /* FoodProductStore.swift in Sources */,
+				33D3040D5017E2DAA67A7315 /* MockOFFClient.swift in Sources */,
+				3422F91ED98D38EA27F88955 /* OFFClient.swift in Sources */,
+				D6D434B8D6B6EBFD0E0C9B1B /* OFFMapper.swift in Sources */,
+				9C5A886456274C039A4C7B97 /* OFFDTO.swift in Sources */,
+				ED396CAB06E5551A54A41E88 /* OFFEndpoint.swift in Sources */,
+				000D8562F81D3F1DC20A8A22 /* OFFError.swift in Sources */,
+				9D2C172B4A2B3989C4AB6B8E /* FoodProduct.swift in Sources */,
+				D04DB13DE57CA25F8256770D /* NutritionFacts.swift in Sources */,
+				B5D93DCD5D0719E6ABA298D2 /* WeightBasis.swift in Sources */,
 				0FCD86BF878D4FB04699972A /* CycleView.swift in Sources */,
 				C394F1EB570025FAD0C1E484 /* EnergySettingsView.swift in Sources */,
 				8833681D05517F1D6C82AE5E /* CaloriesView.swift in Sources */,
@@ -400,7 +527,24 @@
 				06580E6E2F352FE800FBC564 /* SettingsView.swift in Sources */,
 			);
 		};
+		CC3000269030EB160F3AE107 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1916180B50EAAE39126E520F /* ReactionAttributionTests.swift in Sources */,
+				24405CF8EB713A3C94BCD63D /* OpenFoodFactsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		72E154475CF5E1219B059D6F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E5BE074951FF4B51E71B9FF5 /* BabyTreat */;
+			targetProxy = DA76549D8650C71C74E32987 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		162F575F99E3104B4C3A8D3D /* Debug configuration for PBXProject "BabyTreat" */ = {
@@ -582,6 +726,48 @@
 			};
 			name = Release;
 		};
+		78C9E189AB600C6CA5056AFB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 47SD75X688;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.babytreat.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BabyTreat.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BabyTreat";
+			};
+			name = Debug;
+		};
+		C178A066AB63178E82DBEE93 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 47SD75X688;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.babytreat.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BabyTreat.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BabyTreat";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -599,6 +785,15 @@
 				162F575F99E3104B4C3A8D3D /* Debug configuration for PBXProject "BabyTreat" */,
 				7DB7B4D0B9B020A805624C5C /* Release configuration for PBXProject "BabyTreat" */,
 			);
+			defaultConfigurationName = Release;
+		};
+		374E4DCE844CCC8D40C81EDF /* Build configuration list for PBXNativeTarget "BabyTreatTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				78C9E189AB600C6CA5056AFB /* Debug */,
+				C178A066AB63178E82DBEE93 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
