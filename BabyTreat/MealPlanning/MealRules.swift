@@ -315,7 +315,10 @@ enum MealRules {
 
         let introduced = introducedMap(menu: menu)
         return foods
-            .filter { $0.status == .accepted && !seen.contains($0.id) }
+            // Only base foods consume a rotation slot. Without this, adding
+            // olive oil and cinnamon to the pantry fills the meter with
+            // "cinnamon is dropping out of rotation" — which is not a thing.
+            .filter { $0.status == .accepted && $0.role.consumesRotationSlot && !seen.contains($0.id) }
             .map { food in
                 let intro = introduced[food.id]
                 return RotationFlag(
@@ -419,6 +422,60 @@ enum MealRules {
             }
         }
         return order.map { (id: $0, meals: counts[$0] ?? 0) }
+    }
+
+    // MARK: - Family diversity
+
+    /// **Heuristic, not guidance.** Meals in a week sharing one botanical family
+    /// before it is worth mentioning. Chosen, not derived.
+    static let familyCrowdingThreshold = 3
+
+    struct FamilyLoad: Identifiable {
+        let family: AllergenFamily
+        let meals: Int
+        let foodIDs: [String]
+        var id: String { family.rawValue }
+        var isCrowded: Bool { meals >= familyCrowdingThreshold }
+    }
+
+    /// How concentrated a week is by botanical family — three legume lunches in
+    /// seven days is a narrow week even when every individual meal checks out.
+    ///
+    /// This is the **only** thing `AllergenFamily` drives. It never gates a
+    /// food, never suppresses one, and never counts an exposure: that is
+    /// `isAllergen`'s job, and keeping the two apart is what stops coconut being
+    /// blocked as a tree nut.
+    static func familyLoad(
+        weekStart: Date,
+        menu: [MenuEntry],
+        foodsByID: [String: Food],
+        activeSlots: [MealSlot]
+    ) -> [FamilyLoad] {
+        let start = mondayOf(weekStart)
+        let end = addDays(6, to: start)
+
+        var mealCounts: [AllergenFamily: Int] = [:]
+        var ids: [AllergenFamily: Set<String>] = [:]
+
+        for entry in menu {
+            let day = startOfDay(entry.date)
+            guard day >= start, day <= end, activeSlots.contains(entry.slot) else { continue }
+
+            // Per meal, not per food: a lunch with lentils and chickpeas is one
+            // legume meal, not two.
+            var familiesInMeal = Set<AllergenFamily>()
+            for id in entry.foodIDs {
+                guard let food = foodsByID[id], food.role.consumesRotationSlot else { continue }
+                guard food.family != .none else { continue }
+                familiesInMeal.insert(food.family)
+                ids[food.family, default: []].insert(id)
+            }
+            for family in familiesInMeal { mealCounts[family, default: 0] += 1 }
+        }
+
+        return mealCounts
+            .map { FamilyLoad(family: $0.key, meals: $0.value, foodIDs: (ids[$0.key] ?? []).sorted()) }
+            .sorted { $0.meals > $1.meals }
     }
 
     // MARK: - Protein rotation

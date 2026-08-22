@@ -1,4 +1,5 @@
 import XCTest
+import SwiftData
 @testable import BabyTreat
 
 final class ReactionAttributionTests: XCTestCase {
@@ -190,5 +191,133 @@ final class ReactionAttributionTests: XCTestCase {
     func testExistingFoodsDefaultToBaseRole() {
         let broccoli = MealSeed.foods().first { $0.id == "broccoli" }
         XCTAssertEqual(broccoli?.role, .base)
+    }
+
+    // MARK: - Roles govern rotation
+
+    /// The rule the role enum exists for, enforced where it counts.
+    func testAccentsAndAdditivesNeverEnterRotation() {
+        let foods = MealSeed.foods()
+        // Nothing has been served, so every base food is "absent".
+        let flags = MealRules.rotationCheck(refDate: day(0), foods: foods, menu: [])
+        let flagged = Set(flags.map(\.food.id))
+
+        XCTAssertFalse(flagged.contains("uleimasline"), "olive oil must not need rotating back in")
+        XCTAssertFalse(flagged.contains("scortisoara"), "cinnamon is a flavour, not an exposure")
+        XCTAssertFalse(flagged.contains("e410"), "an additive nobody chose cannot drop out of rotation")
+        XCTAssertTrue(flagged.contains("broccoli"), "base foods still rotate")
+    }
+
+    // MARK: - Family drives diversity, never gating
+
+    func testFamilyCountsMealsNotFoods() {
+        let foods = MealSeed.foods()
+        let byID = Dictionary(foods.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let monday = MealRules.mondayOf(day(0))
+
+        // One meal with two legumes is one legume meal, not two.
+        let menu = [
+            MenuEntry(date: monday, slot: .lunch, dish: "Lentils + chickpeas",
+                      foodIDs: ["linte", "naut"], calendar: MealRules.calendar)
+        ]
+        let load = MealRules.familyLoad(weekStart: monday, menu: menu, foodsByID: byID,
+                                        activeSlots: [.breakfast, .lunch])
+        XCTAssertEqual(load.first { $0.family == .legume }?.meals, 1)
+    }
+
+    func testThreeLegumeMealsAreFlaggedAsCrowded() {
+        let foods = MealSeed.foods()
+        let byID = Dictionary(foods.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let monday = MealRules.mondayOf(day(0))
+
+        let menu = (0..<3).map { offset in
+            MenuEntry(date: MealRules.addDays(offset, to: monday), slot: .lunch,
+                      dish: "Lentils", foodIDs: ["linte"], calendar: MealRules.calendar)
+        }
+        let load = MealRules.familyLoad(weekStart: monday, menu: menu, foodsByID: byID,
+                                        activeSlots: [.breakfast, .lunch])
+        XCTAssertEqual(load.first { $0.family == .legume }?.isCrowded, true)
+    }
+
+    /// Carob is a legume for diversity, and that must not reach the peanut flag.
+    func testCarobCrowdsDiversityWithoutGatingPeanut() {
+        let foods = MealSeed.foods()
+        let carob = foods.first { $0.id == "roscove" }
+        XCTAssertEqual(carob?.family, .legume)
+        XCTAssertEqual(carob?.isAllergen, false)
+
+        // …and being an accent, it does not even reach the diversity count.
+        let byID = Dictionary(foods.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let monday = MealRules.mondayOf(day(0))
+        let menu = (0..<3).map { offset in
+            MenuEntry(date: MealRules.addDays(offset, to: monday), slot: .breakfast,
+                      dish: "Oats + carob", foodIDs: ["ovaz", "roscove"], calendar: MealRules.calendar)
+        }
+        let load = MealRules.familyLoad(weekStart: monday, menu: menu, foodsByID: byID,
+                                        activeSlots: [.breakfast, .lunch])
+        XCTAssertNil(load.first { $0.family == .legume }, "an accent is invisible to diversity scoring")
+    }
+
+    /// A store seeded before classification existed has every `familyRaw` nil,
+    /// which would silently switch diversity scoring off on an upgraded install.
+    @MainActor
+    func testBackfillRestoresClassificationOnAPreExistingStore() throws {
+        let container = try ModelContainer(
+            for: Food.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+
+        // Stand in for a row written by an older build: right id, no classification.
+        let stale = Food(id: "linte", name: "Lentils", category: "Protein",
+                         colorHex: "#A8763E", status: .weak, groups: [.proteina])
+        stale.familyRaw = nil
+        stale.roleRaw = nil
+        context.insert(stale)
+        try context.save()
+
+        XCTAssertEqual(stale.family, .none, "precondition: the old row has no family")
+
+        let touched = MealSeed.backfillClassification(in: context)
+        XCTAssertGreaterThan(touched, 0)
+        XCTAssertEqual(stale.family, .legume)
+        XCTAssertEqual(stale.role, .base)
+    }
+
+    /// A row written by an intermediate build stores the default `.none`
+    /// rather than nil, and must still pick up its tag.
+    @MainActor
+    func testBackfillUpgradesTheStoredDefault() throws {
+        let container = try ModelContainer(
+            for: Food.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+
+        // The initialiser writes ".none"/".base" — never nil.
+        let food = Food(id: "linte", name: "Lentils", category: "Protein",
+                        colorHex: "#A8763E", status: .weak, groups: [.proteina])
+        context.insert(food)
+        try context.save()
+        XCTAssertEqual(food.familyRaw, AllergenFamily.none.rawValue,
+                       "precondition: the default is stored, not nil")
+
+        MealSeed.backfillClassification(in: context)
+        XCTAssertEqual(food.family, .legume)
+    }
+
+    /// Foods the seed does not know about are left untouched.
+    @MainActor
+    func testBackfillIgnoresUnseededFoods() throws {
+        let container = try ModelContainer(
+            for: Food.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+
+        let custom = Food(id: "user-added-thing", name: "Kefir", category: "Protein",
+                          colorHex: "#FFFFFF", status: .planned, family: .dairy)
+        context.insert(custom)
+        try context.save()
+
+        XCTAssertEqual(MealSeed.backfillClassification(in: context), 0)
+        XCTAssertEqual(custom.family, .dairy)
     }
 }

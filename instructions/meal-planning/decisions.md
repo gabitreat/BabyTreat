@@ -52,6 +52,26 @@ foods → the reaction is recorded but nothing is suppressed; there is no candid
 
 **Where:** `BabyTreat/Logic/ToleranceEngine.swift`, `Models/ToleranceLevel.swift`
 
+## D-19 · 2026-08-22 · Botanical family is seeded, and backfilled onto old rows
+
+`AllergenFamily` is set on the seed's base foods (`ou` → egg, `somon` → fish,
+`arahide` → peanut, `linte`/`mazare`/`naut` → legume, `iaurt`/`branza` → dairy).
+Foods whose family is genuinely uncertain — `hipp`, `ovaz` — stay `.none` rather
+than being guessed at. `MealSeed.backfillClassification(in:)` runs on every
+launch and writes the seeded classification onto any stored row that is still
+unset.
+
+**Why:** the family attribute shipped before the tags did, so every existing
+pantry had `.none` everywhere and diversity scoring counted nothing at all —
+a rule that is live in the code and dead in the data. The backfill treats the
+stored default as unset, not as intent, because nothing in the app can set a
+family: there is no user choice to overwrite. Foods the seed doesn't know are
+left alone.
+
+**Where:** `MealPlanning/MealSeed.swift` (`accents()`, `backfillClassification`),
+called from `Views/MealsView.swift`. Tests: `testBackfillUpgradesTheStoredDefault`,
+`testBackfillIgnoresUnseededFoods`, `testThreeLegumeMealsAreFlaggedAsCrowded`.
+
 ## D-18 · 2026-08-03 · Combination effects are measured on the pair, not the food
 
 `PairEffectEngine` compares how two foods score together against how they score

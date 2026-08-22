@@ -53,6 +53,7 @@ struct MealsView: View {
         .task {
             MealSeed.installIfNeeded(in: modelContext)
             MealSeed.installMissingFoods(in: modelContext)
+            MealSeed.backfillClassification(in: modelContext)
             // The week ahead is planned before the shopping list is built from
             // it — the list tab's own task runs later, and reads the menu this
             // leaves behind. From Sunday, "the week ahead" is next week.

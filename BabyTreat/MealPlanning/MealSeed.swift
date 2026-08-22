@@ -73,22 +73,22 @@ enum MealSeed {
             Food(id: "hipp", name: "HiPP cereal", category: categoryGrains, colorHex: "#C9B18C", status: .accepted, rating: 4, groups: [.amidon, .fier]),
 
             // ---- Protein ----
-            Food(id: "ou",     name: "Egg",     category: categoryProtein, colorHex: "#F0C244", status: .accepted, rating: 4, groups: [.proteina, .asf, .grasime, .fier], isAllergen: true),
+            Food(id: "ou",     name: "Egg",     category: categoryProtein, colorHex: "#F0C244", status: .accepted, rating: 4, groups: [.proteina, .asf, .grasime, .fier], isAllergen: true, family: .egg),
             Food(id: "pui",    name: "Chicken", category: categoryProtein, colorHex: "#E3C9A8", status: .accepted, rating: 4, groups: [.proteina, .asf, .fier]),
             Food(id: "curcan", name: "Turkey",  category: categoryProtein, colorHex: "#D9B893", status: .accepted, rating: 4, groups: [.proteina, .asf, .fier]),
-            Food(id: "somon",  name: "Salmon",  category: categoryProtein, colorHex: "#E88060", status: .accepted, rating: 3, groups: [.proteina, .asf, .grasime, .omega3], isAllergen: true),
-            Food(id: "linte",  name: "Lentils", category: categoryProtein, colorHex: "#A8763E", status: .weak,     rating: 2, groups: [.proteina, .amidon, .fier]),
+            Food(id: "somon",  name: "Salmon",  category: categoryProtein, colorHex: "#E88060", status: .accepted, rating: 3, groups: [.proteina, .asf, .grasime, .omega3], isAllergen: true, family: .fish),
+            Food(id: "linte",  name: "Lentils", category: categoryProtein, colorHex: "#A8763E", status: .weak,     rating: 2, groups: [.proteina, .amidon, .fier], family: .legume),
 
             // ---- Fats ----
             Food(id: "avocado", name: "Avocado",       category: categoryFats, colorHex: "#6E8C3F", status: .accepted, rating: 4, groups: [.veg, .grasime]),
-            Food(id: "arahide", name: "Peanut butter", category: categoryFats, colorHex: "#B57A3C", status: .accepted, rating: 4, groups: [.grasime, .proteina], isAllergen: true),
+            Food(id: "arahide", name: "Peanut butter", category: categoryFats, colorHex: "#B57A3C", status: .accepted, rating: 4, groups: [.grasime, .proteina], isAllergen: true, family: .peanut),
 
             // ---- Planned ----
             Food(id: "vita", name: "Beef", category: categoryPlanned, colorHex: "#8C3A32", status: .planned,
                  kind: .proteina, groups: [.proteina, .asf, .fier], isPriority: true,
                  note: "Cleared by the doctor on 24 July. First portion: Monday 27 July."),
             Food(id: "conopida",    name: "Cauliflower", category: categoryPlanned, colorHex: "#EFEBE0", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9, 10, 11], isPriority: true),
-            Food(id: "mazare",      name: "Peas",        category: categoryPlanned, colorHex: "#7BA05B", status: .planned, kind: .veg, groups: [.veg, .proteina], season: [5, 6, 7]),
+            Food(id: "mazare",      name: "Peas",        category: categoryPlanned, colorHex: "#7BA05B", status: .planned, kind: .veg, groups: [.veg, .proteina], season: [5, 6, 7], family: .legume),
             Food(id: "dovleac",     name: "Pumpkin",     category: categoryPlanned, colorHex: "#E08A2E", status: .planned, kind: .veg, groups: [.veg], season: [9, 10, 11, 12]),
             Food(id: "fasoleverde", name: "Green beans", category: categoryPlanned, colorHex: "#6E9B4E", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9]),
             Food(id: "spanac",      name: "Spinach",     category: categoryPlanned, colorHex: "#3F6B34", status: .planned, kind: .veg, groups: [.veg, .fier], season: [3, 4, 5, 9, 10, 11]),
@@ -111,8 +111,8 @@ enum MealSeed {
             Food(id: "mure",      name: "Blackberries", category: categoryPlanned, colorHex: "#3B2A52", status: .planned, kind: .fruct, groups: [.fruct], season: [7, 8, 9]),
 
             // Dairy stays out of suggestions until the APLV question is settled.
-            Food(id: "iaurt",  name: "Yogurt",         category: categoryPlanned, colorHex: "#F2EEE4", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], holdUntil: dairyHoldUntil),
-            Food(id: "branza", name: "Cottage cheese", category: categoryPlanned, colorHex: "#F5F1E6", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], holdUntil: dairyHoldUntil),
+            Food(id: "iaurt",  name: "Yogurt",         category: categoryPlanned, colorHex: "#F2EEE4", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, holdUntil: dairyHoldUntil),
+            Food(id: "branza", name: "Cottage cheese", category: categoryPlanned, colorHex: "#F5F1E6", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, holdUntil: dairyHoldUntil),
 
             Food(id: "naut",   name: "Chickpeas", category: categoryPlanned, colorHex: "#D7B57E", status: .planned, kind: .proteina, groups: [.proteina, .amidon, .fier], family: .legume),
             Food(id: "quinoa", name: "Quinoa",    category: categoryPlanned, colorHex: "#D6C9A8", status: .planned, kind: .cereale,  groups: [.amidon, .proteina]),
@@ -419,6 +419,52 @@ enum MealSeed {
         missing.forEach { context.insert($0) }
         try? context.save()
         return missing.count
+    }
+
+    /// Fills in classification (`role`, `family`, age gates) on rows that predate
+    /// those attributes. A store seeded before D-18 has them all nil, so diversity
+    /// scoring would see a pantry with no botanical families in it at all.
+    ///
+    /// Writes only where the stored value is unset. `nil` means the row predates
+    /// the attribute; the defaults — `.base` and `.none` — mean it was written by
+    /// a build that had the attribute but not yet the tag, and since nothing in
+    /// the app can set either one, a stored default carries no intent to protect.
+    @MainActor
+    @discardableResult
+    static func backfillClassification(in context: ModelContext) -> Int {
+        let stored = (try? context.fetch(FetchDescriptor<Food>())) ?? []
+        guard !stored.isEmpty else { return 0 }
+
+        let seeded = Dictionary(foods().map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        var touched = 0
+
+        for food in stored {
+            guard let template = seeded[food.id] else { continue }
+            var changed = false
+
+            if food.role == .base, template.role != .base {
+                food.role = template.role
+                changed = true
+            }
+            if food.family == .none, template.family != .none {
+                food.family = template.family
+                changed = true
+            }
+            if food.minAgeMonths == nil, let age = template.minAgeMonths {
+                food.minAgeMonths = age
+                changed = true
+            }
+            if food.drinkBlockedUnderMonths == nil, let months = template.drinkBlockedUnderMonths {
+                food.drinkBlockedUnderMonths = months
+                changed = true
+            }
+
+            if changed { touched += 1 }
+        }
+
+        guard touched > 0 else { return 0 }
+        try? context.save()
+        return touched
     }
 
     @MainActor

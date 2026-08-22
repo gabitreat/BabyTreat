@@ -266,6 +266,25 @@ struct MealsWeekView: View {
                 }
             }
 
+            let crowded = MealRules.familyLoad(
+                weekStart: weekStart, menu: menu, foodsByID: foodsByID, activeSlots: activeSlots
+            ).filter(\.isCrowded)
+            if !crowded.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(crowded) { load in
+                        MealBadge(
+                            text: "\(load.meals) meals from the \(load.family.label.lowercased()) family",
+                            tint: MealTheme.marigold, soft: MealTheme.marigoldSoft
+                        )
+                    }
+                    // Said plainly, because the badge looks like a warning and
+                    // this one is only about variety.
+                    Text("Variety only — nothing is blocked.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(MealTheme.muted)
+                }
+            }
+
             let proteins = MealRules.proteinsUsed(weekStart: weekStart, menu: menu)
             if !proteins.isEmpty {
                 HStack(spacing: 6) {
