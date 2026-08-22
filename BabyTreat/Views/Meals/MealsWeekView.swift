@@ -54,6 +54,7 @@ struct MealsWeekView: View {
                 existing: target.entry,
                 foods: foods,
                 recipes: recipes,
+                ageMonths: months,
                 onSave: { dish, foodIDs, recipeID, isNew in
                     if let entry = target.entry {
                         entry.dish = dish

@@ -13,6 +13,9 @@ struct MealEditSheet: View {
     let existing: MenuEntry?
     let foods: [Food]
     let recipes: [Recipe]
+    /// Needed for the age gates below. Passed in rather than read from storage
+    /// so this sheet stays previewable.
+    var ageMonths: Int = 99
     var onSave: (_ dish: String, _ foodIDs: [String], _ recipeID: String?, _ isNewFood: Bool) -> Void
     var onDelete: (() -> Void)?
 
@@ -41,6 +44,23 @@ struct MealEditSheet: View {
         recipes.sorted { $0.title < $1.title }
     }
 
+    /// A single food on the plate is being served on its own — which for a
+    /// plant milk means as a drink.
+    ///
+    /// Coconut milk is fine in cooking from 6 months and must not be a drink
+    /// before 12: plant milks are not formulated as a main drink at this age,
+    /// and using one as such risks real nutritional deficiency. So the block is
+    /// on serving it *alone*, not on the food.
+    private var drinkBlock: String? {
+        guard selectedIDs.count == 1, let food = selectedFoods.first else { return nil }
+        return food.drinkBlockReason(atAgeMonths: ageMonths)
+    }
+
+    /// Foods the child is not old enough for at all.
+    private var tooYoung: [Food] {
+        selectedFoods.filter { !$0.isAgeAppropriate(atAgeMonths: ageMonths) }
+    }
+
     private var gaps: [String] {
         guard slot == .lunch, !selectedIDs.isEmpty else { return [] }
         let probe = MenuEntry(date: date, slot: slot, dish: dish, foodIDs: selectedIDs, calendar: MealRules.calendar)
@@ -58,6 +78,31 @@ struct MealEditSheet: View {
                             dish = selectedFoods.map(\.name).joined(separator: " + ")
                         }
                         .font(.callout)
+                    }
+                }
+
+                if let drinkBlock {
+                    Section {
+                        Label(drinkBlock, systemImage: "exclamationmark.octagon.fill")
+                            .font(.callout)
+                            .foregroundStyle(MealTheme.bubblegum)
+                    } header: {
+                        Text("Not on its own yet")
+                    } footer: {
+                        Text("Add another food to the meal and it saves — the limit is on serving it alone, not on cooking with it.")
+                    }
+                }
+
+                if !tooYoung.isEmpty {
+                    Section("Too early") {
+                        ForEach(tooYoung) { food in
+                            Label(
+                                "\(food.name) is usually introduced from \(food.minAgeMonths ?? 0) months.",
+                                systemImage: "clock.badge.exclamationmark"
+                            )
+                            .font(.callout)
+                            .foregroundStyle(MealTheme.sugar)
+                        }
                     }
                 }
 
@@ -162,7 +207,10 @@ struct MealEditSheet: View {
                         onSave(dish.trimmingCharacters(in: .whitespaces), selectedIDs, recipeID, isNewFood)
                         dismiss()
                     }
-                    .disabled(dish.trimmingCharacters(in: .whitespaces).isEmpty && selectedIDs.isEmpty)
+                    // A hard block, not a warning: the whole point is that it
+                    // cannot be tapped past.
+                    .disabled(drinkBlock != nil
+                              || (dish.trimmingCharacters(in: .whitespaces).isEmpty && selectedIDs.isEmpty))
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     if !selectedFoods.isEmpty { EditButton() }
@@ -178,6 +226,13 @@ struct MealEditSheet: View {
             }
         }
     }
+}
+
+/// Identifies which reaction the sheet is open for. `nil` means a new one —
+/// and it carries no meal, deliberately.
+struct ReactionEditTarget: Identifiable {
+    let reaction: ReactionLog?
+    var id: String { reaction.map { "\($0.observedAt.timeIntervalSince1970)" } ?? "new" }
 }
 
 /// Identifies which meal the edit sheet is open for. A slot with no entry yet is

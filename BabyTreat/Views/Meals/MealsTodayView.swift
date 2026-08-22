@@ -9,11 +9,13 @@ struct MealsTodayView: View {
     @Query private var menu: [MenuEntry]
     @Query private var logs: [MealLog]
     @Query private var recipes: [Recipe]
+    @Query private var reactions: [ReactionLog]
 
     @AppStorage("dairyHoldNoticeSeen") private var dairyHoldNoticeSeen = false
 
     @State private var editTarget: MealEditTarget?
     @State private var logTarget: MealEditTarget?
+    @State private var reactionTarget: ReactionEditTarget?
 
     private var today: Date { MealRules.startOfDay(.now) }
     private var months: Int { MealRules.ageMonths(on: today, birthDate: birthDate) }
@@ -70,10 +72,24 @@ struct MealsTodayView: View {
                     }
                 }
 
+                reactionSection
+
                 allergenSection
             }
             .padding(.horizontal, MealTheme.pad)
             .padding(.vertical, 20)
+        }
+        .sheet(item: $reactionTarget) { target in
+            ReactionLogSheet(
+                existing: target.reaction,
+                onSave: { observedAt, severity, symptoms, notes in
+                    saveReaction(target: target, observedAt: observedAt, severity: severity,
+                                 symptoms: symptoms, notes: notes)
+                },
+                onDelete: target.reaction.map { reaction in
+                    { modelContext.delete(reaction); try? modelContext.save() }
+                }
+            )
         }
         .sheet(item: $editTarget) { target in
             MealEditSheet(
@@ -82,6 +98,7 @@ struct MealsTodayView: View {
                 existing: target.entry,
                 foods: foods,
                 recipes: recipes,
+                ageMonths: months,
                 onSave: { dish, foodIDs, recipeID, isNew in
                     save(target: target, dish: dish, foodIDs: foodIDs, recipeID: recipeID, isNew: isNew)
                 },
@@ -138,6 +155,61 @@ struct MealsTodayView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Reactions
+
+    /// Logged independently of any meal, on purpose. The button sits here
+    /// because this is the screen open when something gets noticed — but what
+    /// it opens knows nothing about today's meals.
+    @ViewBuilder
+    private var reactionSection: some View {
+        let meals = LoggedMeal.join(menu: menu, logs: logs)
+
+        VStack(alignment: .leading, spacing: 12) {
+            ReactionCandidatesView(
+                reactions: reactions,
+                meals: meals,
+                foodsByID: foodsByID,
+                onEdit: { reactionTarget = ReactionEditTarget(reaction: $0) }
+            )
+
+            Button {
+                reactionTarget = ReactionEditTarget(reaction: nil)
+            } label: {
+                MealCard(background: .white, dashed: true) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "bandage")
+                        Text("Log a reaction")
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                    .font(.system(size: 14))
+                    .foregroundStyle(MealTheme.sugar)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func saveReaction(
+        target: ReactionEditTarget,
+        observedAt: Date,
+        severity: ToleranceLevel,
+        symptoms: [String],
+        notes: String
+    ) {
+        if let reaction = target.reaction {
+            reaction.observedAt = ReactionLog.roundedToMinute(observedAt)
+            reaction.severity = severity
+            reaction.symptoms = symptoms
+            reaction.notes = notes
+        } else {
+            modelContext.insert(
+                ReactionLog(observedAt: observedAt, severity: severity, symptoms: symptoms, notes: notes)
+            )
+        }
+        try? modelContext.save()
     }
 
     // MARK: - Allergen meter

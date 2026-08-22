@@ -70,6 +70,7 @@
 		45DEC57EF20E193D15785D33 /* ReactionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B9376997CEFBE2DD51E7E5C /* ReactionLog.swift */; };
 		5FA2E97EFE5DA9B962BDE7A1 /* ReactionAttribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9956F2600B1AFA2DC405AD63 /* ReactionAttribution.swift */; };
 		1916180B50EAAE39126E520F /* ReactionAttributionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91264CCC3A670FA31C3ACE7F /* ReactionAttributionTests.swift */; };
+		CD25B7CC90FDD8027576D7C2 /* ReactionLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9FB1FF9C3D7237F24939801 /* ReactionLogSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -161,6 +162,7 @@
 		1B9376997CEFBE2DD51E7E5C /* ReactionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionLog.swift; sourceTree = "<group>"; };
 		9956F2600B1AFA2DC405AD63 /* ReactionAttribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionAttribution.swift; sourceTree = "<group>"; };
 		91264CCC3A670FA31C3ACE7F /* ReactionAttributionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionAttributionTests.swift; sourceTree = "<group>"; };
+		D9FB1FF9C3D7237F24939801 /* ReactionLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionLogSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -234,6 +236,7 @@
 		2D8FDF06041B2BB0A2845F03 /* Meals */ = {
 			isa = PBXGroup;
 			children = (
+				D9FB1FF9C3D7237F24939801 /* ReactionLogSheet.swift */,
 				27B192E06C8C3BA36815041E /* PairInsightsView.swift */,
 				67799169630E818D0A190FB1 /* MealEditSheet.swift */,
 				68E388206D56246112A83362 /* MealLogSheet.swift */,
@@ -465,6 +468,7 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				CD25B7CC90FDD8027576D7C2 /* ReactionLogSheet.swift in Sources */,
 				5FA2E97EFE5DA9B962BDE7A1 /* ReactionAttribution.swift in Sources */,
 				45DEC57EF20E193D15785D33 /* ReactionLog.swift in Sources */,
 				57063EAE78B59200C5318692 /* IngredientClassification.swift in Sources */,
