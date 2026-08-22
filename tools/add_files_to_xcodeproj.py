@@ -42,15 +42,17 @@ def group_for(directory, src):
     derived id and is attached to that parent, so a new source folder does not
     need this table edited first.
     """
-    known = GROUPS.get(directory)
-    if known and f"\t\t{known} " in src:
-        return known, src
-
     parent_dir, _, name = directory.rpartition("/")
+    gid = GROUPS.get(directory) or oid("group:" + name)
+
+    # Check for the resolved id, not just the table entry. A derived id that is
+    # already in the file was created by an earlier run; defining it a second
+    # time yields two objects sharing one GUID, which silently breaks every path
+    # under it.
+    if f"\t\t{gid} " in src:
+        return gid, src
     if not parent_dir:
         raise SystemExit(f"no group mapped for directory {directory!r}")
-
-    gid = known or oid("group:" + name)
     parent_id, src = group_for(parent_dir, src)
 
     src = src.replace(

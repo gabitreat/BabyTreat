@@ -3,7 +3,7 @@ import SwiftUI
 struct GridView: View {
     /// Rows are sized from this, so adding a tile below does not need the
     /// layout touched. Keep it in step with the tiles in `body`.
-    private static let tileCount = 6
+    private static let tileCount = 8
 
     var body: some View {
         NavigationView {
@@ -25,6 +25,9 @@ struct GridView: View {
                         GridButton(title: "Medicine", color: .red, height: height, destination: MedicineView())
                         GridButton(title: "Nursing", color: .blue, height: height, destination: NursingView())
                         GridButton(title: "Formula", color: .teal, height: height, destination: FormulaView())
+                        // The two parent tiles. Everything above tracks the baby.
+                        GridButton(title: "Calories", color: NutritionTheme.accent, height: height, destination: CaloriesView())
+                        GridButton(title: "Cycle", color: NutritionTheme.cycle, height: height, destination: CycleView())
                     }
                 }
                 .ignoresSafeArea(edges: .top)
