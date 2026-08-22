@@ -39,13 +39,15 @@ enum MealSlot: String, Codable, CaseIterable, Identifiable {
         }
     }
 
-    /// Months completed before this slot unlocks. `nil` means no date has been
-    /// set yet — snack is still open (OQ-2), so it never unlocks on its own.
+    /// Months completed before this slot unlocks.
+    ///
+    /// Snack was left open as OQ-2 and is now 12, taken from the figure written
+    /// into `Tasks/babytreat-meal-module-spec.md`. One line to change back.
     var unlocksAtMonths: Int? {
         switch self {
         case .breakfast, .lunch: 0
         case .dinner:            8
-        case .snack:             nil
+        case .snack:             12
         }
     }
 

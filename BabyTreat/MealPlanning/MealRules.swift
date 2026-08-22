@@ -70,6 +70,21 @@ enum MealRules {
         MealSlot.allCases.filter { $0.isUnlocked(atAgeMonths: months) }
     }
 
+    /// Slots not yet available, in the order they arrive. Shown disabled rather
+    /// than hidden: "dinner starts in three weeks" is worth knowing, and a slot
+    /// that silently appears one morning is a worse surprise.
+    static func lockedSlots(atAgeMonths months: Int) -> [MealSlot] {
+        MealSlot.allCases
+            .filter { !$0.isUnlocked(atAgeMonths: months) }
+            .sorted { ($0.unlocksAtMonths ?? .max) < ($1.unlocksAtMonths ?? .max) }
+    }
+
+    /// The date a slot becomes available, from the birth date.
+    static func unlockDate(for slot: MealSlot, birthDate: Date) -> Date? {
+        guard let months = slot.unlocksAtMonths else { return nil }
+        return calendar.date(byAdding: .month, value: months, to: startOfDay(birthDate))
+    }
+
     // MARK: - Lunch composition
 
     /// Revised down after the WHO check: protein + vegetable + fat are required,

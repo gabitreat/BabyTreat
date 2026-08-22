@@ -70,6 +70,8 @@ struct MealsTodayView: View {
                         }
                         .buttonStyle(.plain)
                     }
+
+                    lockedSlotRows
                 }
 
                 reactionSection
@@ -155,6 +157,41 @@ struct MealsTodayView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Locked slots
+
+    /// Disabled, not hidden. A slot that appears one morning with no warning is
+    /// a worse surprise than one you have been watching approach.
+    @ViewBuilder
+    private var lockedSlotRows: some View {
+        ForEach(MealRules.lockedSlots(atAgeMonths: months)) { slot in
+            MealCard(background: Color(.secondarySystemBackground)) {
+                HStack(spacing: 8) {
+                    Image(systemName: "lock.fill")
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(slot.label)
+                            .fontWeight(.semibold)
+                        Text(unlockCaption(for: slot))
+                            .font(.system(size: 11.5))
+                    }
+                    Spacer()
+                }
+                .font(.system(size: 14))
+                .foregroundStyle(MealTheme.muted)
+            }
+            .allowsHitTesting(false)
+        }
+    }
+
+    private func unlockCaption(for slot: MealSlot) -> String {
+        guard let months = slot.unlocksAtMonths else { return "no date set yet" }
+        guard let date = MealRules.unlockDate(for: slot, birthDate: birthDate) else {
+            return "from \(months) months"
+        }
+        let days = MealRules.daysBetween(today, date)
+        if days <= 0 { return "from \(months) months" }
+        return "from \(months) months · \(date.mealDayLabel), \(days) day\(days == 1 ? "" : "s") away"
     }
 
     // MARK: - Reactions
@@ -265,6 +302,8 @@ struct MealsTodayView: View {
             existing.tolerance = draft.tolerance
             existing.toleranceNote = draft.toleranceNote
             existing.excludeFromTaste = draft.excludeFromTaste
+            existing.eatenAt = draft.eatenAt.map(MealLog.roundedToMinute)
+            existing.timeZoneID = TimeZone.current.identifier
             // Re-recording a flag revives it; the old clearing no longer applies.
             existing.clearedAt = nil
             existing.loggedAt = .now
@@ -273,7 +312,8 @@ struct MealsTodayView: View {
                 MealLog(date: target.date, slot: target.slot, portion: draft.portion,
                         grams: draft.grams, note: draft.note,
                         tolerance: draft.tolerance, toleranceNote: draft.toleranceNote,
-                        excludeFromTaste: draft.excludeFromTaste, calendar: MealRules.calendar)
+                        excludeFromTaste: draft.excludeFromTaste, eatenAt: draft.eatenAt,
+                        calendar: MealRules.calendar)
             )
         }
         try? modelContext.save()

@@ -4,6 +4,8 @@ import SwiftUI
 struct MealLogDraft {
     var portion: MealPortion = .all
     var grams: Int?
+    /// When it was actually eaten. Separate from when this sheet was filled in.
+    var eatenAt: Date?
     var note: String = ""
     var tolerance: ToleranceLevel?
     var toleranceNote: String = ""
@@ -35,6 +37,15 @@ struct MealLogSheet: View {
 
     private var grams: Int? { Int(gramsText.filter(\.isNumber)) }
 
+    /// Now for today's meals; the slot's usual hour for one being logged late
+    /// on a past day, where "now" would be plainly wrong.
+    private var defaultEatenAt: Date {
+        let calendar = MealRules.calendar
+        if calendar.isDateInToday(date) { return Date() }
+        let hour = ReactionAttribution.typicalHour(for: slot)
+        return calendar.date(bySettingHour: hour, minute: 0, second: 0, of: date) ?? date
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -52,6 +63,35 @@ struct MealLogSheet: View {
                         Button("Clear amount") { gramsText = "" }
                             .font(.callout)
                     }
+                }
+
+                Section {
+                    DatePicker(
+                        "Eaten at",
+                        selection: Binding(
+                            get: { draft.eatenAt ?? defaultEatenAt },
+                            set: { draft.eatenAt = $0 }
+                        ),
+                        displayedComponents: [.hourAndMinute]
+                    )
+                    HStack(spacing: 8) {
+                        ForEach([15, 30, 60], id: \.self) { minutes in
+                            Button("−\(minutes)m") {
+                                draft.eatenAt = Date().addingTimeInterval(-Double(minutes) * 60)
+                            }
+                            .buttonStyle(.bordered)
+                            .font(.footnote)
+                        }
+                        Button("Now") { draft.eatenAt = Date() }
+                            .buttonStyle(.bordered)
+                            .font(.footnote)
+                    }
+                } header: {
+                    Text("When")
+                } footer: {
+                    // The slot is stated, not guessed. A 10:30 lunch abroad is
+                    // still lunch, so nothing here changes which meal this is.
+                    Text("This is \(slot.label.lowercased()) whatever the clock says. Recording the real time sharpens which meals a later reaction could point at.")
                 }
 
                 Section("How it went") {
@@ -101,6 +141,7 @@ struct MealLogSheet: View {
                     Button("Save") {
                         var out = draft
                         out.grams = grams
+                        out.eatenAt = MealLog.roundedToMinute(draft.eatenAt ?? defaultEatenAt)
                         out.note = draft.note.trimmingCharacters(in: .whitespaces)
                         out.toleranceNote = draft.toleranceNote.trimmingCharacters(in: .whitespaces)
                         // A cleared portion takes its tolerance with it, rather
@@ -127,6 +168,7 @@ struct MealLogSheet: View {
                     draft = MealLogDraft(
                         portion: existing.portion,
                         grams: existing.grams,
+                        eatenAt: existing.eatenAt,
                         note: existing.note,
                         tolerance: existing.tolerance,
                         toleranceNote: existing.toleranceNote ?? "",

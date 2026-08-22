@@ -128,15 +128,21 @@ enum ReactionAttribution {
 
     /// When the meal was eaten.
     ///
-    /// `LoggedMeal.date` is a day, not an instant — the journal stores meals by
-    /// date and slot. Until a real `eatenAt` is captured, the slot's usual hour
-    /// stands in, and the windows are wide enough (2 h at the narrowest) that an
-    /// hour of slack does not move a meal between them for most of the range.
-    /// This is an approximation, and the only one in this file.
+    /// A recorded `eatenAt` is used as-is. Failing that, `LoggedMeal.date` is a
+    /// day rather than an instant — the journal stores meals by date and slot —
+    /// so the slot's usual hour stands in. That fallback is an approximation and
+    /// the only one in this file; the windows are wide enough (2 h at the
+    /// narrowest) that an hour of slack rarely moves a meal between them, but a
+    /// logged time is always better.
     static func mealTime(for meal: LoggedMeal, calendar: Calendar = MealRules.calendar) -> Date {
+        if let eatenAt = meal.eatenAt { return eatenAt }
         let hour = typicalHour(for: meal.slot)
         return calendar.date(bySettingHour: hour, minute: 0, second: 0, of: meal.date) ?? meal.date
     }
+
+    /// True when this meal's time was recorded rather than assumed — so the UI
+    /// can mark a candidate whose position rests on a guess.
+    static func hasRecordedTime(_ meal: LoggedMeal) -> Bool { meal.eatenAt != nil }
 
     static func typicalHour(for slot: MealSlot) -> Int {
         switch slot {

@@ -37,7 +37,21 @@ final class MealLog {
     /// qualitative portion is always there, grams are recorded when known.
     var grams: Int?
     var note: String
+    /// `.now` at insert. **Audit only** — never edited, never shown as the meal
+    /// time. When the meal happened is `eatenAt`; this is when it got typed in,
+    /// which on a bad evening can be three hours later.
     var loggedAt: Date
+
+    /// When the food was actually eaten, to the minute. User-editable.
+    ///
+    /// Optional so journals written before it existed migrate untouched; read
+    /// through `servedAt`, which falls back to the slot's usual hour. That
+    /// fallback is the only approximation in the attribution maths, and this
+    /// field is how it gets removed one meal at a time.
+    var eatenAt: Date?
+    /// Captured at save. A meal eaten at 10:30 abroad is still that meal when
+    /// the phone comes home.
+    var timeZoneID: String?
 
     /// How the meal was tolerated. Recorded only when something went wrong, and
     /// optional even then — most meals have no reason to carry one.
@@ -63,6 +77,7 @@ final class MealLog {
         tolerance: ToleranceLevel? = nil,
         toleranceNote: String = "",
         excludeFromTaste: Bool = false,
+        eatenAt: Date? = nil,
         loggedAt: Date = .now,
         calendar: Calendar = .current
     ) {
@@ -74,7 +89,16 @@ final class MealLog {
         self.toleranceRaw = tolerance?.rawValue
         self.toleranceNote = toleranceNote
         self.excludeFromTaste = excludeFromTaste
+        self.eatenAt = eatenAt.map(MealLog.roundedToMinute)
+        self.timeZoneID = TimeZone.current.identifier
         self.loggedAt = loggedAt
+    }
+
+    /// Seconds are noise, and storing one implies a precision nobody has about
+    /// when a bowl was finished.
+    static func roundedToMinute(_ date: Date) -> Date {
+        let seconds = Calendar.current.component(.second, from: date)
+        return Calendar.current.date(byAdding: .second, value: -seconds, to: date) ?? date
     }
 
     /// "120 g · Almost all", or just the portion when nothing was weighed.

@@ -15,6 +15,9 @@ struct LoggedMeal: Identifiable {
     let tolerance: ToleranceLevel?
     let isCleared: Bool
     let excludeFromTaste: Bool
+    /// The real eaten time when one was recorded. `nil` falls back to the
+    /// slot's usual hour — see `ReactionAttribution.mealTime`.
+    var eatenAt: Date?
 
     var id: String { "\(date.timeIntervalSince1970):\(slot.rawValue)" }
 
@@ -47,7 +50,8 @@ struct LoggedMeal: Identifiable {
                 portion: log.portion,
                 tolerance: log.tolerance,
                 isCleared: log.isCleared,
-                excludeFromTaste: log.isExcludedFromTaste
+                excludeFromTaste: log.isExcludedFromTaste,
+                eatenAt: log.eatenAt
             )
         }
         .sorted { $0.date < $1.date }

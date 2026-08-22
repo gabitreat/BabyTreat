@@ -128,6 +128,65 @@ final class ReactionAttributionTests: XCTestCase {
         XCTAssertTrue(ids.contains("coconutbox"))
     }
 
+    // MARK: - Recorded eaten time
+
+    /// A recorded time is used as-is; without one the slot's usual hour stands in.
+    func testRecordedEatenTimeBeatsTheSlotFallback() {
+        let calendar = MealRules.calendar
+        var meal = self.meal(0, .lunch, ["egg"])
+        XCTAssertFalse(ReactionAttribution.hasRecordedTime(meal))
+        XCTAssertEqual(calendar.component(.hour, from: ReactionAttribution.mealTime(for: meal)), 12)
+
+        meal.eatenAt = calendar.date(bySettingHour: 15, minute: 30, second: 0, of: day(0))
+        XCTAssertTrue(ReactionAttribution.hasRecordedTime(meal))
+        XCTAssertEqual(calendar.component(.hour, from: ReactionAttribution.mealTime(for: meal)), 15)
+    }
+
+    /// The real time can move a meal into a different onset window — which is
+    /// the entire reason for capturing it.
+    func testRecordedTimeChangesTheWindow() {
+        let calendar = MealRules.calendar
+        var meal = self.meal(0, .lunch, ["egg"])
+        let at = observed(0, hour: 14)
+
+        // Assumed 12:00 → 2 h → acute FPIES band, 0.80.
+        let assumed = ReactionAttribution.candidates(observedAt: at, meals: [meal]).first
+        XCTAssertEqual(try XCTUnwrap(assumed?.score), 0.80, accuracy: 0.001)
+
+        // Actually eaten at 13:00 → 1 h → IgE band, 1.00.
+        meal.eatenAt = calendar.date(bySettingHour: 13, minute: 0, second: 0, of: day(0))
+        let recorded = ReactionAttribution.candidates(observedAt: at, meals: [meal]).first
+        XCTAssertEqual(try XCTUnwrap(recorded?.score), 1.00, accuracy: 0.001)
+    }
+
+    func testMealLogRoundsEatenAtToTheMinute() {
+        let messy = Date(timeIntervalSince1970: 1_785_000_041)
+        let log = MealLog(date: messy, slot: .lunch, portion: .all, eatenAt: messy)
+        XCTAssertEqual(Calendar.current.component(.second, from: try XCTUnwrap(log.eatenAt)), 0)
+        XCTAssertEqual(log.timeZoneID, TimeZone.current.identifier)
+    }
+
+    // MARK: - Slot gating
+
+    func testSlotsUnlockAtTheStatedAges() {
+        XCTAssertEqual(MealRules.activeSlots(atAgeMonths: 6), [.breakfast, .lunch])
+        XCTAssertTrue(MealRules.activeSlots(atAgeMonths: 8).contains(.dinner))
+        XCTAssertFalse(MealRules.activeSlots(atAgeMonths: 8).contains(.snack))
+        XCTAssertTrue(MealRules.activeSlots(atAgeMonths: 12).contains(.snack))
+
+        XCTAssertEqual(MealRules.lockedSlots(atAgeMonths: 6), [.dinner, .snack])
+        XCTAssertTrue(MealRules.lockedSlots(atAgeMonths: 12).isEmpty)
+    }
+
+    /// A slot is what the user said it is — never derived from the clock.
+    func testSlotIsNeverInferredFromTime() {
+        // A 10:30 lunch abroad stays lunch.
+        let calendar = MealRules.calendar
+        let earlyLunch = calendar.date(bySettingHour: 10, minute: 30, second: 0, of: day(0))
+        let log = MealLog(date: day(0), slot: .lunch, portion: .all, eatenAt: earlyLunch)
+        XCTAssertEqual(log.slot, .lunch)
+    }
+
     func testExistingFoodsDefaultToBaseRole() {
         let broccoli = MealSeed.foods().first { $0.id == "broccoli" }
         XCTAssertEqual(broccoli?.role, .base)
