@@ -52,6 +52,58 @@ foods → the reaction is recorded but nothing is suppressed; there is no candid
 
 **Where:** `BabyTreat/Logic/ToleranceEngine.swift`, `Models/ToleranceLevel.swift`
 
+## D-20 · 2026-08-24 · Day two of a soup batch is frozen by default
+
+`SoupBatch.defaultStorage(forDayIndex:)` returns `.fresh` for day one and
+`.frozen` for day two. Refrigerating a second day is possible, but only as an
+explicit override with the warning shown — the app never picks it.
+`NitrateRisk.high` locks a batch to a single day outright.
+
+**Why:** general batch-cooking guidance (cool within 1–2 h, fridge up to 2 days)
+does not transfer to infant vegetable purée. A published case series found
+methaemoglobinaemia in infants averaging 8 months, all fed homemade mixed-veg
+purée refrigerated 12–27 h. Improper storage converts nitrate to nitrite in
+situ; freezing halts it, a second fridge day does not. The case-series purées
+were mixed, so the rule binds the batch, not the headline ingredient — carrot
+and potato being low-nitrate roots does not exempt the cook.
+
+An untagged food resolves by kind: an unknown **vegetable** is `.moderate`,
+everything else `.low`. Guessing `.low` on something that turns out to be a
+leafy green is the one error here with a clinical cost.
+
+**Where:** `Models/MealForm.swift` (`NitrateRisk`), `Models/SoupBatch.swift`,
+`Food.nitrateRisk`, `Recipe.nitrateRisk(foodsByID:)`.
+
+## D-21 · 2026-08-24 · A batch is a back-reference, never an attribution shortcut
+
+`MealLog.batchID` records which cook a portion came from. Nothing derives a meal
+time from `cookedAt`.
+
+**Why:** two dinners off one batch are **two independent exposures**. Attributing
+a Tuesday reaction back to Monday's cook time would blame the wrong day, which is
+the same failure mode `ReactionLog`'s missing meal relationship exists to prevent
+(D-17). The rotation meter counts a 2-day batch as two exposures of each base
+ingredient for the same reason — counting it once would let repeat batching
+silently narrow the diet.
+
+**Where:** `Models/MealLog.swift`, `Models/SoupBatch.swift`.
+Test: `testBatchDoesNotCarryAMealTime`.
+
+## D-22 · 2026-08-24 · New @Model types migrate additively — no wipe needed
+
+The soup spec asks for the app to be deleted before first run. Checked instead of
+assumed: old build installed, sentinel `Food`/`Recipe`/`MealLog` rows written
+through `sqlite3`, new build installed over the top without uninstalling.
+`ZSOUPBATCH` was created, `ZNITRATERISKRAW` / `ZFORMRAW` / `ZBATCHID` were added,
+all three sentinel rows survived, and the app stayed up.
+
+**Why:** a new entity plus optional attributes is what lightweight migration
+handles. Wiping the store would have destroyed a real feeding journal for no
+reason.
+
+**Where:** verified on simulator `iPhone 17`, 2026-08-24. Same technique as the
+`eatenAt` check.
+
 ## D-19 · 2026-08-22 · Botanical family is seeded, and backfilled onto old rows
 
 `AllergenFamily` is set on the seed's base foods (`ou` → egg, `somon` → fish,

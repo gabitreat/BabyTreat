@@ -47,10 +47,10 @@ enum MealSeed {
     static func foods() -> [Food] {
         [
             // ---- Vegetables ----
-            Food(id: "dovlecel",  name: "Zucchini",     category: categoryVegetables, colorHex: "#7FA65C", status: .accepted, rating: 4, groups: [.veg]),
+            Food(id: "dovlecel",  name: "Zucchini",     category: categoryVegetables, colorHex: "#7FA65C", status: .accepted, rating: 4, groups: [.veg], nitrateRisk: .moderate),
             Food(id: "broccoli",  name: "Broccoli",     category: categoryVegetables, colorHex: "#4E7A3A", status: .accepted, rating: 4, groups: [.veg]),
             Food(id: "cartofd",   name: "Sweet potato", category: categoryVegetables, colorHex: "#D97A34", status: .accepted, rating: 5, groups: [.veg, .amidon]),
-            Food(id: "cartof",    name: "White potato", category: categoryVegetables, colorHex: "#E3D2AE", status: .accepted, rating: 4, groups: [.amidon]),
+            Food(id: "cartof",    name: "White potato", category: categoryVegetables, colorHex: "#E3D2AE", status: .accepted, rating: 4, groups: [.amidon], nitrateRisk: .low),
             Food(id: "pastarnac", name: "Parsnip",      category: categoryVegetables, colorHex: "#EADCBE", status: .accepted, rating: 3, groups: [.veg, .amidon]),
             Food(id: "radpatr",   name: "Parsley root", category: categoryVegetables, colorHex: "#E0D4B4", status: .accepted, rating: 3, groups: [.veg]),
             Food(id: "telina",    name: "Celeriac",     category: categoryVegetables, colorHex: "#E8E0C8", status: .accepted, rating: 3, groups: [.veg]),
@@ -89,11 +89,11 @@ enum MealSeed {
                  note: "Cleared by the doctor on 24 July. First portion: Monday 27 July."),
             Food(id: "conopida",    name: "Cauliflower", category: categoryPlanned, colorHex: "#EFEBE0", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9, 10, 11], isPriority: true),
             Food(id: "mazare",      name: "Peas",        category: categoryPlanned, colorHex: "#7BA05B", status: .planned, kind: .veg, groups: [.veg, .proteina], season: [5, 6, 7], family: .legume),
-            Food(id: "dovleac",     name: "Pumpkin",     category: categoryPlanned, colorHex: "#E08A2E", status: .planned, kind: .veg, groups: [.veg], season: [9, 10, 11, 12]),
-            Food(id: "fasoleverde", name: "Green beans", category: categoryPlanned, colorHex: "#6E9B4E", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9]),
-            Food(id: "spanac",      name: "Spinach",     category: categoryPlanned, colorHex: "#3F6B34", status: .planned, kind: .veg, groups: [.veg, .fier], season: [3, 4, 5, 9, 10, 11]),
-            Food(id: "morcov",      name: "Carrot",      category: categoryPlanned, colorHex: "#E07B2A", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9, 10, 11], isPriority: true),
-            Food(id: "sfecla",      name: "Beetroot",    category: categoryPlanned, colorHex: "#8E2547", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9, 10, 11]),
+            Food(id: "dovleac",     name: "Pumpkin",     category: categoryPlanned, colorHex: "#E08A2E", status: .planned, kind: .veg, groups: [.veg], season: [9, 10, 11, 12], nitrateRisk: .moderate),
+            Food(id: "fasoleverde", name: "Green beans", category: categoryPlanned, colorHex: "#6E9B4E", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9], nitrateRisk: .moderate),
+            Food(id: "spanac",      name: "Spinach",     category: categoryPlanned, colorHex: "#3F6B34", status: .planned, kind: .veg, groups: [.veg, .fier], season: [3, 4, 5, 9, 10, 11], nitrateRisk: .high),
+            Food(id: "morcov",      name: "Carrot",      category: categoryPlanned, colorHex: "#E07B2A", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9, 10, 11], isPriority: true, nitrateRisk: .moderate),
+            Food(id: "sfecla",      name: "Beetroot",    category: categoryPlanned, colorHex: "#8E2547", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9, 10, 11], nitrateRisk: .high),
             Food(id: "gulie",       name: "Kohlrabi",    category: categoryPlanned, colorHex: "#BFCBA8", status: .planned, kind: .veg, groups: [.veg], season: [5, 6, 7, 8, 9]),
             Food(id: "rosii",       name: "Tomatoes",    category: categoryPlanned, colorHex: "#CC3A28", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9],
                  note: "Acidic — can irritate the skin around the mouth. Many sources defer these to 9–10 months."),
@@ -257,6 +257,47 @@ enum MealSeed {
                 nutrients: ["fibre", "healthy fats", "plant iron"],
                 flag: "Coconut milk is used only in recipes, 1–2 times a week. Never as a replacement for formula.",
                 rating: 0
+            ),
+
+            // ---- Soups, for the month-8 dinner rule ----
+            // The dinner filter matches `form == .soup` exactly, so these three
+            // exist to give it something to rotate against. No dairy — the
+            // 8-month gate is still closed.
+            Recipe(
+                id: "s1", title: "Carrot and potato soup", minAgeMonths: 6,
+                foodIDs: ["morcov", "cartof", "uleimasline"],
+                ingredients: ["1 medium carrot", "1 small potato", "250 ml water", "1 tsp olive oil"],
+                steps: ["Simmer the diced carrot and potato in the water, 20 min, until soft.", "Blend with enough of the cooking liquid to make it spoonable.", "Stir the olive oil in off the heat."],
+                spoonNote: "Thin and smooth — the plain soup, and the batch base.",
+                blwNote: "Hold back a few soft carrot batons before blending.",
+                freezeNote: "Yes — freeze the second day's portion straight after cooking.",
+                storeNote: "Carrot is moderate-nitrate: day two goes in the freezer, not the fridge.",
+                nutrients: ["beta-carotene", "potassium"],
+                rating: 0, form: .soup
+            ),
+            Recipe(
+                id: "s2", title: "Turkey, zucchini and parsnip soup", minAgeMonths: 8, proteinFoodID: "curcan",
+                foodIDs: ["curcan", "dovlecel", "pastarnac", "uleimasline"],
+                ingredients: ["40 g turkey breast", "1/2 small zucchini", "1/2 parsnip", "300 ml water", "1 tsp olive oil"],
+                steps: ["Simmer the turkey 20 min on low, skimming.", "Add the diced vegetables for the last 10 min.", "Blend, loosening with the broth. Stir the oil in off the heat."],
+                spoonNote: "Blend fully, or leave a little texture as the month goes on.",
+                blwNote: "Keep back a strip of turkey and a zucchini baton.",
+                freezeNote: "Yes — 1 month.",
+                storeNote: "Zucchini is moderate-nitrate: day two goes in the freezer.",
+                nutrients: ["iron", "protein", "potassium"],
+                rating: 0, form: .soup
+            ),
+            Recipe(
+                id: "s3", title: "Chicken and broccoli soup", minAgeMonths: 8, proteinFoodID: "pui",
+                foodIDs: ["pui", "broccoli", "cartof", "uleimasline"],
+                ingredients: ["40 g chicken breast", "2 broccoli florets", "1 small potato", "300 ml water", "1 tsp olive oil"],
+                steps: ["Simmer the chicken 20 min on low.", "Add the potato for 10 min, then the broccoli for the last 6.", "Blend to the thickness you want and stir in the oil."],
+                spoonNote: "Goes green and keeps well on a spoon.",
+                blwNote: "A whole floret with the stalk on, as a handle.",
+                freezeNote: "Yes — 1 month.",
+                storeNote: "Fridge 24h, or freeze the second day's portion.",
+                nutrients: ["protein", "vitamin C", "iron"],
+                rating: 0, form: .soup
             ),
         ]
     }
@@ -429,6 +470,43 @@ enum MealSeed {
     /// the attribute; the defaults — `.base` and `.none` — mean it was written by
     /// a build that had the attribute but not yet the tag, and since nothing in
     /// the app can set either one, a stored default carries no intent to protect.
+    /// The recipe counterpart of `installMissingFoods`. Without it the soups
+    /// added for the month-8 dinner rule would only ever appear on a fresh
+    /// install, and the filter would have nothing to offer on an existing one.
+    @MainActor
+    @discardableResult
+    static func installMissingRecipes(in context: ModelContext) -> Int {
+        let existing = Set(((try? context.fetch(FetchDescriptor<Recipe>())) ?? []).map(\.id))
+        guard !existing.isEmpty else { return 0 }   // first run is handled by installIfNeeded
+
+        let missing = recipes().filter { !existing.contains($0.id) }
+        guard !missing.isEmpty else { return 0 }
+        missing.forEach { context.insert($0) }
+        try? context.save()
+        return missing.count
+    }
+
+    /// Fills in `form` on recipes that predate it. Only ever writes over nil —
+    /// an untagged recipe is unknown, not assumed, and the dinner filter treats
+    /// unknown as "not a soup".
+    @MainActor
+    @discardableResult
+    static func backfillRecipeForms(in context: ModelContext) -> Int {
+        let stored = (try? context.fetch(FetchDescriptor<Recipe>())) ?? []
+        guard !stored.isEmpty else { return 0 }
+
+        let seeded = Dictionary(recipes().map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        var touched = 0
+        for recipe in stored where recipe.formRaw == nil {
+            guard let form = seeded[recipe.id]?.formRaw else { continue }
+            recipe.formRaw = form
+            touched += 1
+        }
+        guard touched > 0 else { return 0 }
+        try? context.save()
+        return touched
+    }
+
     @MainActor
     @discardableResult
     static func backfillClassification(in context: ModelContext) -> Int {
@@ -456,6 +534,13 @@ enum MealSeed {
             }
             if food.drinkBlockedUnderMonths == nil, let months = template.drinkBlockedUnderMonths {
                 food.drinkBlockedUnderMonths = months
+                changed = true
+            }
+            // Unlike role and family, an unset nitrate risk really is nil —
+            // `Food.init` only writes the raw value when one was given — so a
+            // plain nil check is the whole test here.
+            if food.nitrateRiskRaw == nil, let risk = template.nitrateRiskRaw {
+                food.nitrateRiskRaw = risk
                 changed = true
             }
 

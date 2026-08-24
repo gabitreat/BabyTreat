@@ -71,6 +71,8 @@
 		5FA2E97EFE5DA9B962BDE7A1 /* ReactionAttribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9956F2600B1AFA2DC405AD63 /* ReactionAttribution.swift */; };
 		1916180B50EAAE39126E520F /* ReactionAttributionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91264CCC3A670FA31C3ACE7F /* ReactionAttributionTests.swift */; };
 		CD25B7CC90FDD8027576D7C2 /* ReactionLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9FB1FF9C3D7237F24939801 /* ReactionLogSheet.swift */; };
+		420819603A16B0BD4C7E7C28 /* MealForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CA23C158CF3E1D04B666485 /* MealForm.swift */; };
+		96DFF5C87A35D7A8C2F3ADB3 /* SoupBatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001B3A299D11C7B6CAFE9B8F /* SoupBatch.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -163,6 +165,8 @@
 		9956F2600B1AFA2DC405AD63 /* ReactionAttribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionAttribution.swift; sourceTree = "<group>"; };
 		91264CCC3A670FA31C3ACE7F /* ReactionAttributionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionAttributionTests.swift; sourceTree = "<group>"; };
 		D9FB1FF9C3D7237F24939801 /* ReactionLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionLogSheet.swift; sourceTree = "<group>"; };
+		4CA23C158CF3E1D04B666485 /* MealForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealForm.swift; sourceTree = "<group>"; };
+		001B3A299D11C7B6CAFE9B8F /* SoupBatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoupBatch.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,6 +188,8 @@
 		06580E702F35321600FBC564 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				001B3A299D11C7B6CAFE9B8F /* SoupBatch.swift */,
+				4CA23C158CF3E1D04B666485 /* MealForm.swift */,
 				1B9376997CEFBE2DD51E7E5C /* ReactionLog.swift */,
 				E6719CE230795BA90295B643 /* IngredientClassification.swift */,
 				5171BEF260E4491FFF0D61C3 /* FoodProduct.swift */,
@@ -468,6 +474,8 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				96DFF5C87A35D7A8C2F3ADB3 /* SoupBatch.swift in Sources */,
+				420819603A16B0BD4C7E7C28 /* MealForm.swift in Sources */,
 				CD25B7CC90FDD8027576D7C2 /* ReactionLogSheet.swift in Sources */,
 				5FA2E97EFE5DA9B962BDE7A1 /* ReactionAttribution.swift in Sources */,
 				45DEC57EF20E193D15785D33 /* ReactionLog.swift in Sources */,

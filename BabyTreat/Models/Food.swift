@@ -64,6 +64,10 @@ final class Food {
     /// though it is fine in cooking. Plant milks are not formulated as a main
     /// drink under 12 months and using one as such risks real deficiency.
     var drinkBlockedUnderMonths: Int?
+    /// Nitrate load, for **batch storage safety only** (see `NitrateRisk`).
+    /// Never reaches allergen gating or diversity scoring.
+    var nitrateRiskRaw: String?
+
     /// Suggestions will not propose this food before this date (APLV hold).
     var holdUntil: Date?
     var triedOn: Date?
@@ -86,6 +90,7 @@ final class Food {
         family: AllergenFamily = .none,
         minAgeMonths: Int? = nil,
         drinkBlockedUnderMonths: Int? = nil,
+        nitrateRisk: NitrateRisk? = nil,
         holdUntil: Date? = nil,
         triedOn: Date? = nil,
         retryOn: Date? = nil,
@@ -106,6 +111,7 @@ final class Food {
         self.familyRaw = family.rawValue
         self.minAgeMonths = minAgeMonths
         self.drinkBlockedUnderMonths = drinkBlockedUnderMonths
+        self.nitrateRiskRaw = nitrateRisk?.rawValue
         self.holdUntil = holdUntil
         self.triedOn = triedOn
         self.retryOn = retryOn
@@ -152,6 +158,18 @@ final class Food {
     var role: IngredientRole {
         get { roleRaw.flatMap(IngredientRole.init(rawValue:)) ?? .base }
         set { roleRaw = newValue.rawValue }
+    }
+
+    /// Nitrate load. An untagged food is read from its kind rather than assumed
+    /// safe: an unknown **vegetable** is `.moderate`, because guessing `.low` on
+    /// something that turns out to be a leafy green is the one error here with a
+    /// clinical cost. Anything else — meat, fruit, grain, fat — is `.low`.
+    var nitrateRisk: NitrateRisk {
+        get {
+            if let raw = nitrateRiskRaw, let risk = NitrateRisk(rawValue: raw) { return risk }
+            return kind == .veg ? .moderate : .low
+        }
+        set { nitrateRiskRaw = newValue.rawValue }
     }
 
     var family: AllergenFamily {

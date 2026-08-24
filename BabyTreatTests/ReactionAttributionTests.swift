@@ -320,4 +320,130 @@ final class ReactionAttributionTests: XCTestCase {
         XCTAssertEqual(MealSeed.backfillClassification(in: context), 0)
         XCTAssertEqual(custom.family, .dairy)
     }
+
+    // MARK: - Soup batches (month-8 dinner rule, Parts 1–2)
+
+    /// The rule the whole nitrate axis exists for.
+    func testHighNitrateIngredientLocksTheBatchToOneDay() {
+        XCTAssertEqual(NitrateRisk.high.maxBatchSpanDays, 1)
+        XCTAssertEqual(NitrateRisk.moderate.maxBatchSpanDays, 2)
+        XCTAssertEqual(NitrateRisk.low.maxBatchSpanDays, 2)
+    }
+
+    func testSeedTagsTheNitrateRisksTheSpecNames() {
+        let byID = Dictionary(MealSeed.foods().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        XCTAssertEqual(byID["spanac"]?.nitrateRisk, .high)
+        XCTAssertEqual(byID["sfecla"]?.nitrateRisk, .high)
+        XCTAssertEqual(byID["morcov"]?.nitrateRisk, .moderate)
+        XCTAssertEqual(byID["dovlecel"]?.nitrateRisk, .moderate)
+        XCTAssertEqual(byID["cartof"]?.nitrateRisk, .low, "potato is low even though it is filed under vegetables")
+    }
+
+    /// An untagged vegetable must not read as safe.
+    func testUntaggedVegetableDefaultsToModerateAndMeatToLow() {
+        let veg = Food(id: "x-veg", name: "Fennel", category: "Vegetables",
+                       colorHex: "#FFFFFF", status: .planned, kind: .veg)
+        let meat = Food(id: "x-meat", name: "Lamb", category: "Protein",
+                        colorHex: "#FFFFFF", status: .planned, kind: .proteina)
+        XCTAssertEqual(veg.nitrateRisk, .moderate)
+        XCTAssertEqual(meat.nitrateRisk, .low)
+    }
+
+    /// A recipe takes the risk of its riskiest base ingredient, and accents are
+    /// invisible to it — olive oil must not decide how long a soup keeps.
+    func testRecipeRiskIsTheMaxOfItsBaseIngredients() {
+        let byID = Dictionary(MealSeed.foods().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let recipes = Dictionary(MealSeed.recipes().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+
+        XCTAssertEqual(recipes["s1"]?.nitrateRisk(foodsByID: byID), .moderate, "carrot carries it")
+        XCTAssertEqual(recipes["s1"]?.form, .soup)
+
+        // Same soup with spinach in it is locked to a single day.
+        let spinachSoup = Recipe(id: "x", title: "Spinach soup", minAgeMonths: 8,
+                                 foodIDs: ["spanac", "cartof", "uleimasline"],
+                                 ingredients: [], steps: [], form: .soup)
+        XCTAssertEqual(spinachSoup.nitrateRisk(foodsByID: byID), .high)
+        XCTAssertEqual(spinachSoup.nitrateRisk(foodsByID: byID).maxBatchSpanDays, 1)
+    }
+
+    func testUnknownIngredientIsNotTreatedAsSafe() {
+        let recipe = Recipe(id: "x", title: "Mystery", minAgeMonths: 8,
+                            foodIDs: ["not-in-the-pantry"], ingredients: [], steps: [], form: .soup)
+        XCTAssertEqual(recipe.nitrateRisk(foodsByID: [:]), .moderate)
+    }
+
+    /// CRITICAL — day two defaults to the freezer, never the fridge.
+    func testDayTwoDefaultsToFrozen() {
+        XCTAssertEqual(SoupBatch.defaultStorage(forDayIndex: 0), .fresh)
+        XCTAssertEqual(SoupBatch.defaultStorage(forDayIndex: 1), .frozen)
+
+        let batch = SoupBatch(recipeID: "s1", cookedAt: day(0), spanDays: 2, startDate: day(0))
+        batch.applyDefaultStorage()
+        XCTAssertEqual(batch.storage(on: day(0)), .fresh)
+        XCTAssertEqual(batch.storage(on: day(1)), .frozen)
+    }
+
+    func testDefaultStorageNeverOverwritesAnOverride() {
+        let batch = SoupBatch(recipeID: "s1", cookedAt: day(0), spanDays: 2, startDate: day(0))
+        batch.setStorage(.refrigerated, on: day(1))
+        batch.applyDefaultStorage()
+        XCTAssertEqual(batch.storage(on: day(1)), .refrigerated,
+                       "an explicit override survives — it is the user's call, with the warning shown")
+    }
+
+    /// Storage is keyed by day, so any time on that day finds the portion.
+    func testStorageLookupIsByDayNotByInstant() {
+        let batch = SoupBatch(recipeID: "s1", cookedAt: day(0), spanDays: 2, startDate: day(0))
+        batch.applyDefaultStorage()
+        let laterThatDay = day(1).addingTimeInterval(17 * 3600 + 43 * 60)
+        XCTAssertEqual(batch.storage(on: laterThatDay), .frozen)
+        XCTAssertTrue(batch.covers(laterThatDay))
+    }
+
+    func testSpanIsClampedAndCoversTheRightDays() {
+        XCTAssertEqual(SoupBatch(recipeID: "s1", cookedAt: day(0), spanDays: 5, startDate: day(0)).spanDays, 2)
+        XCTAssertEqual(SoupBatch(recipeID: "s1", cookedAt: day(0), spanDays: 0, startDate: day(0)).spanDays, 1)
+
+        let batch = SoupBatch(recipeID: "s1", cookedAt: day(0), spanDays: 2, startDate: day(0))
+        XCTAssertEqual(batch.coveredDays.count, 2)
+        XCTAssertTrue(batch.covers(day(1)))
+        XCTAssertFalse(batch.covers(day(2)))
+    }
+
+    /// The cook time is not a meal time. Nothing may derive one from the other.
+    func testBatchDoesNotCarryAMealTime() {
+        let cooked = day(0).addingTimeInterval(11 * 3600 + 30 * 60 + 42)
+        let batch = SoupBatch(recipeID: "s1", cookedAt: cooked, spanDays: 2, startDate: day(0))
+        XCTAssertEqual(batch.cookedAt, MealLog.roundedToMinute(cooked), "minute precision")
+
+        // Two dinners off one batch are two exposures, each with its own eatenAt.
+        let monday = MealLog(date: day(0), slot: .dinner, portion: .all)
+        let tuesday = MealLog(date: day(1), slot: .dinner, portion: .all)
+        monday.batchID = batch.id
+        tuesday.batchID = batch.id
+        monday.eatenAt = day(0).addingTimeInterval(18 * 3600)
+        tuesday.eatenAt = day(1).addingTimeInterval(18 * 3600)
+
+        XCTAssertEqual(monday.batchID, tuesday.batchID)
+        XCTAssertNotEqual(monday.eatenAt, tuesday.eatenAt)
+        XCTAssertNotEqual(tuesday.eatenAt, batch.cookedAt)
+    }
+
+    func testSeedShipsThreeSoupsForTheDinnerFilter() {
+        let soups = MealSeed.recipes().filter { $0.form == .soup }
+        XCTAssertEqual(soups.count, 3)
+        XCTAssertEqual(soups.filter { $0.minAgeMonths <= 8 }.count, 3)
+        // No dairy before the 8-month gate.
+        let byID = Dictionary(MealSeed.foods().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        for soup in soups {
+            XCTAssertFalse(soup.foodIDs.contains { byID[$0]?.family == .dairy }, "\(soup.title) has dairy in it")
+        }
+    }
+
+    /// Untagged recipes stay unknown — the filter must not mistake one for a soup.
+    func testExistingRecipesAreNotSilentlyCalledSoups() {
+        let byID = Dictionary(MealSeed.recipes().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        XCTAssertNil(byID["r2"]?.form)
+        XCTAssertNil(byID["r5"]?.form)
+    }
 }

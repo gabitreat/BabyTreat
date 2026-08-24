@@ -22,6 +22,11 @@ final class Recipe {
     /// Standing caveat shown on the card, e.g. the coconut-milk limit.
     var flag: String?
     var rating: Int
+    /// Texture at the table. Optional in the store so recipes written before
+    /// forms existed migrate cleanly — and left genuinely unknown rather than
+    /// guessed, because the dinner filter matches `.soup` exactly and a wrong
+    /// guess would put a purée on a soup-only evening.
+    var formRaw: String?
 
     init(
         id: String,
@@ -38,7 +43,8 @@ final class Recipe {
         nutrients: [String] = [],
         allergens: [String] = [],
         flag: String? = nil,
-        rating: Int = 0
+        rating: Int = 0,
+        form: MealForm? = nil
     ) {
         self.id = id
         self.title = title
@@ -55,6 +61,27 @@ final class Recipe {
         self.allergens = allergens
         self.flag = flag
         self.rating = rating
+        self.formRaw = form?.rawValue
+    }
+
+    var form: MealForm? {
+        get { formRaw.flatMap(MealForm.init(rawValue:)) }
+        set { formRaw = newValue?.rawValue }
+    }
+
+    /// The batch storage ceiling this recipe imposes, taken from its riskiest
+    /// **base** ingredient. Accents carry no meaningful nitrate load and a
+    /// teaspoon of olive oil must not decide how long a soup keeps.
+    ///
+    /// A recipe whose foods are not in the pantry yet resolves to `.moderate`
+    /// rather than `.low` — unknown is not the same as safe.
+    func nitrateRisk(foodsByID: [String: Food]) -> NitrateRisk {
+        let risks = foodIDs.map { id -> NitrateRisk in
+            guard let food = foodsByID[id] else { return .moderate }
+            guard food.role == .base else { return .low }
+            return food.nitrateRisk
+        }
+        return risks.max() ?? .moderate
     }
 }
 

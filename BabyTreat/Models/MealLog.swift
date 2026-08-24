@@ -52,6 +52,12 @@ final class MealLog {
     /// Captured at save. A meal eaten at 10:30 abroad is still that meal when
     /// the phone comes home.
     var timeZoneID: String?
+    /// Which cook this portion came from, when it came from a batch.
+    ///
+    /// A back-reference for the planner and for reading a week's history — it is
+    /// NOT an attribution shortcut. Two dinners off one batch are two separate
+    /// exposures, each scored from its own `eatenAt`.
+    var batchID: String?
 
     /// How the meal was tolerated. Recorded only when something went wrong, and
     /// optional even then — most meals have no reason to carry one.
