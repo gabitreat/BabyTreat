@@ -23,34 +23,35 @@ is usually the interesting part.
 
 ---
 
-## D-17 · 2026-08-03 · "Didn't like it" is not a reaction, and never suppresses
+## D-22 · 2026-08-24 · New @Model types migrate additively — no wipe needed
 
-Reactions are recorded on `MealLog` at four levels. The first, `dislike`, is
-deliberately not a reaction at all.
+The soup spec asks for the app to be deleted before first run. Checked instead of
+assumed: old build installed, sentinel `Food`/`Recipe`/`MealLog` rows written
+through `sqlite3`, new build installed over the top without uninstalling.
+`ZSOUPBATCH` was created, `ZNITRATERISKRAW` / `ZFORMRAW` / `ZBATCHID` were added,
+all three sentinel rows survived, and the app stayed up.
 
-| Level | Consequence |
-|-------|-------------|
-| dislike | nothing. Stays on the menu. |
-| mild | paused 21 days, then `.retry` |
-| moderate | held indefinitely, pediatrician flag, manual clearing |
-| severe | blocked, clearing needs an explicit confirmation |
+**Why:** a new entity plus optional attributes is what lightweight migration
+handles. Wiping the store would have destroyed a real feeding journal for no
+reason.
 
-**Why the split:** at the table both look identical — a refused bowl. They call
-for opposite responses. A disliked food has to keep coming back; that is the only
-thing that produces acceptance. A food that caused symptoms has to go away.
-Collapsing them would quietly remove foods for being unpopular.
+**Where:** verified on simulator `iPhone 17`, 2026-08-24. Same technique as the
+`eatenAt` check.
 
-The question is **only asked when the portion was "a few spoons" or "refused"**.
-Above that it would appear after nearly every meal and be tapped past within a
-week.
+## D-21 · 2026-08-24 · A batch is a back-reference, never an attribution shortcut
 
-**Attribution.** A flag is pinned on one food only when exactly one food in the
-meal has fewer than two clean prior exposures. Two unproven foods → both are
-paused and retested separately, because guessing gets it wrong in both
-directions: it clears a real trigger and removes an innocent food. Zero unproven
-foods → the reaction is recorded but nothing is suppressed; there is no candidate.
+`MealLog.batchID` records which cook a portion came from. Nothing derives a meal
+time from `cookedAt`.
 
-**Where:** `BabyTreat/Logic/ToleranceEngine.swift`, `Models/ToleranceLevel.swift`
+**Why:** two dinners off one batch are **two independent exposures**. Attributing
+a Tuesday reaction back to Monday's cook time would blame the wrong day, which is
+the same failure mode `ReactionLog`'s missing meal relationship exists to prevent
+(D-17). The rotation meter counts a 2-day batch as two exposures of each base
+ingredient for the same reason — counting it once would let repeat batching
+silently narrow the diet.
+
+**Where:** `Models/MealLog.swift`, `Models/SoupBatch.swift`.
+Test: `testBatchDoesNotCarryAMealTime`.
 
 ## D-20 · 2026-08-24 · Day two of a soup batch is frozen by default
 
@@ -73,36 +74,6 @@ leafy green is the one error here with a clinical cost.
 
 **Where:** `Models/MealForm.swift` (`NitrateRisk`), `Models/SoupBatch.swift`,
 `Food.nitrateRisk`, `Recipe.nitrateRisk(foodsByID:)`.
-
-## D-21 · 2026-08-24 · A batch is a back-reference, never an attribution shortcut
-
-`MealLog.batchID` records which cook a portion came from. Nothing derives a meal
-time from `cookedAt`.
-
-**Why:** two dinners off one batch are **two independent exposures**. Attributing
-a Tuesday reaction back to Monday's cook time would blame the wrong day, which is
-the same failure mode `ReactionLog`'s missing meal relationship exists to prevent
-(D-17). The rotation meter counts a 2-day batch as two exposures of each base
-ingredient for the same reason — counting it once would let repeat batching
-silently narrow the diet.
-
-**Where:** `Models/MealLog.swift`, `Models/SoupBatch.swift`.
-Test: `testBatchDoesNotCarryAMealTime`.
-
-## D-22 · 2026-08-24 · New @Model types migrate additively — no wipe needed
-
-The soup spec asks for the app to be deleted before first run. Checked instead of
-assumed: old build installed, sentinel `Food`/`Recipe`/`MealLog` rows written
-through `sqlite3`, new build installed over the top without uninstalling.
-`ZSOUPBATCH` was created, `ZNITRATERISKRAW` / `ZFORMRAW` / `ZBATCHID` were added,
-all three sentinel rows survived, and the app stayed up.
-
-**Why:** a new entity plus optional attributes is what lightweight migration
-handles. Wiping the store would have destroyed a real feeding journal for no
-reason.
-
-**Where:** verified on simulator `iPhone 17`, 2026-08-24. Same technique as the
-`eatenAt` check.
 
 ## D-19 · 2026-08-22 · Botanical family is seeded, and backfilled onto old rows
 
@@ -157,6 +128,48 @@ preference — but dislikes are kept, since a taste refusal is the signal itself
 
 **Where:** `BabyTreat/Logic/PairEffectEngine.swift`, `Views/Meals/PairInsightsView.swift`
 
+## D-17 · 2026-08-03 · "Didn't like it" is not a reaction, and never suppresses
+
+Reactions are recorded on `MealLog` at four levels. The first, `dislike`, is
+deliberately not a reaction at all.
+
+| Level | Consequence |
+|-------|-------------|
+| dislike | nothing. Stays on the menu. |
+| mild | paused 21 days, then `.retry` |
+| moderate | held indefinitely, pediatrician flag, manual clearing |
+| severe | blocked, clearing needs an explicit confirmation |
+
+**Why the split:** at the table both look identical — a refused bowl. They call
+for opposite responses. A disliked food has to keep coming back; that is the only
+thing that produces acceptance. A food that caused symptoms has to go away.
+Collapsing them would quietly remove foods for being unpopular.
+
+The question is **only asked when the portion was "a few spoons" or "refused"**.
+Above that it would appear after nearly every meal and be tapped past within a
+week.
+
+**Attribution.** A flag is pinned on one food only when exactly one food in the
+meal has fewer than two clean prior exposures. Two unproven foods → both are
+paused and retested separately, because guessing gets it wrong in both
+directions: it clears a real trigger and removes an innocent food. Zero unproven
+foods → the reaction is recorded but nothing is suppressed; there is no candidate.
+
+**Where:** `BabyTreat/Logic/ToleranceEngine.swift`, `Models/ToleranceLevel.swift`
+
+## D-16 · 2026-08-03 · Menu and shopping list share one week turnover, on Sunday
+
+`shoppingWeekStart` became `planningWeekStart` and now drives the Week tab, the
+auto-planner and the shopping list alike. From Sunday it means the week that
+starts tomorrow.
+
+**Why:** Sunday is the planning day. A list that appears on Monday arrives after
+the shopping, and a menu that turns over on a different day from the list it is
+built from is how the list ends up missing the week's new foods.
+
+**Where:** `MealRules.planningWeekStart(for:)`, `MealsWeekView.weekStart`,
+`MealsShoppingView.currentWeek`
+
 ## D-15 · 2026-08-03 · The week is generated from the existing rules, not new ones
 
 `MealPlanner` builds a week of meals. It adds **no nutrition rules of its own** —
@@ -191,50 +204,6 @@ animal-source food come from lunch. This is a choice, not a rule; it needs
 confirming before dinner unlocks on 2026-08-23.
 
 **Where:** `BabyTreat/MealPlanning/MealPlanner.swift`, `MealsWeekView.planner`
-
-## D-16 · 2026-08-03 · Menu and shopping list share one week turnover, on Sunday
-
-`shoppingWeekStart` became `planningWeekStart` and now drives the Week tab, the
-auto-planner and the shopping list alike. From Sunday it means the week that
-starts tomorrow.
-
-**Why:** Sunday is the planning day. A list that appears on Monday arrives after
-the shopping, and a menu that turns over on a different day from the list it is
-built from is how the list ends up missing the week's new foods.
-
-**Where:** `MealRules.planningWeekStart(for:)`, `MealsWeekView.weekStart`,
-`MealsShoppingView.currentWeek`
-
-## D-7 · 2026-07-26 · Meal planning ships inside the BabyTreat iOS app
-
-Resolves OQ-4. Not a separate app, not a web tool.
-
-**Consequences taken on:**
-
-- SwiftData models `Food`, `Recipe`, `MenuEntry`, `MealLog`, `ShoppingItem` join
-  the existing container in `BabyTreatApp`. The prototype's table shapes carried
-  over directly, so the Supabase port stays open — it is not foreclosed.
-- The rule engine is a plain `enum MealRules` with no SwiftData or SwiftUI
-  imports, so it can be reasoned about and eventually tested on its own.
-- `Meals` is a full-width tile on the home grid, below the six logging tiles —
-  it is a section, not a single logging action.
-- The meal section follows the **prototype's** visual language (`MealTheme`,
-  ported from the HTML `:root`), not the flat colour-block style of the existing
-  tiles. That was the point of the design reference.
-
-**Where:** `BabyTreat/Models/`, `BabyTreat/MealPlanning/`, `BabyTreat/Views/Meals/`
-
-## D-8 · 2026-07-26 · Baby age comes from a birth date, not a stored month count
-
-`SettingsView` had `@AppStorage("babyAgeMonths"): Int`, written by a stepper and
-**read by nothing**. Replaced with `babyBirthDate`, with age computed from it.
-
-**Why:** every age gate in the meal module — dinner at 8 months, dairy hold to
-23 Aug, recipe availability, the milestone bar — depends on knowing the real age
-on the day it is asked. A stored month count is wrong the day after it is
-entered. This also closes part of FINDINGS #5.
-
-**Where:** `SettingsView.swift`, `MealRules.ageMonths(on:birthDate:)`
 
 ## D-14 · 2026-07-26 · The dairy hold stays date-gated, with a one-off notice
 
@@ -287,6 +256,19 @@ whether CMPA has been ruled out by then. The hold encodes *"wait until month 8"*
 when what is actually meant is *"wait until CMPA is cleared, and not before
 month 8."* Those come apart in four weeks.
 
+## D-11 · 2026-07-26 · Seed data is versioned, and reinstalling replaces it
+
+`installIfNeeded` used to seed only an empty store, so a device that already had
+the v1 Romanian seed would never see the English one. It now compares
+`MealSeed.version` against a stored value and replaces foods, recipes, menu and
+shopping list when it moves.
+
+**`MealLog` is deliberately exempt.** The journal is the caregiver's own record,
+not seed content, and it re-associates by date and slot. Everything else is
+replaced, so **status and rating edits made against an older seed are lost** —
+acceptable while the seed is a day old, not acceptable once real acceptance
+history accumulates. Revisit before the next bump.
+
 ## D-10 · 2026-07-26 · The meal section is English throughout
 
 Resolves OQ-5. Chrome, food names, recipe titles, ingredients, method steps,
@@ -311,19 +293,6 @@ rather than APLV.
 **Where:** `MealSeed.swift`, `MealRules.lunchGaps`, `MealSlot`, `MealPortion`,
 `RecipeSource`, all five tab views.
 
-## D-11 · 2026-07-26 · Seed data is versioned, and reinstalling replaces it
-
-`installIfNeeded` used to seed only an empty store, so a device that already had
-the v1 Romanian seed would never see the English one. It now compares
-`MealSeed.version` against a stored value and replaces foods, recipes, menu and
-shopping list when it moves.
-
-**`MealLog` is deliberately exempt.** The journal is the caregiver's own record,
-not seed content, and it re-associates by date and slot. Everything else is
-replaced, so **status and rating edits made against an older seed are lost** —
-acceptable while the seed is a day old, not acceptable once real acceptance
-history accumulates. Revisit before the next bump.
-
 ## D-9 · 2026-07-26 · Edit the local Xcode project directly rather than regenerating
 
 `tuist generate` fails without `tuist install`, which needs a network fetch for
@@ -347,6 +316,37 @@ regeneration.
 `plutil`-validated, re-runnable for further files.
 
 ---
+
+## D-8 · 2026-07-26 · Baby age comes from a birth date, not a stored month count
+
+`SettingsView` had `@AppStorage("babyAgeMonths"): Int`, written by a stepper and
+**read by nothing**. Replaced with `babyBirthDate`, with age computed from it.
+
+**Why:** every age gate in the meal module — dinner at 8 months, dairy hold to
+23 Aug, recipe availability, the milestone bar — depends on knowing the real age
+on the day it is asked. A stored month count is wrong the day after it is
+entered. This also closes part of FINDINGS #5.
+
+**Where:** `SettingsView.swift`, `MealRules.ageMonths(on:birthDate:)`
+
+## D-7 · 2026-07-26 · Meal planning ships inside the BabyTreat iOS app
+
+Resolves OQ-4. Not a separate app, not a web tool.
+
+**Consequences taken on:**
+
+- SwiftData models `Food`, `Recipe`, `MenuEntry`, `MealLog`, `ShoppingItem` join
+  the existing container in `BabyTreatApp`. The prototype's table shapes carried
+  over directly, so the Supabase port stays open — it is not foreclosed.
+- The rule engine is a plain `enum MealRules` with no SwiftData or SwiftUI
+  imports, so it can be reasoned about and eventually tested on its own.
+- `Meals` is a full-width tile on the home grid, below the six logging tiles —
+  it is a section, not a single logging action.
+- The meal section follows the **prototype's** visual language (`MealTheme`,
+  ported from the HTML `:root`), not the flat colour-block style of the existing
+  tiles. That was the point of the design reference.
+
+**Where:** `BabyTreat/Models/`, `BabyTreat/MealPlanning/`, `BabyTreat/Views/Meals/`
 
 ## D-6 · 2026-07-26 · Keep the prototype in `design/` as the design reference
 
