@@ -303,12 +303,21 @@ struct MealsWeekView: View {
 
             let proteins = MealRules.proteinsUsed(weekStart: weekStart, menu: menu)
             if !proteins.isEmpty {
-                HStack(spacing: 6) {
+                HStack(alignment: .center, spacing: 6) {
                     Text("Proteins:")
                         .font(.system(size: 12))
                         .foregroundStyle(MealTheme.muted)
-                    ForEach(proteins, id: \.self) { id in
-                        if let food = foodsByID[id] { FoodChip(food: food, compact: true) }
+                        .fixedSize()
+                    // Chips keep their full width and the row scrolls instead,
+                    // so a seventh protein pushes sideways rather than squashing
+                    // every name.
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 6) {
+                            ForEach(proteins, id: \.self) { id in
+                                if let food = foodsByID[id] { FoodChip(food: food, compact: true) }
+                            }
+                        }
+                        .padding(.vertical, 2)
                     }
                 }
             }

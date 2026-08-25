@@ -157,6 +157,10 @@ struct FoodChip: View {
     var body: some View {
         Text(food.name)
             .font(.system(size: compact ? 12 : 13, weight: .semibold))
+            // A chip is a label, not a paragraph. Without these the name breaks
+            // mid-word when the row runs out of space — "Salmo / n".
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, compact ? 8 : 10)
             .padding(.vertical, compact ? 4 : 6)
             .background(background)

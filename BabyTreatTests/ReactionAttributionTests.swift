@@ -1,5 +1,6 @@
 import XCTest
 import SwiftData
+import SwiftUI
 @testable import BabyTreat
 
 final class ReactionAttributionTests: XCTestCase {
@@ -440,11 +441,21 @@ final class ReactionAttributionTests: XCTestCase {
         }
     }
 
-    /// Untagged recipes stay unknown — the filter must not mistake one for a soup.
-    func testExistingRecipesAreNotSilentlyCalledSoups() {
+    /// Non-soup recipes must never drift into the soup filter, whether they are
+    /// tagged with another texture or not tagged at all.
+    func testNonSoupRecipesAreNeverOfferedAsSoups() {
         let byID = Dictionary(MealSeed.recipes().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
-        XCTAssertNil(byID["r2"]?.form)
-        XCTAssertNil(byID["r5"]?.form)
+        XCTAssertNotEqual(byID["r2"]?.form, .soup)
+        XCTAssertNotEqual(byID["r5"]?.form, .soup)
+
+        let suggested = DinnerRule.suggestions(from: MealSeed.recipes(), slot: .dinner, ageMonths: 8)
+        XCTAssertFalse(suggested.contains { $0.id == "r2" || $0.id == "r5" })
+
+        // And an untagged recipe is still left out rather than guessed at.
+        let untagged = Recipe(id: "untagged", title: "Something", minAgeMonths: 6,
+                              foodIDs: [], ingredients: [], steps: [])
+        XCTAssertNil(untagged.form)
+        XCTAssertTrue(DinnerRule.isOffPlan(untagged, slot: .dinner, ageMonths: 8))
     }
 
     // MARK: - Dinner rule (month 8)
@@ -830,5 +841,92 @@ final class ReactionAttributionTests: XCTestCase {
         try context.save()
 
         XCTAssertEqual(try context.fetch(FetchDescriptor<PeriodStart>()).count, 2)
+    }
+
+    // MARK: - New seed content
+
+    func testBreakfastsCoverMoreThanOats() {
+        let breakfasts = MealSeed.recipes().filter { $0.id.hasPrefix("b") || $0.id == "r1" }
+        XCTAssertGreaterThanOrEqual(breakfasts.count, 7)
+
+        // More than one grain now, not oats every morning.
+        let grains: Set<String> = ["ovaz", "mei", "quinoa"]
+        let used = Set(breakfasts.flatMap { $0.foodIDs }).intersection(grains)
+        XCTAssertGreaterThanOrEqual(used.count, 3)
+    }
+
+    /// Dinner is liquid at month 8, so breakfast has to carry the texture.
+    func testBreakfastsIncludeFingerFood() {
+        let breakfasts = MealSeed.recipes().filter { $0.id.hasPrefix("b") }
+        XCTAssertTrue(breakfasts.contains { $0.form == .fingerFood })
+        XCTAssertFalse(DinnerRule.needsTextureNudge(recipes: MealSeed.recipes(), ageMonths: 8),
+                       "with finger food seeded the nudge should be quiet")
+    }
+
+    func testNewFruitAndVegetablesAreSeeded() {
+        let foods = MealSeed.foods()
+        let byID = Dictionary(foods.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+
+        for id in ["praz", "fenicul", "mangold", "sparanghel", "porumb"] {
+            XCTAssertNotNil(byID[id], "\(id) missing")
+        }
+        for id in ["cirese", "struguri", "portocala", "gutui", "papaya"] {
+            XCTAssertNotNil(byID[id], "\(id) missing")
+        }
+
+        // The two the storage rule cares about.
+        XCTAssertEqual(byID["fenicul"]?.nitrateRisk, .high)
+        XCTAssertEqual(byID["mangold"]?.nitrateRisk, .high)
+        XCTAssertEqual(byID["porumb"]?.nitrateRisk, .low)
+    }
+
+    /// Choking risks carry their handling note rather than being left bare.
+    func testChokingRisksCarryAPreparationNote() {
+        let byID = Dictionary(MealSeed.foods().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        XCTAssertNotNil(byID["struguri"]?.note)
+        XCTAssertNotNil(byID["cirese"]?.note)
+    }
+
+    func testEveryFoodIDIsStillUnique() {
+        let ids = MealSeed.foods().map(\.id)
+        XCTAssertEqual(ids.count, Set(ids).count)
+        let recipeIDs = MealSeed.recipes().map(\.id)
+        XCTAssertEqual(recipeIDs.count, Set(recipeIDs).count)
+    }
+
+    // MARK: - Food chips render on one line
+
+    /// The bug this guards: in a tight row the chip wrapped mid-word and read
+    /// "Salmo / n". Rendering it is the only honest check — the wrap is a layout
+    /// result, not a value any logic returns.
+    @MainActor
+    private func renderedHeight(of food: Food, proposedWidth: CGFloat) -> CGFloat {
+        let renderer = ImageRenderer(
+            content: FoodChip(food: food, compact: true)
+                .frame(width: proposedWidth, alignment: .leading)
+        )
+        renderer.scale = 1
+        return renderer.uiImage?.size.height ?? 0
+    }
+
+    @MainActor
+    func testChipDoesNotWrapWhenTheRowIsTight() {
+        let salmon = MealSeed.foods().first { $0.id == "somon" }!
+
+        // Deliberately far narrower than the word needs.
+        let squeezed = renderedHeight(of: salmon, proposedWidth: 30)
+        let roomy = renderedHeight(of: salmon, proposedWidth: 300)
+
+        XCTAssertGreaterThan(roomy, 0, "the chip rendered at all")
+        XCTAssertEqual(squeezed, roomy, accuracy: 0.5,
+                       "a squeezed chip is the same height as a roomy one — it did not wrap onto a second line")
+    }
+
+    @MainActor
+    func testTheLongestPantryNameStillFitsOneLine() {
+        let longest = MealSeed.foods().max { $0.name.count < $1.name.count }!
+        let squeezed = renderedHeight(of: longest, proposedWidth: 40)
+        let roomy = renderedHeight(of: longest, proposedWidth: 400)
+        XCTAssertEqual(squeezed, roomy, accuracy: 0.5, "\(longest.name) wrapped")
     }
 }

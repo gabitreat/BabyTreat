@@ -117,6 +117,37 @@ enum MealSeed {
             Food(id: "naut",   name: "Chickpeas", category: categoryPlanned, colorHex: "#D7B57E", status: .planned, kind: .proteina, groups: [.proteina, .amidon, .fier], family: .legume),
             Food(id: "quinoa", name: "Quinoa",    category: categoryPlanned, colorHex: "#D6C9A8", status: .planned, kind: .cereale,  groups: [.amidon, .proteina]),
             Food(id: "mei",    name: "Millet",    category: categoryPlanned, colorHex: "#E0CFA0", status: .planned, kind: .cereale,  groups: [.amidon]),
+
+            // ---- More vegetables to introduce ----
+            // Seasons are Romanian. Nitrate tags matter for batch storage only
+            // (D-20) — fennel and chard are the two the case series is about.
+            Food(id: "praz",       name: "Leek",             category: categoryPlanned, colorHex: "#9CBF6A", status: .planned, kind: .veg, groups: [.veg], season: [9, 10, 11, 12, 1, 2, 3], nitrateRisk: .moderate),
+            Food(id: "ceapa",      name: "Onion",            category: categoryPlanned, colorHex: "#E4D9C0", status: .planned, kind: .veg, groups: [.veg], nitrateRisk: .low),
+            Food(id: "varza",      name: "Cabbage",          category: categoryPlanned, colorHex: "#C8DBB0", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9, 10, 11], nitrateRisk: .moderate),
+            Food(id: "varzabr",    name: "Brussels sprouts", category: categoryPlanned, colorHex: "#7FA35A", status: .planned, kind: .veg, groups: [.veg], season: [9, 10, 11, 12], nitrateRisk: .moderate),
+            Food(id: "sparanghel", name: "Asparagus",        category: categoryPlanned, colorHex: "#7FA86B", status: .planned, kind: .veg, groups: [.veg], season: [4, 5, 6], nitrateRisk: .moderate),
+            Food(id: "castravete", name: "Cucumber",         category: categoryPlanned, colorHex: "#A9CE7E", status: .planned, kind: .veg, groups: [.veg], season: [5, 6, 7, 8, 9], nitrateRisk: .moderate),
+            Food(id: "nap",        name: "Turnip",           category: categoryPlanned, colorHex: "#E6DCC6", status: .planned, kind: .veg, groups: [.veg], season: [9, 10, 11, 12], nitrateRisk: .moderate),
+            Food(id: "porumb",     name: "Sweetcorn",        category: categoryPlanned, colorHex: "#F2CE5B", status: .planned, kind: .veg, groups: [.veg, .amidon], season: [7, 8, 9], nitrateRisk: .low),
+            Food(id: "fenicul",    name: "Fennel",           category: categoryPlanned, colorHex: "#DCE7C4", status: .planned, kind: .veg, groups: [.veg], season: [6, 7, 8, 9, 10], nitrateRisk: .high,
+                 note: "High nitrate — fine to serve, but a batch containing it is a single day only."),
+            Food(id: "mangold",    name: "Swiss chard",      category: categoryPlanned, colorHex: "#4F7F3E", status: .planned, kind: .veg, groups: [.veg, .fier], season: [5, 6, 7, 8, 9, 10], nitrateRisk: .high,
+                 note: "High nitrate — cook fresh and serve the same day."),
+
+            // ---- More fruit to introduce ----
+            Food(id: "cirese",     name: "Cherries",     category: categoryPlanned, colorHex: "#A32335", status: .planned, kind: .fruct, groups: [.fruct], season: [5, 6, 7],
+                 note: "Stone out, halved or mashed — a whole cherry is a choking risk."),
+            Food(id: "struguri",   name: "Grapes",       category: categoryPlanned, colorHex: "#7B5EA7", status: .planned, kind: .fruct, groups: [.fruct], season: [8, 9, 10],
+                 note: "Quartered lengthways, never whole or halved crossways."),
+            Food(id: "portocala",  name: "Orange",       category: categoryPlanned, colorHex: "#EE8B21", status: .planned, kind: .fruct, groups: [.fruct], season: [11, 12, 1, 2, 3]),
+            Food(id: "mandarine",  name: "Clementines",  category: categoryPlanned, colorHex: "#F09A35", status: .planned, kind: .fruct, groups: [.fruct], season: [11, 12, 1, 2]),
+            Food(id: "ananas",     name: "Pineapple",    category: categoryPlanned, colorHex: "#EFC03F", status: .planned, kind: .fruct, groups: [.fruct]),
+            Food(id: "gutui",      name: "Quince",       category: categoryPlanned, colorHex: "#E3C75F", status: .planned, kind: .fruct, groups: [.fruct], season: [9, 10, 11],
+                 note: "Always cooked — raw quince is hard and astringent."),
+            Food(id: "smochine",   name: "Figs",         category: categoryPlanned, colorHex: "#8E6A9B", status: .planned, kind: .fruct, groups: [.fruct], season: [8, 9]),
+            Food(id: "coacaze",    name: "Blackcurrants",category: categoryPlanned, colorHex: "#3D2A55", status: .planned, kind: .fruct, groups: [.fruct], season: [6, 7, 8],
+                 note: "Mashed — the skins are tough on their own."),
+            Food(id: "papaya",     name: "Papaya",       category: categoryPlanned, colorHex: "#F2934E", status: .planned, kind: .fruct, groups: [.fruct]),
         ] + accents()
     }
 
@@ -183,7 +214,7 @@ enum MealSeed {
                 spoonNote: "Creamy, slightly thick — takes well on a spoon.",
                 blwNote: "Thick slices of raw, well-ripened pear alongside, held in the hand.",
                 freezeNote: "Yes — 60 ml portions, up to 1 month.", storeNote: "Fridge 48h.",
-                nutrients: ["fibre", "plant iron", "calcium"], rating: 5
+                nutrients: ["fibre", "plant iron", "calcium"], rating: 5, form: .puree
             ),
             Recipe(
                 id: "r2", title: "Salmon with broccoli and potato", minAgeMonths: 6, proteinFoodID: "somon",
@@ -193,7 +224,7 @@ enum MealSeed {
                 spoonNote: "Potato mash with flaked salmon, broccoli puréed on top.",
                 blwNote: "Whole broccoli floret with the stalk left on as a natural handle, plus a potato baton.",
                 freezeNote: "Yes, but the purée only — 1 month.", storeNote: "Fridge 24h (fish).",
-                nutrients: ["omega-3", "protein", "vitamin C"], allergens: ["fish"], rating: 3
+                nutrients: ["omega-3", "protein", "vitamin C"], allergens: ["fish"], rating: 3, form: .mashed
             ),
             Recipe(
                 id: "r3", title: "Turkey with zucchini and potato", minAgeMonths: 6, proteinFoodID: "curcan",
@@ -203,7 +234,7 @@ enum MealSeed {
                 spoonNote: "Fine purée, thinned with the cooking liquid.",
                 blwNote: "Finger-thick strips of turkey plus batons of cooked zucchini.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
-                nutrients: ["iron", "protein", "potassium"], rating: 4
+                nutrients: ["iron", "protein", "potassium"], rating: 4, form: .puree
             ),
             Recipe(
                 id: "r4", title: "Beef with broccoli and sweet potato", minAgeMonths: 7, proteinFoodID: "vita",
@@ -213,7 +244,7 @@ enum MealSeed {
                 spoonNote: "Sweet potato mash with very finely chopped beef.",
                 blwNote: "A long-braised strip of beef that shreds in the mouth, plus a sweet potato baton.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
-                nutrients: ["heme iron", "zinc", "vitamin C", "beta-carotene"], rating: 0
+                nutrients: ["heme iron", "zinc", "vitamin C", "beta-carotene"], rating: 0, form: .mashed
             ),
             Recipe(
                 id: "r5", title: "Fluffy egg with avocado", minAgeMonths: 6, proteinFoodID: "ou",
@@ -223,7 +254,7 @@ enum MealSeed {
                 spoonNote: "Mashed avocado with small pieces of egg.",
                 blwNote: "Omelette cut into 2 cm strips — holds very well in a fist.",
                 freezeNote: "No.", storeNote: "Eat the same day.",
-                nutrients: ["choline", "protein", "healthy fats"], allergens: ["egg"], rating: 4
+                nutrients: ["choline", "protein", "healthy fats"], allergens: ["egg"], rating: 4, form: .fingerFood
             ),
             Recipe(
                 id: "r6", title: "Oats with banana and peanut butter", minAgeMonths: 6, proteinFoodID: "arahide",
@@ -233,7 +264,7 @@ enum MealSeed {
                 spoonNote: "Creamy; thin with a little water if it goes too thick.",
                 blwNote: "Half a banana with the peel left on at the base, as a handle.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
-                nutrients: ["fibre", "healthy fats", "magnesium"], allergens: ["peanut"], rating: 5
+                nutrients: ["fibre", "healthy fats", "magnesium"], allergens: ["peanut"], rating: 5, form: .puree
             ),
             Recipe(
                 id: "r7", title: "Lentils with sweet potato and zucchini", minAgeMonths: 6, proteinFoodID: "linte",
@@ -244,7 +275,7 @@ enum MealSeed {
                 blwNote: "Small patties can be pressed from the cooled mixture.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
                 nutrients: ["plant iron", "fibre", "protein"],
-                flag: "Weak acceptance so far — retry without pressure.", rating: 2
+                flag: "Weak acceptance so far — retry without pressure.", rating: 2, form: .puree
             ),
             Recipe(
                 id: "r8", title: "Oat porridge with coconut milk", minAgeMonths: 6,
@@ -256,7 +287,79 @@ enum MealSeed {
                 freezeNote: "Yes — 60 ml portions, up to 1 month.", storeNote: "Fridge 48h.",
                 nutrients: ["fibre", "healthy fats", "plant iron"],
                 flag: "Coconut milk is used only in recipes, 1–2 times a week. Never as a replacement for formula.",
-                rating: 0
+                rating: 0, form: .puree
+            ),
+
+            // ---- Breakfasts ----
+            // The oat porridges were doing all the work here. These widen the
+            // grains, and two of them are finger food on purpose: dinner stays
+            // liquid at month 8, so breakfast is where texture has to move.
+            Recipe(
+                id: "b1", title: "Millet porridge with apricot and cinnamon", minAgeMonths: 6,
+                foodIDs: ["mei", "caisa"],
+                ingredients: ["3 tbsp millet flakes", "150 ml water", "1 ripe apricot", "a pinch of cinnamon"],
+                steps: ["Simmer the millet 8–10 min, stirring.", "Mash the apricot and stir it in off the heat.", "Dust with cinnamon."],
+                spoonNote: "Softer than oats and a little sweeter.",
+                blwNote: "Apricot halves alongside, skin off.",
+                freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
+                nutrients: ["plant iron", "magnesium", "beta-carotene"],
+                rating: 0, form: .puree
+            ),
+            Recipe(
+                id: "b2", title: "Quinoa porridge with pear", minAgeMonths: 6,
+                foodIDs: ["quinoa", "para"],
+                ingredients: ["3 tbsp quinoa flakes", "150 ml water", "1/2 ripe pear", "1 tsp tahini"],
+                steps: ["Rinse the quinoa well, then simmer 10 min.", "Grate the pear in at the end.", "Stir the tahini through for fat and calcium."],
+                spoonNote: "Thicker than oats — loosen with water.",
+                blwNote: "Ripe pear slices in the hand.",
+                freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
+                nutrients: ["complete protein", "calcium", "fibre"], allergens: ["sesame"],
+                rating: 0, form: .puree
+            ),
+            Recipe(
+                id: "b3", title: "Banana and egg pancakes", minAgeMonths: 8, proteinFoodID: "ou",
+                foodIDs: ["ou", "banana", "ovaz"],
+                ingredients: ["1 ripe banana", "1 egg", "2 tbsp fine oat flakes", "a little butter for the pan"],
+                steps: ["Mash the banana smooth and beat in the egg.", "Stir in the oats and let it sit 5 min.", "Cook small pancakes on low until set right through."],
+                spoonNote: "Torn into pieces if the spoon is still the way in.",
+                blwNote: "Perfect strips — holds together in a fist and takes real chewing.",
+                freezeNote: "Yes, between sheets of paper — 1 month.", storeNote: "Fridge 24h.",
+                nutrients: ["protein", "choline", "potassium"], allergens: ["egg"],
+                rating: 0, form: .fingerFood
+            ),
+            Recipe(
+                id: "b4", title: "Scrambled egg with tomato", minAgeMonths: 8, proteinFoodID: "ou",
+                foodIDs: ["ou", "rosii", "uleimasline"],
+                ingredients: ["1 egg", "1 small ripe tomato, skinned", "1 tsp olive oil"],
+                steps: ["Soften the skinned, chopped tomato in the oil 3–4 min.", "Pour the beaten egg over and scramble on low.", "Cook until completely set, then cool."],
+                spoonNote: "Chop the curds small.",
+                blwNote: "Leave the curds large enough to pick up.",
+                freezeNote: "No.", storeNote: "Eat the same day.",
+                nutrients: ["protein", "lycopene", "vitamin C"], allergens: ["egg"],
+                rating: 0, form: .mashed
+            ),
+            Recipe(
+                id: "b5", title: "Oat fingers with apple and cinnamon", minAgeMonths: 8,
+                foodIDs: ["ovaz", "mar"],
+                ingredients: ["4 tbsp oat flakes", "1 apple, grated", "1 tbsp water", "a pinch of cinnamon"],
+                steps: ["Mix everything into a stiff paste.", "Press flat on a lined tray, about 1 cm thick.", "Bake 20 min at 180 °C, then cut into fingers and cool."],
+                spoonNote: "Crumble one into warm water for a quick porridge.",
+                blwNote: "The point of the recipe — a firm finger that softens as it is chewed.",
+                freezeNote: "Yes — 1 month.", storeNote: "Airtight, 3 days.",
+                nutrients: ["fibre", "beta-glucan"],
+                rating: 0, form: .fingerFood
+            ),
+            Recipe(
+                id: "b6", title: "Yogurt with blueberries and carob", minAgeMonths: 8,
+                foodIDs: ["iaurt", "afine"],
+                ingredients: ["3 tbsp full-fat plain yogurt", "a small handful of blueberries", "1 tsp carob"],
+                steps: ["Crush the blueberries so there are no whole ones left.", "Fold them through the yogurt.", "Stir the carob in."],
+                spoonNote: "Cold and thick — good on a hot morning.",
+                blwNote: "Loaded on a spoon the baby holds.",
+                freezeNote: "No.", storeNote: "Eat the same day.",
+                nutrients: ["calcium", "protein", "anthocyanins"], allergens: ["dairy"],
+                flag: "Dairy. The CMPA question is still unconfirmed — check before this becomes a regular.",
+                rating: 0, form: .puree
             ),
 
             // ---- Soups, for the month-8 dinner rule ----
