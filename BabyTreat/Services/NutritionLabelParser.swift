@@ -56,28 +56,68 @@ enum NutritionLabelParser {
         var facts = NutritionFacts()
         var sawKcal = false
 
-        for raw in lines {
-            let line = normalise(raw)
-            guard let match = match(line: line) else { continue }
+        // A label is a table. Vision sometimes returns a row as one line
+        // ("Grăsimi 6,8 g") and sometimes as two ("Grăsimi", then "6,8 g"),
+        // depending on how far apart the columns are printed. When a line names
+        // a nutrient but carries no number, it is held here and filled by the
+        // next line that does.
+        var pending: Nutrient?
 
-            switch match.nutrient {
+        func record(_ nutrient: Nutrient, _ value: Double, _ unit: Unit) {
+            switch nutrient {
             case .energyKcal:
-                facts.kcal = match.value
+                facts.kcal = value
                 sawKcal = true
             case .energyKJ:
                 // Only fall back to kJ if no kcal figure turns up anywhere.
                 if !sawKcal, facts.kcal == nil {
-                    facts.kcal = match.value / NutritionFacts.kilojoulesPerKcal
+                    facts.kcal = value / NutritionFacts.kilojoulesPerKcal
                     facts.energyWasDerived = true
                 }
-            case .fat:          facts.fat = facts.fat ?? grams(match)
-            case .saturatedFat: facts.saturatedFat = facts.saturatedFat ?? grams(match)
-            case .carbs:        facts.carbs = facts.carbs ?? grams(match)
-            case .sugars:       facts.sugars = facts.sugars ?? grams(match)
-            case .fiber:        facts.fiber = facts.fiber ?? grams(match)
-            case .protein:      facts.protein = facts.protein ?? grams(match)
-            case .salt:         facts.salt = facts.salt ?? grams(match)
-            case .sodium:       facts.sodium = facts.sodium ?? grams(match)
+            case .fat:          facts.fat = facts.fat ?? grams(value, unit)
+            case .saturatedFat: facts.saturatedFat = facts.saturatedFat ?? grams(value, unit)
+            case .carbs:        facts.carbs = facts.carbs ?? grams(value, unit)
+            case .sugars:       facts.sugars = facts.sugars ?? grams(value, unit)
+            case .fiber:        facts.fiber = facts.fiber ?? grams(value, unit)
+            case .protein:      facts.protein = facts.protein ?? grams(value, unit)
+            case .salt:         facts.salt = facts.salt ?? grams(value, unit)
+            case .sodium:       facts.sodium = facts.sodium ?? grams(value, unit)
+            }
+        }
+
+        for raw in lines {
+            let line = normalise(raw)
+
+            if let match = match(line: line) {
+                record(match.nutrient, match.value, match.unit)
+                pending = nil
+                continue
+            }
+
+            // A nutrient name on its own — remember it for the next value.
+            if let named = nutrient(named: line) {
+                pending = named
+                continue
+            }
+
+            // A value on its own — belongs to whatever was named last.
+            if let waiting = pending {
+                if waiting == .energyKcal || waiting == .energyKJ {
+                    if let kcal = firstNumber(in: line, followedBy: ["kcal"]) {
+                        record(.energyKcal, kcal, .kcal)
+                        pending = nil
+                        continue
+                    }
+                    if let kj = firstNumber(in: line, followedBy: ["kj"]) {
+                        record(.energyKJ, kj, .kJ)
+                        pending = nil
+                        continue
+                    }
+                }
+                if let value = numbers(in: line).first, isValueOnly(line) {
+                    record(waiting, value, unit(of: line))
+                    pending = nil
+                }
             }
         }
 
@@ -91,6 +131,33 @@ enum NutritionLabelParser {
 
         facts.per100 = .grams
         return facts
+    }
+
+    /// The nutrient a line names, when it names one and carries no value of its
+    /// own. Energy is included so a bare "Valoare energetică" can be held too.
+    static func nutrient(named line: String) -> Nutrient? {
+        guard numbers(in: line).isEmpty else { return nil }
+        if line.contains("energ") || line.contains("valoare energetica") { return .energyKcal }
+        for (nutrient, phrases) in vocabulary where phrases.contains(where: { line.contains($0) }) {
+            return nutrient
+        }
+        return nil
+    }
+
+    /// Whether a line is just a number and a unit — the value column of a table.
+    ///
+    /// Guards against a stray "best before 2027" or "contains 4 portions" being
+    /// swallowed as the value of whatever nutrient was named above it.
+    static func isValueOnly(_ line: String) -> Bool {
+        let stripped = line
+            .replacingOccurrences(of: #"[\d.,]"#, with: "", options: .regularExpression)
+            .replacingOccurrences(of: #"\b(g|mg|kj|kcal|ml)\b"#, with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return stripped.isEmpty
+    }
+
+    private static func unit(of line: String) -> Unit {
+        line.contains("mg") ? .milligrams : .grams
     }
 
     // MARK: - One line
@@ -159,7 +226,7 @@ enum NutritionLabelParser {
         return nil
     }
 
-    private static func grams(_ match: Match) -> Double {
-        match.unit == .milligrams ? match.value / 1000 : match.value
+    private static func grams(_ value: Double, _ unit: Unit) -> Double {
+        unit == .milligrams ? value / 1000 : value
     }
 }

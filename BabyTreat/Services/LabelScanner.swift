@@ -40,22 +40,20 @@ enum LabelScanner {
     #endif
 
     static func lines(in cgImage: CGImage) async throws -> [String] {
+        let observations = try await recognise(in: cgImage)
+        let lines = rows(from: observations)
+        guard !lines.isEmpty else { throw ScanError.noTextFound }
+        return lines
+    }
+
+    static func recognise(in cgImage: CGImage) async throws -> [VNRecognizedTextObservation] {
         try await withCheckedThrowingContinuation { continuation in
             let request = VNRecognizeTextRequest { request, error in
                 if let error {
                     continuation.resume(throwing: ScanError.recognitionFailed(error.localizedDescription))
                     return
                 }
-                let observations = request.results as? [VNRecognizedTextObservation] ?? []
-                // Top to bottom: Vision's origin is bottom-left, so a larger
-                // midY is higher up the label.
-                let ordered = observations.sorted { $0.boundingBox.midY > $1.boundingBox.midY }
-                let lines = ordered.compactMap { $0.topCandidates(1).first?.string }
-                if lines.isEmpty {
-                    continuation.resume(throwing: ScanError.noTextFound)
-                } else {
-                    continuation.resume(returning: lines)
-                }
+                continuation.resume(returning: request.results as? [VNRecognizedTextObservation] ?? [])
             }
             request.recognitionLevel = .accurate
             // Nutrition tables are numbers and short words; the language model
@@ -69,6 +67,47 @@ enum LabelScanner {
             } catch {
                 continuation.resume(throwing: ScanError.recognitionFailed(error.localizedDescription))
             }
+        }
+    }
+
+    /// Rebuilds table rows from the individual pieces Vision returns.
+    ///
+    /// A nutrition label is a table, and Vision hands back each cell separately:
+    /// "Grăsimi" and "6,8 g" arrive as two observations, sometimes with the
+    /// value listed *before* its own label. Sorting by height alone is not
+    /// enough — cells sharing a row have to be grouped by their vertical
+    /// position and then read left to right, or the value column ends up
+    /// detached from the nutrient it belongs to.
+    static func rows(from observations: [VNRecognizedTextObservation]) -> [String] {
+        let pieces = observations.compactMap { observation -> (text: String, box: CGRect)? in
+            guard let text = observation.topCandidates(1).first?.string else { return nil }
+            return (text, observation.boundingBox)
+        }
+        guard !pieces.isEmpty else { return [] }
+
+        // Rows count as the same when their centres sit within half a line
+        // height of each other. Derived from the text itself so it holds for a
+        // close-up photo and a distant one alike.
+        let heights = pieces.map(\.box.height).sorted()
+        let medianHeight = heights[heights.count / 2]
+        let tolerance = max(medianHeight * 0.6, 0.005)
+
+        var grouped: [[(text: String, box: CGRect)]] = []
+        for piece in pieces.sorted(by: { $0.box.midY > $1.box.midY }) {
+            if var last = grouped.last,
+               let reference = last.first,
+               abs(reference.box.midY - piece.box.midY) <= tolerance {
+                last.append(piece)
+                grouped[grouped.count - 1] = last
+            } else {
+                grouped.append([piece])
+            }
+        }
+
+        return grouped.map { row in
+            row.sorted { $0.box.minX < $1.box.minX }
+                .map(\.text)
+                .joined(separator: " ")
         }
     }
 }

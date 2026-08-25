@@ -77,6 +77,9 @@ struct ServingCalculatorSheet: View {
                 amountSection
                 resultSection
             }
+            .onChange(of: chosenPhoto) { _, item in
+                Task { await load(item) }
+            }
             .navigationTitle("Per serving")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -134,9 +137,6 @@ struct ServingCalculatorSheet: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
-        }
-        .onChange(of: chosenPhoto) { _, item in
-            Task { await load(item) }
         }
     }
 

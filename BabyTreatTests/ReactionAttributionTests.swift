@@ -1316,4 +1316,72 @@ final class ReactionAttributionTests: XCTestCase {
             XCTAssertTrue(error is LabelScanner.ScanError)
         }
     }
+
+    /// Reproduces the real failure: a label is a table, and Vision often returns
+    /// the nutrient column and the value column as separate lines.
+    func testReadsALabelSplitIntoColumns() {
+        let lines = [
+            "Valori nutriționale",
+            "per 100 g",
+            "Valoare energetică",
+            "1560 kJ / 371 kcal",
+            "Grăsimi",
+            "6,8 g",
+            "Glucide",
+            "62,5 g",
+            "Proteine",
+            "13,5 g",
+            "Sare",
+            "0,02 g",
+        ]
+        let facts = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(facts.kcal ?? 0, 371, accuracy: 0.01)
+        XCTAssertEqual(facts.fat ?? 0, 6.8, accuracy: 0.01)
+        XCTAssertEqual(facts.carbs ?? 0, 62.5, accuracy: 0.01)
+        XCTAssertEqual(facts.protein ?? 0, 13.5, accuracy: 0.01)
+        XCTAssertEqual(facts.salt ?? 0, 0.02, accuracy: 0.001)
+    }
+
+    /// Renders a two-column table, the way a packet actually prints it, and
+    /// runs the whole path: Vision, then the parser.
+    @MainActor
+    private func twoColumnLabelImage(_ rows: [(String, String)]) -> UIImage {
+        let rowHeight: CGFloat = 56
+        let size = CGSize(width: 760, height: rowHeight * CGFloat(rows.count) + 40)
+        return UIGraphicsImageRenderer(size: size).image { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 32, weight: .regular),
+                .foregroundColor: UIColor.black,
+            ]
+            for (index, row) in rows.enumerated() {
+                let y = 20 + CGFloat(index) * rowHeight
+                (row.0 as NSString).draw(at: CGPoint(x: 24, y: y), withAttributes: attributes)
+                // Far right, so the columns are visually separate.
+                (row.1 as NSString).draw(at: CGPoint(x: 560, y: y), withAttributes: attributes)
+            }
+        }
+    }
+
+    @MainActor
+    func testScannerReadsATwoColumnLabel() async throws {
+        let image = twoColumnLabelImage([
+            ("Valori nutritionale", "per 100 g"),
+            ("Valoare energetica", "371 kcal"),
+            ("Grasimi", "6,8 g"),
+            ("Glucide", "62,5 g"),
+            ("Proteine", "13,5 g"),
+        ])
+
+        let lines = try await LabelScanner.lines(in: image)
+        XCTAssertFalse(lines.isEmpty)
+
+        let facts = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(facts.kcal ?? 0, 371, accuracy: 1, "energy not read from a two-column label")
+        XCTAssertEqual(facts.fat ?? 0, 6.8, accuracy: 0.2, "fat not read")
+        XCTAssertEqual(facts.carbs ?? 0, 62.5, accuracy: 0.2, "carbs not read")
+        XCTAssertEqual(facts.protein ?? 0, 13.5, accuracy: 0.2, "protein not read")
+    }
+
 }
