@@ -8,11 +8,13 @@ struct MealsWeekView: View {
     @Query private var foods: [Food]
     @Query private var menu: [MenuEntry]
     @Query private var recipes: [Recipe]
+    @Query private var batches: [SoupBatch]
 
     @State private var weekOffset = 0
     @State private var editTarget: MealEditTarget?
     /// What the planner did, last time it was asked. Cleared once it is read.
     @State private var planNotes: [String] = []
+    @State private var showBatchSheet = false
 
     private var today: Date { MealRules.startOfDay(.now) }
     /// Opens on the week being planned *for*, which from Sunday is next week —
@@ -41,12 +43,26 @@ struct MealsWeekView: View {
                 planner
                 proposals
                 nutritionSummary
+                dinnerRule
+                batchSection
                 days
             }
             .padding(.horizontal, MealTheme.pad)
             .padding(.vertical, 20)
         }
         .onChange(of: weekOffset) { planNotes = [] }
+        .sheet(isPresented: $showBatchSheet) {
+            SoupBatchSheet(
+                weekStart: weekStart,
+                ageMonths: months,
+                recipes: recipes,
+                foodsByID: foodsByID,
+                onCreate: { recipe, start, span, cookedAt in
+                    BatchPlanner.create(recipe: recipe, startDate: start, spanDays: span,
+                                        cookedAt: cookedAt, in: modelContext)
+                }
+            )
+        }
         .sheet(item: $editTarget) { target in
             MealEditSheet(
                 date: target.date,
@@ -300,6 +316,63 @@ struct MealsWeekView: View {
     }
 
     // MARK: - Days
+
+    /// The month's dinner shape, stated where it bites, plus the texture nudge.
+    @ViewBuilder
+    private var dinnerRule: some View {
+        if let window = DinnerRule.window(for: .dinner, ageMonths: months) {
+            VStack(alignment: .leading, spacing: 8) {
+                Eyebrow(text: "Dinner")
+                Text(window.note)
+                    .font(.system(size: 14.5, weight: .semibold))
+                    .foregroundStyle(MealTheme.ink)
+                Text(DinnerRule.textureReminder)
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(MealTheme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(MealTheme.lagoonSoft, in: RoundedRectangle(cornerRadius: 16))
+        }
+    }
+
+    private var weekBatches: [SoupBatch] {
+        batches
+            .filter { batch in batch.coveredDays.contains { $0 >= weekStart && $0 <= weekEnd } }
+            .sorted { $0.startDate < $1.startDate }
+    }
+
+    private var batchSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Eyebrow(text: "Batches")
+                Spacer()
+                Button {
+                    showBatchSheet = true
+                } label: {
+                    Label("Cook a batch", systemImage: "plus.circle.fill")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(MealTheme.lagoon)
+            }
+
+            if weekBatches.isEmpty {
+                Text("Nothing batched this week.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(MealTheme.muted)
+            } else {
+                ForEach(weekBatches) { batch in
+                    BatchCard(
+                        batch: batch,
+                        recipe: recipes.first { $0.id == batch.recipeID },
+                        onDiscard: { BatchPlanner.discard(batch, in: modelContext) }
+                    )
+                }
+            }
+        }
+    }
 
     private var days: some View {
         VStack(alignment: .leading, spacing: 12) {

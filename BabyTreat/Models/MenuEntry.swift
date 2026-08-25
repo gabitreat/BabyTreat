@@ -74,6 +74,10 @@ final class MenuEntry {
     /// Optional so stores written before the planner existed migrate cleanly;
     /// read it through `wasGenerated`.
     var isGenerated: Bool?
+    /// Set when this meal came from a cooked batch. Optional so older stores
+    /// migrate cleanly. Two days off one batch each keep their own entry — this
+    /// links them, it does not merge them.
+    var batchID: String?
 
     init(
         date: Date,

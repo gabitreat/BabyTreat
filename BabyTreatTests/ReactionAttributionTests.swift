@@ -446,4 +446,153 @@ final class ReactionAttributionTests: XCTestCase {
         XCTAssertNil(byID["r2"]?.form)
         XCTAssertNil(byID["r5"]?.form)
     }
+
+    // MARK: - Dinner rule (month 8)
+
+    func testMonthEightDinnerSuggestsSoupsOnly() {
+        let recipes = MealSeed.recipes()
+        let suggested = DinnerRule.suggestions(from: recipes, slot: .dinner, ageMonths: 8)
+        XCTAssertFalse(suggested.isEmpty)
+        XCTAssertTrue(suggested.allSatisfy { $0.form == .soup })
+    }
+
+    func testTheRuleOnlyAppliesToDinnerAndOnlyAtMonthEight() {
+        let recipes = MealSeed.recipes()
+        // Lunch at 8 months is untouched.
+        XCTAssertTrue(DinnerRule.suggestions(from: recipes, slot: .lunch, ageMonths: 8)
+            .contains { $0.form != .soup })
+        // Dinner at 9 months is untouched.
+        XCTAssertTrue(DinnerRule.suggestions(from: recipes, slot: .dinner, ageMonths: 9)
+            .contains { $0.form != .soup })
+        // And at 7.
+        XCTAssertNil(DinnerRule.allowedForms(slot: .dinner, ageMonths: 7))
+        XCTAssertNotNil(DinnerRule.allowedForms(slot: .dinner, ageMonths: 8))
+    }
+
+    func testSuggestionsStillRespectAge() {
+        let recipes = MealSeed.recipes()
+        let suggested = DinnerRule.suggestions(from: recipes, slot: .dinner, ageMonths: 8)
+        XCTAssertTrue(suggested.allSatisfy { $0.minAgeMonths <= 8 })
+    }
+
+    /// CRITICAL — a filter, never a block.
+    func testOffPlanDinnerIsFlaggedButNeverRefused() {
+        let porridge = MealSeed.recipes().first { $0.id == "r1" }!
+        XCTAssertTrue(DinnerRule.isOffPlan(porridge, slot: .dinner, ageMonths: 8))
+        // `isOffPlan` is the whole API — there is no "canLog" to say no.
+        let soup = MealSeed.recipes().first { $0.id == "s1" }!
+        XCTAssertFalse(DinnerRule.isOffPlan(soup, slot: .dinner, ageMonths: 8))
+        XCTAssertFalse(DinnerRule.isOffPlan(porridge, slot: .dinner, ageMonths: 9))
+    }
+
+    func testTextureNudgeFiresOnAWeekOfNothingButPuree() {
+        let soft = MealSeed.recipes().filter { $0.form == .soup }
+        XCTAssertTrue(DinnerRule.needsTextureNudge(recipes: soft, ageMonths: 8))
+
+        var withFinger = soft
+        withFinger.append(Recipe(id: "f", title: "Toast fingers", minAgeMonths: 8,
+                                 foodIDs: [], ingredients: [], steps: [], form: .fingerFood))
+        XCTAssertFalse(DinnerRule.needsTextureNudge(recipes: withFinger, ageMonths: 8))
+        XCTAssertFalse(DinnerRule.needsTextureNudge(recipes: soft, ageMonths: 7))
+    }
+
+    // MARK: - Batch safety
+
+    func testCoolingReminderFiresNinetyMinutesAfterCooking() {
+        let cooked = day(0).addingTimeInterval(12 * 3600)
+        let batch = SoupBatch(recipeID: "s1", cookedAt: cooked, spanDays: 2, startDate: day(0))
+        XCTAssertFalse(BatchSafety.coolingOverdue(for: batch, now: cooked.addingTimeInterval(60 * 60)))
+        XCTAssertTrue(BatchSafety.coolingOverdue(for: batch, now: cooked.addingTimeInterval(91 * 60)))
+    }
+
+    func testRefrigeratedPortionExpiresAfterTwentyFourHours() {
+        let cooked = day(0).addingTimeInterval(12 * 3600)
+        let batch = SoupBatch(recipeID: "s1", cookedAt: cooked, spanDays: 2, startDate: day(0))
+        batch.setStorage(.refrigerated, on: day(1))
+
+        XCTAssertEqual(BatchSafety.expiry(for: batch, on: day(1), now: cooked.addingTimeInterval(20 * 3600)), .fine)
+        let late = BatchSafety.expiry(for: batch, on: day(1), now: cooked.addingTimeInterval(26 * 3600))
+        XCTAssertFalse(late.isServable)
+        XCTAssertNotNil(late.reason)
+    }
+
+    /// Freezing halts the conversion, so a frozen portion does not age out here.
+    func testFrozenPortionDoesNotExpire() {
+        let cooked = day(0).addingTimeInterval(12 * 3600)
+        let batch = SoupBatch(recipeID: "s1", cookedAt: cooked, spanDays: 2, startDate: day(0))
+        batch.applyDefaultStorage()
+        XCTAssertEqual(batch.storage(on: day(1)), .frozen)
+        XCTAssertEqual(BatchSafety.expiry(for: batch, on: day(1), now: cooked.addingTimeInterval(72 * 3600)), .fine)
+    }
+
+    func testDiscardedBatchIsNeverServable() {
+        let batch = SoupBatch(recipeID: "s1", cookedAt: day(0), spanDays: 2, startDate: day(0))
+        batch.discardedAt = day(0)
+        XCTAssertEqual(BatchSafety.expiry(for: batch, on: day(0)), .discarded)
+    }
+
+    func testOnlyTheSecondDayNeedsTheFridgeWarning() {
+        let batch = SoupBatch(recipeID: "s1", cookedAt: day(0), spanDays: 2, startDate: day(0))
+        XCTAssertFalse(BatchSafety.needsSecondDayWarning(for: batch, on: day(0)))
+        XCTAssertTrue(BatchSafety.needsSecondDayWarning(for: batch, on: day(1)))
+    }
+
+    func testRiceChangesTheReheatAdvice() {
+        XCTAssertTrue(BatchSafety.reheatRule(containsRice: true).localizedCaseInsensitiveContains("rice"))
+        XCTAssertFalse(BatchSafety.reheatRule(containsRice: false).localizedCaseInsensitiveContains("rice"))
+    }
+
+    // MARK: - Batch planning
+
+    @MainActor
+    func testTwoDayBatchCountsAsTwoExposures() {
+        let byID = Dictionary(MealSeed.foods().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let soup = MealSeed.recipes().first { $0.id == "s1" }!
+
+        let plan = BatchPlanner.makePlan(recipe: soup, startDate: day(0), spanDays: 2,
+                                         cookedAt: day(0), foodsByID: byID)
+        XCTAssertEqual(plan.entries.count, 2, "one menu entry per day — that is what makes it two exposures")
+        XCTAssertTrue(plan.entries.allSatisfy { $0.foodIDs.contains("morcov") })
+        XCTAssertEqual(plan.entries.map { MealRules.startOfDay($0.date) },
+                       [day(0), day(1)])
+    }
+
+    /// Accents ride along in the dish but must not fill a rotation slot.
+    @MainActor
+    func testBatchEntriesLeaveAccentsOutOfRotation() {
+        let byID = Dictionary(MealSeed.foods().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let soup = MealSeed.recipes().first { $0.id == "s1" }!
+        XCTAssertTrue(soup.foodIDs.contains("uleimasline"), "precondition: the recipe has olive oil in it")
+
+        let plan = BatchPlanner.makePlan(recipe: soup, startDate: day(0), spanDays: 2,
+                                         cookedAt: day(0), foodsByID: byID)
+        XCTAssertFalse(plan.entries[0].foodIDs.contains("uleimasline"))
+    }
+
+    /// A high-nitrate soup cannot be stretched to two days by asking for two.
+    @MainActor
+    func testHighNitrateBatchIsClampedToOneDay() {
+        var foods = MealSeed.foods()
+        foods.append(Food(id: "spanac2", name: "Spinach", category: "Vegetables",
+                          colorHex: "#3F6B34", status: .accepted, kind: .veg,
+                          nitrateRisk: .high))
+        let byID = Dictionary(foods.map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let soup = Recipe(id: "sx", title: "Spinach soup", minAgeMonths: 8,
+                          foodIDs: ["spanac2", "cartof"], ingredients: [], steps: [], form: .soup)
+
+        let plan = BatchPlanner.makePlan(recipe: soup, startDate: day(0), spanDays: 2,
+                                         cookedAt: day(0), foodsByID: byID)
+        XCTAssertEqual(plan.batch.spanDays, 1)
+        XCTAssertEqual(plan.entries.count, 1)
+        XCTAssertNotNil(BatchSafety.spanLockReason(risk: .high))
+    }
+
+    @MainActor
+    func testBatchEntriesCarryTheBatchID() {
+        let byID = Dictionary(MealSeed.foods().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let soup = MealSeed.recipes().first { $0.id == "s1" }!
+        let plan = BatchPlanner.makePlan(recipe: soup, startDate: day(0), spanDays: 2,
+                                         cookedAt: day(0), foodsByID: byID)
+        XCTAssertTrue(plan.entries.allSatisfy { $0.batchID == plan.batch.id })
+    }
 }

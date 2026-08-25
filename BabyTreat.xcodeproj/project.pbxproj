@@ -73,6 +73,10 @@
 		CD25B7CC90FDD8027576D7C2 /* ReactionLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9FB1FF9C3D7237F24939801 /* ReactionLogSheet.swift */; };
 		420819603A16B0BD4C7E7C28 /* MealForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CA23C158CF3E1D04B666485 /* MealForm.swift */; };
 		96DFF5C87A35D7A8C2F3ADB3 /* SoupBatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001B3A299D11C7B6CAFE9B8F /* SoupBatch.swift */; };
+		E92F06F0319348B780C6B3DE /* DinnerRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5247989E0A30AB7CA1606B7D /* DinnerRule.swift */; };
+		65440CFF8C3B921CB119E21B /* BatchSafety.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95EA5C29800C34B69BFFF6 /* BatchSafety.swift */; };
+		1DAFB873EE84B801793F7452 /* BatchPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D01A3F440212EB0DB7B50A /* BatchPlanner.swift */; };
+		2671226026739FB304CB22DE /* SoupBatchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F5EF3DCC99E8F48192FD6D /* SoupBatchSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -167,6 +171,10 @@
 		D9FB1FF9C3D7237F24939801 /* ReactionLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReactionLogSheet.swift; sourceTree = "<group>"; };
 		4CA23C158CF3E1D04B666485 /* MealForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealForm.swift; sourceTree = "<group>"; };
 		001B3A299D11C7B6CAFE9B8F /* SoupBatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoupBatch.swift; sourceTree = "<group>"; };
+		5247989E0A30AB7CA1606B7D /* DinnerRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinnerRule.swift; sourceTree = "<group>"; };
+		9A95EA5C29800C34B69BFFF6 /* BatchSafety.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchSafety.swift; sourceTree = "<group>"; };
+		16D01A3F440212EB0DB7B50A /* BatchPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchPlanner.swift; sourceTree = "<group>"; };
+		D9F5EF3DCC99E8F48192FD6D /* SoupBatchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoupBatchSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -242,6 +250,7 @@
 		2D8FDF06041B2BB0A2845F03 /* Meals */ = {
 			isa = PBXGroup;
 			children = (
+				D9F5EF3DCC99E8F48192FD6D /* SoupBatchSheet.swift */,
 				D9FB1FF9C3D7237F24939801 /* ReactionLogSheet.swift */,
 				27B192E06C8C3BA36815041E /* PairInsightsView.swift */,
 				67799169630E818D0A190FB1 /* MealEditSheet.swift */,
@@ -360,6 +369,9 @@
 		E75EFD359198E2CFBE6E1956 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				16D01A3F440212EB0DB7B50A /* BatchPlanner.swift */,
+				9A95EA5C29800C34B69BFFF6 /* BatchSafety.swift */,
+				5247989E0A30AB7CA1606B7D /* DinnerRule.swift */,
 				9956F2600B1AFA2DC405AD63 /* ReactionAttribution.swift */,
 				666736846E997B524A6A2903 /* OpenFoodFacts */,
 			);
@@ -474,6 +486,10 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				2671226026739FB304CB22DE /* SoupBatchSheet.swift in Sources */,
+				1DAFB873EE84B801793F7452 /* BatchPlanner.swift in Sources */,
+				65440CFF8C3B921CB119E21B /* BatchSafety.swift in Sources */,
+				E92F06F0319348B780C6B3DE /* DinnerRule.swift in Sources */,
 				96DFF5C87A35D7A8C2F3ADB3 /* SoupBatch.swift in Sources */,
 				420819603A16B0BD4C7E7C28 /* MealForm.swift in Sources */,
 				CD25B7CC90FDD8027576D7C2 /* ReactionLogSheet.swift in Sources */,

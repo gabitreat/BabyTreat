@@ -23,6 +23,23 @@ is usually the interesting part.
 
 ---
 
+## D-23 · 2026-08-24 · The dinner rule filters suggestions and never blocks a log
+
+At month 8 the dinner slot suggests soups only. `DinnerRule.isOffPlan` marks a
+non-soup dinner; nothing refuses to save one.
+
+**Why:** soup-only dinner is a household preference, not a clinical requirement.
+The journal has to record what was actually eaten — a planner that refuses the
+log makes the record lie, and the record is what the attribution engine reads.
+A recipe with no form set is left out of suggestions rather than guessed at:
+unknown is not "probably a soup".
+
+The window sits in `DinnerRule.windows` as data, so another month is another
+entry, not an engine change.
+
+**Where:** `Services/DinnerRule.swift`. Tests: `testOffPlanDinnerIsFlaggedButNeverRefused`,
+`testTheRuleOnlyAppliesToDinnerAndOnlyAtMonthEight`.
+
 ## D-22 · 2026-08-24 · New @Model types migrate additively — no wipe needed
 
 The soup spec asks for the app to be deleted before first run. Checked instead of
