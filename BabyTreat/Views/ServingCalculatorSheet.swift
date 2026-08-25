@@ -11,6 +11,12 @@ struct ServingCalculatorSheet: View {
     let onAdd: (FoodEntry) -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var focused: Field?
+
+    enum Field: Hashable {
+        case name, kcal, protein, carbs, sugars, fat, fiber, salt
+        case grams, servingCount, servingSize
+    }
 
     @State private var name: String = ""
     @State private var chosenPhoto: PhotosPickerItem?
@@ -63,10 +69,21 @@ struct ServingCalculatorSheet: View {
         ServingCalculator.nutrition(per100: per100, amount: amount)
     }
 
-    private var canAdd: Bool {
-        !name.trimmingCharacters(in: .whitespaces).isEmpty
-            && amount.grams > 0
-            && per100.hasAnyValue
+    private var canAdd: Bool { blockingReason == nil }
+
+    /// What is stopping this being added, in the person's words. A disabled
+    /// button that will not say why is the worst of both worlds.
+    private var blockingReason: String? {
+        if name.trimmingCharacters(in: .whitespaces).isEmpty {
+            return "Give it a name first."
+        }
+        if !per100.hasAnyValue {
+            return "Add at least one value from the label."
+        }
+        if amount.grams <= 0 {
+            return "Say how much was eaten."
+        }
+        return nil
     }
 
     var body: some View {
@@ -76,6 +93,14 @@ struct ServingCalculatorSheet: View {
                 labelSection
                 amountSection
                 resultSection
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Done") { focused = nil }
+                        .font(.body.weight(.semibold))
+                }
             }
             .onChange(of: chosenPhoto) { _, item in
                 Task { await load(item) }
@@ -143,13 +168,15 @@ struct ServingCalculatorSheet: View {
     private var labelSection: some View {
         Section("Per 100 g") {
             TextField("Name", text: $name)
-            nutrientField("Calories (kcal)", $kcal)
-            nutrientField("Protein (g)", $protein)
-            nutrientField("Carbs (g)", $carbs)
-            nutrientField("of which sugars (g)", $sugars)
-            nutrientField("Fat (g)", $fat)
-            nutrientField("Fibre (g)", $fiber)
-            nutrientField("Salt (g)", $salt)
+                .focused($focused, equals: .name)
+                .submitLabel(.done)
+            nutrientField("Calories (kcal)", $kcal, .kcal)
+            nutrientField("Protein (g)", $protein, .protein)
+            nutrientField("Carbs (g)", $carbs, .carbs)
+            nutrientField("of which sugars (g)", $sugars, .sugars)
+            nutrientField("Fat (g)", $fat, .fat)
+            nutrientField("Fibre (g)", $fiber, .fiber)
+            nutrientField("Salt (g)", $salt, .salt)
         }
     }
 
@@ -166,17 +193,20 @@ struct ServingCalculatorSheet: View {
                     TextField("0", text: $grams)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
+                        .focused($focused, equals: .grams)
                 }
             case .servings:
                 LabeledContent("Servings") {
                     TextField("0", text: $servingCount)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
+                        .focused($focused, equals: .servingCount)
                 }
                 LabeledContent("One serving is (g)") {
                     TextField("0", text: $servingSize)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
+                        .focused($focused, equals: .servingSize)
                 }
             }
 
@@ -201,6 +231,12 @@ struct ServingCalculatorSheet: View {
                     .foregroundStyle(.secondary)
             }
 
+            if let blockingReason {
+                Text(blockingReason)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(NutritionTheme.accent)
+            }
+
             let missing = ServingCalculator.missingMacros(per100)
             if !missing.isEmpty {
                 Text("No \(missing.joined(separator: ", ")) on the label — those will be logged as zero.")
@@ -212,11 +248,12 @@ struct ServingCalculatorSheet: View {
 
     // MARK: - Pieces
 
-    private func nutrientField(_ label: String, _ text: Binding<String>) -> some View {
+    private func nutrientField(_ label: String, _ text: Binding<String>, _ field: Field) -> some View {
         LabeledContent(label) {
             TextField("—", text: text)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
+                .focused($focused, equals: field)
         }
     }
 
@@ -241,9 +278,15 @@ struct ServingCalculatorSheet: View {
         return Double(cleaned)
     }
 
+    /// Fills a field without throwing away what the label said.
+    ///
+    /// `rounded` is for the result readout, where a decimal place is noise. Here
+    /// it would silently turn 14,9 g of protein into 15 and 28,3 g of fat into
+    /// 28 — editing the person's data on the way in.
     private func fill(_ value: Double?) -> String {
         guard let value else { return "" }
-        return rounded(value)
+        if value == value.rounded() { return String(format: "%.0f", value) }
+        return String(format: "%g", (value * 100).rounded() / 100)
     }
 
     // MARK: - Scanning

@@ -165,16 +165,25 @@ enum NutritionLabelParser {
     static func match(line: String) -> Match? {
         // Energy is its own shape: one line usually carries both kJ and kcal.
         if line.contains("energ") || line.contains("valoare energetica") {
-            // Units printed against the numbers settle it outright.
-            if let kcal = firstNumber(in: line, followedBy: ["kcal"]) {
+            let energyLine = stripPortionReference(line)
+
+            // The pair is tried FIRST, before any unit word.
+            //
+            // Labels print the units in several places — "1560 kJ / 371 kcal",
+            // but also "314/1300 kcal/Kj" with both units trailing. Reading the
+            // number nearest the word "kcal" gets the second form exactly
+            // backwards and logs the kJ figure as calories, which is four times
+            // too many. Two numbers about 4.2x apart on an energy line can only
+            // be one energy in two units, and the smaller of them is the kcal.
+            if let kcal = kcalFromBarePair(energyLine) {
                 return Match(nutrient: .energyKcal, value: kcal, unit: .kcal)
             }
-            if let kj = firstNumber(in: line, followedBy: ["kj"]) {
+            // Only one number, so the unit word beside it is all there is to go on.
+            if let kcal = firstNumber(in: energyLine, followedBy: ["kcal"]) {
+                return Match(nutrient: .energyKcal, value: kcal, unit: .kcal)
+            }
+            if let kj = firstNumber(in: energyLine, followedBy: ["kj"]) {
                 return Match(nutrient: .energyKJ, value: kj, unit: .kJ)
-            }
-            // Romanian labels commonly print the pair bare, as "200/1000".
-            if let kcal = kcalFromBarePair(line) {
-                return Match(nutrient: .energyKcal, value: kcal, unit: .kcal)
             }
             // A single bare number is genuinely ambiguous — it could be either
             // unit — so it is left for the person to type rather than guessed.
@@ -228,6 +237,24 @@ enum NutritionLabelParser {
             }
         }
         return nil
+    }
+
+    /// Removes the "per 100 g" that shares the energy row.
+    ///
+    /// Without this its 100 is just another number on the line, and 100 next to
+    /// a 420 kcal figure is a 4.2 ratio — indistinguishable from a real kcal/kJ
+    /// pair, and it would be read as 100 calories.
+    static func stripPortionReference(_ line: String) -> String {
+        let patterns = [
+            #"(per|pentru|la)?\s*100\s*(g|ml|gr)\b"#,
+            #"/\s*100\s*(g|ml|gr)\b"#,
+        ]
+        var text = line
+        for pattern in patterns {
+            text = text.replacingOccurrences(
+                of: pattern, with: " ", options: [.regularExpression, .caseInsensitive])
+        }
+        return text
     }
 
     /// The kcal figure from an energy line that prints both numbers without

@@ -1449,4 +1449,36 @@ final class ReactionAttributionTests: XCTestCase {
         XCTAssertEqual(facts.fat ?? 0, 6.8, accuracy: 0.01)
         XCTAssertEqual(facts.protein ?? 0, 13.5, accuracy: 0.01)
     }
+
+    /// The exact label from Gabi's photo. The units are printed after *both*
+    /// numbers as "kcal/Kj", so a naive "number before the word kcal" read picks
+    /// up 1300 — the kJ figure — and logs four times the calories.
+    func testTheLabelFromThePhoto() {
+        let facts = NutritionLabelParser.parse(lines: [
+            "Declarație nutrițională pentru 100g",
+            "Valoare energetică 314/1300 kcal/Kj",
+            "Grăsimi 28,3 g",
+            "din care acizi grași saturați 11,1 g",
+            "Glucide <0,5 g",
+            "din care zaharuri <0,5 g",
+            "Proteine 14,9 g",
+            "Sare 0,235 g",
+        ])
+        XCTAssertEqual(facts.kcal ?? 0, 314, accuracy: 0.01, "picked the kJ figure as calories")
+        XCTAssertEqual(facts.fat ?? 0, 28.3, accuracy: 0.01)
+        XCTAssertEqual(facts.saturatedFat ?? 0, 11.1, accuracy: 0.01)
+        XCTAssertEqual(facts.carbs ?? 0, 0.5, accuracy: 0.01)
+        XCTAssertEqual(facts.protein ?? 0, 14.9, accuracy: 0.01)
+        XCTAssertEqual(facts.salt ?? 0, 0.235, accuracy: 0.001)
+    }
+
+    /// The same trap written the other way round.
+    func testUnitsPrintedAfterBothNumbers() {
+        for line in ["Valoare energetică 314/1300 kcal/Kj",
+                     "Valoare energetica 1300/314 kJ/kcal",
+                     "Energie 314 / 1300 kcal/kJ"] {
+            let facts = NutritionLabelParser.parse(lines: [line])
+            XCTAssertEqual(facts.kcal ?? 0, 314, accuracy: 1, "failed on: \(line)")
+        }
+    }
 }
