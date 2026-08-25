@@ -163,17 +163,21 @@ enum NutritionLabelParser {
     // MARK: - One line
 
     static func match(line: String) -> Match? {
-        // Energy is its own shape: one line often carries both kJ and kcal.
+        // Energy is its own shape: one line usually carries both kJ and kcal.
         if line.contains("energ") || line.contains("valoare energetica") {
-            let numbers = numbers(in: line)
+            // Units printed against the numbers settle it outright.
             if let kcal = firstNumber(in: line, followedBy: ["kcal"]) {
                 return Match(nutrient: .energyKcal, value: kcal, unit: .kcal)
             }
             if let kj = firstNumber(in: line, followedBy: ["kj"]) {
                 return Match(nutrient: .energyKJ, value: kj, unit: .kJ)
             }
-            // A bare number on an energy line is ambiguous; skip rather than guess.
-            _ = numbers
+            // Romanian labels commonly print the pair bare, as "200/1000".
+            if let kcal = kcalFromBarePair(line) {
+                return Match(nutrient: .energyKcal, value: kcal, unit: .kcal)
+            }
+            // A single bare number is genuinely ambiguous — it could be either
+            // unit — so it is left for the person to type rather than guessed.
             return nil
         }
 
@@ -224,6 +228,29 @@ enum NutritionLabelParser {
             }
         }
         return nil
+    }
+
+    /// The kcal figure from an energy line that prints both numbers without
+    /// units, e.g. "Valoare energetică 200/1000".
+    ///
+    /// Decided by size, not by position: kJ is always about 4.2× the kcal
+    /// figure, so of the two the **smaller** is kcal. That is arithmetic rather
+    /// than a printing convention, so it holds whichever way round the label
+    /// puts them — and Romanian labels put kcal first while EU labels usually
+    /// put kJ first.
+    static func kcalFromBarePair(_ line: String) -> Double? {
+        let values = numbers(in: line).filter { $0 > 0 }
+        guard values.count >= 2 else { return nil }
+
+        // Take the two largest, so a stray "100" from "per 100 g" on the same
+        // row cannot be mistaken for one of the energy figures.
+        let candidates = values.sorted(by: >).prefix(2)
+        guard let high = candidates.first, let low = candidates.last, high != low else { return nil }
+
+        // Sanity: the pair really should be the same energy in two units.
+        let ratio = high / low
+        guard ratio > 3.0, ratio < 5.5 else { return nil }
+        return low
     }
 
     private static func grams(_ value: Double, _ unit: Unit) -> Double {

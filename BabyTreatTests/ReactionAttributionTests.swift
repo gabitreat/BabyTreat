@@ -1384,4 +1384,69 @@ final class ReactionAttributionTests: XCTestCase {
         XCTAssertEqual(facts.protein ?? 0, 13.5, accuracy: 0.2, "protein not read")
     }
 
+    // MARK: - Romanian energy pairs
+
+    /// Romanian labels print the pair bare, kcal first: "200/1000".
+    func testReadsABareKcalSlashKjPair() {
+        let facts = NutritionLabelParser.parse(lines: ["Valoare energetică 200/1000"])
+        XCTAssertEqual(facts.kcal ?? 0, 200, accuracy: 0.01)
+        XCTAssertFalse(facts.energyWasDerived, "kcal was printed, not worked out from kJ")
+    }
+
+    /// Decided by size, not position — so the EU ordering works too.
+    func testReadsTheSamePairPrintedTheOtherWayRound() {
+        let facts = NutritionLabelParser.parse(lines: ["Energy 1560/373"])
+        XCTAssertEqual(facts.kcal ?? 0, 373, accuracy: 0.01)
+    }
+
+    func testRealisticRoundedPairs() {
+        for (line, expected) in [("Valoare energetică 371/1560", 371.0),
+                                 ("Valoare energetica 1560 / 371", 371.0),
+                                 ("Energie 88/370", 88.0)] {
+            let facts = NutritionLabelParser.parse(lines: [line])
+            XCTAssertEqual(facts.kcal ?? 0, expected, accuracy: 0.01, "failed on: \(line)")
+        }
+    }
+
+    /// "per 100 g" sharing the row must not be mistaken for an energy figure.
+    func testPer100OnTheEnergyRowIsIgnored() {
+        let facts = NutritionLabelParser.parse(lines: ["Valoare energetică per 100 g 200/1000"])
+        XCTAssertEqual(facts.kcal ?? 0, 200, accuracy: 0.01)
+    }
+
+    /// Units win over the size rule whenever they are actually printed.
+    func testPrintedUnitsStillBeatTheSizeRule() {
+        let facts = NutritionLabelParser.parse(lines: ["Valoare energetică 1560 kJ / 371 kcal"])
+        XCTAssertEqual(facts.kcal ?? 0, 371, accuracy: 0.01)
+    }
+
+    /// Two numbers that are not an energy pair are refused rather than guessed.
+    func testANonEnergyPairIsRefused() {
+        // 200 and 210 cannot be the same energy in two units.
+        let facts = NutritionLabelParser.parse(lines: ["Valoare energetică 200/210"])
+        XCTAssertNil(facts.kcal)
+    }
+
+    /// A single bare number could be either unit, so it stays blank.
+    func testASingleBareNumberIsLeftForThePerson() {
+        let facts = NutritionLabelParser.parse(lines: ["Valoare energetică 200"])
+        XCTAssertNil(facts.kcal)
+    }
+
+    /// The whole Romanian table, printed the way it actually appears.
+    func testFullRomanianLabelWithBareEnergyPair() {
+        let facts = NutritionLabelParser.parse(lines: [
+            "Valori nutriționale per 100 g",
+            "Valoare energetică 371/1560",
+            "Grăsimi 6,8 g",
+            "din care acizi grași saturați 1,2 g",
+            "Glucide 62,5 g",
+            "din care zaharuri 1,1 g",
+            "Proteine 13,5 g",
+            "Sare 0,02 g",
+        ])
+        XCTAssertEqual(facts.kcal ?? 0, 371, accuracy: 0.01)
+        XCTAssertEqual(facts.fat ?? 0, 6.8, accuracy: 0.01)
+        XCTAssertEqual(facts.protein ?? 0, 13.5, accuracy: 0.01)
+    }
 }
