@@ -595,4 +595,178 @@ final class ReactionAttributionTests: XCTestCase {
                                          cookedAt: day(0), foodsByID: byID)
         XCTAssertTrue(plan.entries.allSatisfy { $0.batchID == plan.batch.id })
     }
+
+    // MARK: - Generated week honours the dinner rule
+
+    /// Eight months old on the week being planned.
+    private func eightMonthBirthDate(for weekStart: Date) -> Date {
+        MealRules.calendar.date(byAdding: .month, value: -8, to: weekStart) ?? weekStart
+    }
+
+    func testGeneratedWeekPlansSoupsForDinnerAtMonthEight() {
+        let weekStart = MealRules.mondayOf(day(0))
+        let birth = eightMonthBirthDate(for: weekStart)
+        let recipesByID = Dictionary(MealSeed.recipes().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+
+        let plan = MealPlanner.plan(
+            weekStart: weekStart, birthDate: birth,
+            foods: MealSeed.foods(), recipes: MealSeed.recipes(),
+            menu: [], logs: []
+        )
+
+        let dinners = plan.meals.filter { $0.slot == .dinner }
+        XCTAssertEqual(dinners.count, 7, "every evening gets a dinner")
+        for dinner in dinners {
+            let recipe = dinner.recipeID.flatMap { recipesByID[$0] }
+            XCTAssertEqual(recipe?.form, .soup, "\(dinner.dish) is not a soup")
+        }
+    }
+
+    /// One pot, two evenings.
+    func testSoupDinnersComeInConsecutivePairs() {
+        let weekStart = MealRules.mondayOf(day(0))
+        let plan = MealPlanner.plan(
+            weekStart: weekStart, birthDate: eightMonthBirthDate(for: weekStart),
+            foods: MealSeed.foods(), recipes: MealSeed.recipes(),
+            menu: [], logs: []
+        )
+
+        let byDay = plan.meals
+            .filter { $0.slot == .dinner }
+            .sorted { $0.date < $1.date }
+            .map { $0.recipeID ?? "" }
+
+        XCTAssertEqual(byDay.count, 7)
+        // Days 0–1, 2–3, 4–5 are pairs; day 6 is the tail of the rotation.
+        XCTAssertEqual(byDay[0], byDay[1])
+        XCTAssertEqual(byDay[2], byDay[3])
+        XCTAssertEqual(byDay[4], byDay[5])
+        XCTAssertNotEqual(byDay[1], byDay[2], "a new pot on day three")
+    }
+
+    /// Accents ride along in the dish but never fill a rotation slot.
+    func testGeneratedSoupDinnersKeepAccentsOutOfRotation() {
+        let weekStart = MealRules.mondayOf(day(0))
+        let plan = MealPlanner.plan(
+            weekStart: weekStart, birthDate: eightMonthBirthDate(for: weekStart),
+            foods: MealSeed.foods(), recipes: MealSeed.recipes(),
+            menu: [], logs: []
+        )
+        let dinners = plan.meals.filter { $0.slot == .dinner }
+        XCTAssertFalse(dinners.contains { $0.foodIDs.contains("uleimasline") })
+    }
+
+    /// At nine months the rule lets go and dinner goes back to normal.
+    func testDinnerReturnsToNormalAtNineMonths() {
+        let weekStart = MealRules.mondayOf(day(0))
+        let birth = MealRules.calendar.date(byAdding: .month, value: -9, to: weekStart)!
+        let recipesByID = Dictionary(MealSeed.recipes().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+
+        let plan = MealPlanner.plan(
+            weekStart: weekStart, birthDate: birth,
+            foods: MealSeed.foods(), recipes: MealSeed.recipes(),
+            menu: [], logs: []
+        )
+        let dinners = plan.meals.filter { $0.slot == .dinner }
+        XCTAssertFalse(dinners.isEmpty)
+        XCTAssertFalse(dinners.allSatisfy { ($0.recipeID.flatMap { recipesByID[$0] })?.form == .soup })
+    }
+
+    /// A hand-written dinner is never overwritten, soup rule or not.
+    func testAHandWrittenDinnerSurvivesPlanning() {
+        let weekStart = MealRules.mondayOf(day(0))
+        let mine = MenuEntry(date: weekStart, slot: .dinner, dish: "Whatever we had",
+                             foodIDs: ["pui"], calendar: MealRules.calendar)
+
+        let plan = MealPlanner.plan(
+            weekStart: weekStart, birthDate: eightMonthBirthDate(for: weekStart),
+            foods: MealSeed.foods(), recipes: MealSeed.recipes(),
+            menu: [mine], logs: []
+        )
+        let mondayDinner = plan.meals.first {
+            $0.slot == .dinner && MealRules.startOfDay($0.date) == weekStart
+        }
+        XCTAssertNil(mondayDinner, "the planner leaves an occupied slot alone")
+    }
+
+    // MARK: - Bringing an already-planned week in line
+
+    /// Returns the **container**, not the context. A `ModelContext` does not keep
+    /// its container alive, so handing back `container.mainContext` from a helper
+    /// lets the container deallocate and the next fetch traps inside SwiftData.
+    @MainActor
+    private func seededContainer() throws -> ModelContainer {
+        let container = try ModelContainer(
+            for: Food.self, Recipe.self, MenuEntry.self, MealLog.self, SoupBatch.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        MealSeed.foods().forEach { container.mainContext.insert($0) }
+        MealSeed.recipes().forEach { container.mainContext.insert($0) }
+        try container.mainContext.save()
+        return container
+    }
+
+    @MainActor
+    func testStaleGeneratedDinnersAreReplacedWithSoups() throws {
+        let container = try seededContainer()
+        let context = container.mainContext
+        let weekStart = MealRules.mondayOf(day(0))
+        let birth = eightMonthBirthDate(for: weekStart)
+
+        // A dinner from before the rule existed, marked as the planner's work.
+        let old = MenuEntry(date: weekStart, slot: .dinner, dish: "Broccoli + potato",
+                            foodIDs: ["broccoli", "cartof"], calendar: MealRules.calendar)
+        old.isGenerated = true
+        context.insert(old)
+        try context.save()
+
+        let replaced = MealPlanner.refreshDinnersForRule(
+            weekStart: weekStart, birthDate: birth, in: context)
+        XCTAssertGreaterThan(replaced, 0)
+
+        let recipes = Dictionary(MealSeed.recipes().map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
+        let entries = (try context.fetch(FetchDescriptor<MenuEntry>()))
+            .filter { $0.slot == .dinner && MealRules.startOfDay($0.date) == weekStart }
+        XCTAssertEqual(entries.count, 1)
+        XCTAssertEqual(entries.first?.recipeID.flatMap { recipes[$0] }?.form, .soup)
+    }
+
+    /// CRITICAL — a dinner typed by hand is never rewritten by a rule change.
+    @MainActor
+    func testHandWrittenDinnersAreLeftAloneByTheRefresh() throws {
+        let container = try seededContainer()
+        let context = container.mainContext
+        let weekStart = MealRules.mondayOf(day(0))
+
+        let mine = MenuEntry(date: weekStart, slot: .dinner, dish: "Leftover risotto",
+                             foodIDs: ["cartof"], calendar: MealRules.calendar)
+        mine.isGenerated = false
+        context.insert(mine)
+        try context.save()
+
+        MealPlanner.refreshDinnersForRule(
+            weekStart: weekStart, birthDate: eightMonthBirthDate(for: weekStart), in: context)
+
+        let still = (try context.fetch(FetchDescriptor<MenuEntry>()))
+            .first { $0.slot == .dinner && MealRules.startOfDay($0.date) == weekStart }
+        XCTAssertEqual(still?.dish, "Leftover risotto")
+    }
+
+    /// Outside the window the refresh does nothing at all.
+    @MainActor
+    func testRefreshIsANoOpAtNineMonths() throws {
+        let container = try seededContainer()
+        let context = container.mainContext
+        let weekStart = MealRules.mondayOf(day(0))
+        let birth = MealRules.calendar.date(byAdding: .month, value: -9, to: weekStart)!
+
+        let old = MenuEntry(date: weekStart, slot: .dinner, dish: "Broccoli + potato",
+                            foodIDs: ["broccoli", "cartof"], calendar: MealRules.calendar)
+        old.isGenerated = true
+        context.insert(old)
+        try context.save()
+
+        XCTAssertEqual(MealPlanner.refreshDinnersForRule(
+            weekStart: weekStart, birthDate: birth, in: context), 0)
+    }
+
 }

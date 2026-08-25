@@ -60,6 +60,11 @@ struct MealsView: View {
             // it — the list tab's own task runs later, and reads the menu this
             // leaves behind. From Sunday, "the week ahead" is next week.
             MealPlanner.autoPlanIfNeeded(birthDate: birthDate, in: modelContext)
+            // A week planned before the dinner rule applied still has the old
+            // dinners in it. Bring them in line; hand-written ones are left be.
+            MealPlanner.refreshDinnersForRule(
+                weekStart: MealRules.planningWeekStart(for: MealRules.startOfDay(.now)),
+                birthDate: birthDate, in: modelContext)
         }
     }
 }

@@ -300,6 +300,36 @@ enum MealPlanner {
             ids.compactMap { foodsByID[$0]?.name }.joined(separator: " + ")
         }
 
+        // MARK: Soup rotation for dinner
+
+        // When the dinner window applies, dinners come from soups rather than
+        // from a vegetable and a starch. Each soup is carried across two
+        // consecutive days — one pot, two evenings — unless its ingredients say
+        // otherwise: a high-nitrate soup gets a single day (D-20).
+        //
+        // Empty when no window applies, or when there are no soups to rotate,
+        // and the plain dinner runs instead.
+        let soupPlan: [Int: Recipe] = {
+            guard DinnerRule.allowedForms(slot: .dinner, ageMonths: months) != nil else { return [:] }
+            let soups = DinnerRule.suggestions(from: recipes, slot: .dinner, ageMonths: months)
+                .sorted { $0.id < $1.id }
+            guard !soups.isEmpty else { return [:] }
+
+            var plan: [Int: Recipe] = [:]
+            var cursor = 0
+            var index = 0
+            while index < 7 {
+                let soup = soups[cursor % soups.count]
+                cursor += 1
+
+                let risk = soup.nitrateRisk(foodsByID: foodsByID)
+                let span = min(BatchSafety.maxSpanDays(risk: risk), 7 - index)
+                for offset in 0..<span { plan[index + offset] = soup }
+                index += span
+            }
+            return plan
+        }()
+
         // MARK: Build the week
 
         var meals: [PlannedMeal] = []
@@ -412,6 +442,29 @@ enum MealPlanner {
             }
 
             // ---- Dinner ----
+            // At month 8 the dinner slot is soups only (D-23). The soup is
+            // chosen once and carried across two days, because that is how the
+            // cooking actually happens — one pot, two evenings.
+            if slots.contains(.dinner), occupied[index]?[.dinner] == nil,
+               DinnerRule.allowedForms(slot: .dinner, ageMonths: months) != nil {
+                if let soup = soupPlan[index] {
+                    let baseIDs = soup.foodIDs.filter {
+                        foodsByID[$0]?.role.consumesRotationSlot ?? true
+                    }
+                    // Each covered day records its own exposures. Two nights of
+                    // one pot is two meals, not one.
+                    baseIDs.forEach { record($0, dayIndex: index) }
+                    meals.append(
+                        PlannedMeal(date: day, slot: .dinner, dish: soup.title,
+                                    foodIDs: baseIDs, recipeID: soup.id, isNewFood: false)
+                    )
+                    continue
+                }
+                // No soup to rotate — fall through rather than leave the slot
+                // blank. The rule is a preference, and an empty evening helps
+                // nobody.
+            }
+
             // Only the lunch composition is specified in rules.md, so dinner is
             // kept deliberately plain: a vegetable and a starch, distinct from
             // lunch. The day's protein and animal-source food come from lunch.
@@ -567,6 +620,44 @@ enum MealPlanner {
         }
         try? context.save()
         return plan.meals.count
+    }
+
+    /// Replaces generated dinners that no longer match the month's dinner rule.
+    ///
+    /// The rule can start applying to a week that was planned before it existed —
+    /// the baby turns eight months, or the rule itself changes. Without this the
+    /// old dinners would sit there until the week turned over.
+    ///
+    /// Only ever touches meals the planner wrote. A dinner you typed yourself
+    /// stays exactly as you left it, whatever the rule says.
+    @MainActor
+    @discardableResult
+    static func refreshDinnersForRule(weekStart: Date, birthDate: Date, in context: ModelContext) -> Int {
+        let start = MealRules.mondayOf(weekStart)
+        let end = MealRules.addDays(6, to: start)
+        let months = MealRules.ageMonths(on: start, birthDate: birthDate)
+        guard DinnerRule.allowedForms(slot: .dinner, ageMonths: months) != nil else { return 0 }
+
+        let recipes = (try? context.fetch(FetchDescriptor<Recipe>())) ?? []
+        let byID = Dictionary(recipes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let entries = (try? context.fetch(FetchDescriptor<MenuEntry>())) ?? []
+
+        var stale: [MenuEntry] = []
+        for entry in entries {
+            let day = MealRules.startOfDay(entry.date)
+            guard day >= start, day <= end, entry.slot == .dinner else { continue }
+            guard entry.wasGenerated else { continue }   // never touch a hand-written meal
+            guard let recipe = entry.recipeID.flatMap({ byID[$0] }) else { stale.append(entry); continue }
+            if DinnerRule.isOffPlan(recipe, slot: .dinner, ageMonths: months) { stale.append(entry) }
+        }
+
+        guard !stale.isEmpty else { return 0 }
+        stale.forEach { context.delete($0) }
+        try? context.save()
+
+        // Re-fill the slots just emptied. `fill` only writes where nothing is planned.
+        fill(weekStart: start, birthDate: birthDate, in: context)
+        return stale.count
     }
 
     /// Fills every empty slot in the week.
