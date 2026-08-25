@@ -36,6 +36,11 @@ final class PeriodStart {
     /// as a start would invent short cycles that never happened.
     var isSpotting: Bool
 
+    /// Last day of bleeding, when it is known. Optional because the end is not
+    /// known on the day it starts — logging a start must never require guessing
+    /// an end.
+    var endDate: Date?
+
     var notes: String
 
     init(
@@ -44,6 +49,7 @@ final class PeriodStart {
         loggedAt: Date = .now,
         timeZoneID: String = TimeZone.current.identifier,
         isSpotting: Bool = false,
+        endDate: Date? = nil,
         notes: String = ""
     ) {
         let day = Self.calendar.startOfDay(for: startDate)
@@ -53,6 +59,7 @@ final class PeriodStart {
         self.loggedAt = loggedAt
         self.timeZoneID = timeZoneID
         self.isSpotting = isSpotting
+        self.endDate = endDate.map { Self.calendar.startOfDay(for: $0) }
         self.notes = notes
     }
 
@@ -78,6 +85,57 @@ final class PeriodStart {
         let day = Self.calendar.startOfDay(for: date)
         startDate = day
         dayKey = Self.dayKey(day)
+    }
+
+    /// How many days the bleeding lasted, when an end is recorded.
+    ///
+    /// Inclusive of both days: a Monday start with a Friday end is 5 days, which
+    /// is how a person counts it, not 4.
+    var periodLengthDays: Int? {
+        guard let endDate else { return nil }
+        guard endDate >= startDate else { return nil }
+        let days = Self.calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0
+        return days + 1
+    }
+
+    // MARK: - Migration
+
+    /// Converts the older `CycleEvent` rows into period starts, one per day.
+    ///
+    /// The old screen wrote a fresh row on every tap, so the same day could be
+    /// logged several times over. Those collapse to a single entry here, keeping
+    /// the earliest, and its stored period length becomes an end date.
+    ///
+    /// The `CycleEvent` rows are left in place — unused, but not thrown away,
+    /// because deleting somebody's log to tidy up is not a call worth making
+    /// automatically.
+    @MainActor
+    @discardableResult
+    static func migrateFromCycleEvents(in context: ModelContext) -> Int {
+        let existing = Set(((try? context.fetch(FetchDescriptor<PeriodStart>())) ?? []).map(\.dayKey))
+        let old = ((try? context.fetch(FetchDescriptor<CycleEvent>())) ?? [])
+            .sorted { $0.startDate < $1.startDate }
+
+        var seen = existing
+        var made = 0
+        for event in old {
+            let key = dayKey(event.startDate)
+            guard !seen.contains(key) else { continue }
+            seen.insert(key)
+
+            // periodLengthDays counts both ends, so a 5-day period ends on
+            // start + 4.
+            let end = event.periodLengthDays > 0
+                ? calendar.date(byAdding: .day, value: event.periodLengthDays - 1, to: calendar.startOfDay(for: event.startDate))
+                : nil
+
+            context.insert(PeriodStart(startDate: event.startDate, endDate: end, notes: event.note))
+            made += 1
+        }
+
+        guard made > 0 else { return 0 }
+        try? context.save()
+        return made
     }
 
     /// Whether this entry counts toward cycle-length maths.

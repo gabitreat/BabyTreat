@@ -23,6 +23,24 @@ is usually the interesting part.
 
 ---
 
+## D-24 · 2026-08-25 · Dairy hold lifted — supersedes D-14
+
+Gabi cleared dairy. `holdUntil` is gone from every dairy food, the expiry
+notice is retired, and `MealSeed.clearDairyHold(in:)` removes the date already
+written into installed stores — dropping it from the seed alone would have left
+the phone hiding yogurt forever.
+
+The cheeses added alongside are picked on **salt**, not just allergy: brined and
+hard-salted ones (telemea, feta, halloumi, cașcaval) are deliberately absent, as
+are unpasteurised soft-ripened ones, which carry a listeria risk unrelated to
+CMPA. Parmesan is an `.accent` — a pinch for flavour, never a portion.
+
+**Supersedes D-14.** D-12 (CMPA unconfirmed) is not overturned by this — the
+hold was a precaution and Gabi has the call on it. The yogurt breakfast keeps
+its flag.
+
+**Where:** `MealSeed.clearDairyHold`, `MealsTodayView` (notice removed).
+
 ## D-23 · 2026-08-24 · The dinner rule filters suggestions and never blocks a log
 
 At month 8 the dinner slot suggests soups only. `DinnerRule.isOffPlan` marks a

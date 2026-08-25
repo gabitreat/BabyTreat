@@ -66,8 +66,15 @@ enum MealRules {
         return calendar.date(byAdding: .month, value: months + 1, to: startOfDay(birthDate)) ?? date
     }
 
+    /// Always in the order the day happens: breakfast, lunch, snack, dinner.
+    ///
+    /// Sorted by `displayOrder`, not by `allCases`. The enum declares snack last
+    /// because it unlocks last, so relying on declaration order would put snack
+    /// after dinner the moment it opens.
     static func activeSlots(atAgeMonths months: Int) -> [MealSlot] {
-        MealSlot.allCases.filter { $0.isUnlocked(atAgeMonths: months) }
+        MealSlot.allCases
+            .filter { $0.isUnlocked(atAgeMonths: months) }
+            .sorted { $0.displayOrder < $1.displayOrder }
     }
 
     /// Slots not yet available, in the order they arrive. Shown disabled rather

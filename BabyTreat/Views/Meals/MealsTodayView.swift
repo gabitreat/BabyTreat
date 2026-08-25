@@ -11,8 +11,6 @@ struct MealsTodayView: View {
     @Query private var recipes: [Recipe]
     @Query private var reactions: [ReactionLog]
 
-    @AppStorage("dairyHoldNoticeSeen") private var dairyHoldNoticeSeen = false
-
     @State private var editTarget: MealEditTarget?
     @State private var logTarget: MealEditTarget?
     @State private var reactionTarget: ReactionEditTarget?
@@ -39,8 +37,6 @@ struct MealsTodayView: View {
                 Text(today.mealDayLabel)
                     .font(.system(size: 20, weight: .bold))
                     .foregroundStyle(MealTheme.ink)
-
-                dairyHoldNotice
 
                 VStack(spacing: 12) {
                     ForEach(todaysEntries) { entry in
@@ -132,32 +128,6 @@ struct MealsTodayView: View {
 
     // MARK: - Dairy hold
 
-    /// The dairy hold expires by **date** (23 Aug 2026), but its reason is
-    /// unconfirmed CMPA — and the two can come apart (OQ-7, D-12). The hold is
-    /// left to expire on schedule; this notice fires once on the day it does, so
-    /// the suggestion never appears without the caveat attached to it.
-    @ViewBuilder
-    private var dairyHoldNotice: some View {
-        if today >= MealSeed.dairyHoldUntil, !dairyHoldNoticeSeen {
-            MealCard(background: MealTheme.marigoldSoft, border: MealTheme.marigold.opacity(0.5)) {
-                VStack(alignment: .leading, spacing: 9) {
-                    HStack(spacing: 7) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(MealTheme.marigold)
-                        Text("Dairy hold has expired")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(MealTheme.ink)
-                    }
-                    Text("Yogurt and cottage cheese can now be suggested. CMPA was last recorded as unconfirmed — confirm with the pediatrician before introducing them.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(MealTheme.muted)
-                    Button("Got it") { dairyHoldNoticeSeen = true }
-                        .font(.system(size: 13.5, weight: .semibold))
-                        .foregroundStyle(MealTheme.sugar)
-                }
-            }
-        }
-    }
 
     // MARK: - Locked slots
 

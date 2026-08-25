@@ -929,4 +929,141 @@ final class ReactionAttributionTests: XCTestCase {
         let roomy = renderedHeight(of: longest, proposedWidth: 400)
         XCTAssertEqual(squeezed, roomy, accuracy: 0.5, "\(longest.name) wrapped")
     }
+
+    // MARK: - Breakfast variety must not cost a dinner
+
+    /// Guards a real bug: the breakfast branch used `continue`, which skipped
+    /// the dinner block further down the same day.
+    func testEveryDayStillGetsBreakfastAndDinner() {
+        let weekStart = MealRules.mondayOf(day(0))
+        let plan = MealPlanner.plan(
+            weekStart: weekStart, birthDate: eightMonthBirthDate(for: weekStart),
+            foods: MealSeed.foods(), recipes: MealSeed.recipes(),
+            menu: [], logs: []
+        )
+        XCTAssertEqual(plan.meals.filter { $0.slot == .breakfast }.count, 7)
+        XCTAssertEqual(plan.meals.filter { $0.slot == .dinner }.count, 7)
+        XCTAssertEqual(plan.meals.filter { $0.slot == .lunch }.count, 7)
+    }
+
+    /// Exactly one breakfast per day — the seeded path and the composed path
+    /// must never both write one.
+    func testOnlyOneBreakfastPerDay() {
+        let weekStart = MealRules.mondayOf(day(0))
+        let plan = MealPlanner.plan(
+            weekStart: weekStart, birthDate: eightMonthBirthDate(for: weekStart),
+            foods: MealSeed.foods(), recipes: MealSeed.recipes(),
+            menu: [], logs: []
+        )
+        let perDay = Dictionary(grouping: plan.meals.filter { $0.slot == .breakfast }) {
+            MealRules.startOfDay($0.date)
+        }
+        XCTAssertTrue(perDay.values.allSatisfy { $0.count == 1 }, "a day got two breakfasts")
+    }
+
+    func testBreakfastsVaryAcrossTheWeek() {
+        let weekStart = MealRules.mondayOf(day(0))
+        let plan = MealPlanner.plan(
+            weekStart: weekStart, birthDate: eightMonthBirthDate(for: weekStart),
+            foods: MealSeed.foods(), recipes: MealSeed.recipes(),
+            menu: [], logs: []
+        )
+        let dishes = Set(plan.meals.filter { $0.slot == .breakfast }.map(\.dish))
+        XCTAssertGreaterThanOrEqual(dishes.count, 4, "breakfast is still too samey")
+    }
+
+    // MARK: - The day runs in day order
+
+    func testActiveSlotsAreInDayOrder() {
+        XCTAssertEqual(MealRules.activeSlots(atAgeMonths: 6), [.breakfast, .lunch])
+        XCTAssertEqual(MealRules.activeSlots(atAgeMonths: 8), [.breakfast, .lunch, .dinner])
+        // Snack unlocks last but belongs before dinner in the day.
+        XCTAssertEqual(MealRules.activeSlots(atAgeMonths: 24), [.breakfast, .lunch, .snack, .dinner])
+    }
+
+    func testBreakfastIsAlwaysFirst() {
+        for months in [6, 8, 12, 24] {
+            XCTAssertEqual(MealRules.activeSlots(atAgeMonths: months).first, .breakfast,
+                           "breakfast is not first at \(months) months")
+        }
+    }
+
+    // MARK: - Cycle entries
+
+    @MainActor
+    private func cycleContainer() throws -> ModelContainer {
+        try ModelContainer(for: PeriodStart.self, CycleEvent.self,
+                           configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    }
+
+    /// The bug in the screenshot: the same day logged three times over.
+    @MainActor
+    func testDuplicateDaysCollapseWhenMigrating() throws {
+        let container = try cycleContainer()
+        let context = container.mainContext
+
+        for _ in 0..<3 {
+            context.insert(CycleEvent(startDate: day(0), periodLengthDays: 5))
+        }
+        try context.save()
+
+        let made = PeriodStart.migrateFromCycleEvents(in: context)
+        XCTAssertEqual(made, 1, "three taps on one day become one entry")
+        XCTAssertEqual(try context.fetch(FetchDescriptor<PeriodStart>()).count, 1)
+    }
+
+    @MainActor
+    func testMigrationIsSafeToRunTwice() throws {
+        let container = try cycleContainer()
+        let context = container.mainContext
+        context.insert(CycleEvent(startDate: day(0), periodLengthDays: 5))
+        context.insert(CycleEvent(startDate: day(30), periodLengthDays: 4))
+        try context.save()
+
+        XCTAssertEqual(PeriodStart.migrateFromCycleEvents(in: context), 2)
+        XCTAssertEqual(PeriodStart.migrateFromCycleEvents(in: context), 0, "second run adds nothing")
+        XCTAssertEqual(try context.fetch(FetchDescriptor<PeriodStart>()).count, 2)
+    }
+
+    @MainActor
+    func testMigrationKeepsTheOldRows() throws {
+        let container = try cycleContainer()
+        let context = container.mainContext
+        context.insert(CycleEvent(startDate: day(0), periodLengthDays: 5))
+        try context.save()
+
+        PeriodStart.migrateFromCycleEvents(in: context)
+        XCTAssertEqual(try context.fetch(FetchDescriptor<CycleEvent>()).count, 1,
+                       "the old log is not deleted to tidy up")
+    }
+
+    /// A period length counts both ends: Monday to Friday is five days.
+    func testPeriodLengthCountsBothDays() {
+        let entry = PeriodStart(startDate: day(0), endDate: day(4))
+        XCTAssertEqual(entry.periodLengthDays, 5)
+
+        let oneDay = PeriodStart(startDate: day(0), endDate: day(0))
+        XCTAssertEqual(oneDay.periodLengthDays, 1)
+    }
+
+    func testAnEndBeforeTheStartIsRefused() {
+        let backwards = PeriodStart(startDate: day(5), endDate: day(1))
+        XCTAssertNil(backwards.periodLengthDays)
+    }
+
+    func testAnEntryWithNoEndHasNoLength() {
+        XCTAssertNil(PeriodStart(startDate: day(0)).periodLengthDays)
+    }
+
+    @MainActor
+    func testMigrationCarriesTheEndDateOver() throws {
+        let container = try cycleContainer()
+        let context = container.mainContext
+        context.insert(CycleEvent(startDate: day(0), periodLengthDays: 5))
+        try context.save()
+
+        PeriodStart.migrateFromCycleEvents(in: context)
+        let entry = try context.fetch(FetchDescriptor<PeriodStart>()).first
+        XCTAssertEqual(entry?.periodLengthDays, 5)
+    }
 }

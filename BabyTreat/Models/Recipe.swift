@@ -27,6 +27,10 @@ final class Recipe {
     /// guessed, because the dinner filter matches `.soup` exactly and a wrong
     /// guess would put a purée on a soup-only evening.
     var formRaw: String?
+    /// Which meals this recipe suits. Optional in the store so recipes written
+    /// before it migrate cleanly; nil means "no opinion", and a nil recipe is
+    /// still eligible everywhere rather than silently disappearing.
+    var slotsRaw: [String]?
 
     init(
         id: String,
@@ -44,7 +48,8 @@ final class Recipe {
         allergens: [String] = [],
         flag: String? = nil,
         rating: Int = 0,
-        form: MealForm? = nil
+        form: MealForm? = nil,
+        slots: [MealSlot]? = nil
     ) {
         self.id = id
         self.title = title
@@ -62,11 +67,24 @@ final class Recipe {
         self.flag = flag
         self.rating = rating
         self.formRaw = form?.rawValue
+        self.slotsRaw = slots?.map(\.rawValue)
     }
 
     var form: MealForm? {
         get { formRaw.flatMap(MealForm.init(rawValue:)) }
         set { formRaw = newValue?.rawValue }
+    }
+
+    var suitableSlots: [MealSlot]? {
+        get { slotsRaw?.compactMap(MealSlot.init(rawValue:)) }
+        set { slotsRaw = newValue?.map(\.rawValue) }
+    }
+
+    /// A recipe with no stated slots fits anywhere — absence of an opinion is
+    /// not a refusal.
+    func suits(_ slot: MealSlot) -> Bool {
+        guard let slots = suitableSlots, !slots.isEmpty else { return true }
+        return slots.contains(slot)
     }
 
     /// The batch storage ceiling this recipe imposes, taken from its riskiest

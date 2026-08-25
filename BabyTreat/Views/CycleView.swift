@@ -4,20 +4,30 @@ import Charts
 
 struct CycleView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \CycleEvent.startDate, order: .reverse) private var cycles: [CycleEvent]
+    @Query(sort: \PeriodStart.startDate, order: .reverse) private var cycles: [PeriodStart]
+
+    // Defaults to today, but nothing is written until Add is tapped.
+    @State private var newStart: Date = Calendar.current.startOfDay(for: .now)
+    @State private var newEnd: Date = Calendar.current.startOfDay(for: .now)
+    @State private var hasEnd: Bool = false
+    @State private var duplicateDay: Bool = false
 
     private var store = EnergyProfileStore()
 
     private var profile: EnergyEngine.Profile {
-        store.profile(lastPeriodStart: cycles.first?.startDate)
+        store.profile(lastPeriodStart: countedStarts.first?.startDate)
     }
 
     private var day: Int? { EnergyEngine.cycleDay(on: .now, profile: profile) }
     private var phase: EnergyEngine.CyclePhase? { day.map { EnergyEngine.phase(day: $0, profile: profile) } }
 
     /// Observed cycle lengths, from the gaps between logged starts.
+    private var countedStarts: [PeriodStart] {
+        cycles.filter(\.countsForCycleLength)
+    }
+
     private var observedLengths: [Int] {
-        zip(cycles, cycles.dropFirst()).compactMap { newer, older in
+        zip(countedStarts, countedStarts.dropFirst()).compactMap { newer, older in
             Calendar.current.dateComponents([.day], from: older.startDate, to: newer.startDate).day
         }
     }
@@ -45,6 +55,7 @@ struct CycleView: View {
             .padding(16)
         }
         .background(Color(.systemGroupedBackground))
+        .task { PeriodStart.migrateFromCycleEvents(in: modelContext) }
         .navigationTitle("Cycle")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -139,18 +150,35 @@ struct CycleView: View {
 
     private var log: some View {
         NutritionCard {
-            HStack {
-                Text("Period starts")
-                    .font(.headline)
-                Spacer()
-                Button {
-                    modelContext.insert(CycleEvent(startDate: .now, periodLengthDays: store.periodLength))
-                    try? modelContext.save()
-                } label: {
-                    Label("Started today", systemImage: "plus.circle.fill")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(NutritionTheme.cycle)
-                }
+            Text("Period starts")
+                .font(.headline)
+
+            // Pick the dates rather than assuming today. A period is often
+            // logged a day or two late, and "Started today" made that
+            // impossible to record honestly.
+            DatePicker("Started", selection: $newStart,
+                       in: ...Date(), displayedComponents: .date)
+
+            Toggle("It has ended", isOn: $hasEnd.animation())
+                .font(.subheadline)
+
+            if hasEnd {
+                DatePicker("Ended", selection: $newEnd,
+                           in: newStart...Date(), displayedComponents: .date)
+            }
+
+            Button {
+                add()
+            } label: {
+                Label("Add", systemImage: "plus.circle.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(NutritionTheme.cycle)
+            }
+
+            if duplicateDay {
+                Text("That day is already logged. Delete it first if you want to change it.")
+                    .font(.footnote)
+                    .foregroundStyle(NutritionTheme.cycle)
             }
 
             if !observedLengths.isEmpty {
@@ -166,8 +194,15 @@ struct CycleView: View {
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(cycles.prefix(12)) { event in
-                    HStack {
-                        Text(event.startDate.formatted(date: .abbreviated, time: .omitted))
+                    HStack(alignment: .firstTextBaseline) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(event.startDate.formatted(date: .abbreviated, time: .omitted))
+                            if let length = event.periodLengthDays {
+                                Text("\(length) day\(length == 1 ? "" : "s")")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                         Spacer()
                         Text(relative(to: event.startDate))
                             .font(.caption)
@@ -182,6 +217,21 @@ struct CycleView: View {
                 }
             }
         }
+    }
+
+    /// One entry per day. The store enforces it too, but refusing here is what
+    /// lets the screen explain itself instead of silently swallowing the tap.
+    private func add() {
+        let day = PeriodStart.dayKey(newStart)
+        guard !cycles.contains(where: { $0.dayKey == day }) else {
+            duplicateDay = true
+            return
+        }
+        duplicateDay = false
+        modelContext.insert(
+            PeriodStart(startDate: newStart, endDate: hasEnd ? newEnd : nil)
+        )
+        try? modelContext.save()
     }
 
     private func relative(to date: Date) -> String {

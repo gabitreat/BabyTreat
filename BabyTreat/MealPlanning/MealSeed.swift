@@ -24,6 +24,8 @@ enum MealSeed {
 
     static let birthDate = date("2025-12-23")
     static let formula = "Töpfer HA 1"
+    /// Retired 2026-08-25 — Gabi cleared dairy (D-24). Kept only so the
+    /// one-off backfill below can recognise and clear the old stored hold.
     static let dairyHoldUntil = date("2026-08-23")
 
     // Category names. Referenced by `Food.kind`'s fallback and by the Foods tab's
@@ -111,12 +113,37 @@ enum MealSeed {
             Food(id: "mure",      name: "Blackberries", category: categoryPlanned, colorHex: "#3B2A52", status: .planned, kind: .fruct, groups: [.fruct], season: [7, 8, 9]),
 
             // Dairy stays out of suggestions until the APLV question is settled.
-            Food(id: "iaurt",  name: "Yogurt",         category: categoryPlanned, colorHex: "#F2EEE4", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, holdUntil: dairyHoldUntil),
-            Food(id: "branza", name: "Cottage cheese", category: categoryPlanned, colorHex: "#F5F1E6", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, holdUntil: dairyHoldUntil),
+            Food(id: "iaurt",  name: "Yogurt",         category: categoryPlanned, colorHex: "#F2EEE4", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy),
+            Food(id: "branza", name: "Cottage cheese", category: categoryPlanned, colorHex: "#F5F1E6", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy),
 
             Food(id: "naut",   name: "Chickpeas", category: categoryPlanned, colorHex: "#D7B57E", status: .planned, kind: .proteina, groups: [.proteina, .amidon, .fier], family: .legume),
             Food(id: "quinoa", name: "Quinoa",    category: categoryPlanned, colorHex: "#D6C9A8", status: .planned, kind: .cereale,  groups: [.amidon, .proteina]),
             Food(id: "mei",    name: "Millet",    category: categoryPlanned, colorHex: "#E0CFA0", status: .planned, kind: .cereale,  groups: [.amidon]),
+
+            // ---- More dairy ----
+            // All behind the same APLV hold as the first two (D-14) — the CMPA
+            // question is still unconfirmed (D-12), so these are offered, not
+            // assumed safe.
+            //
+            // Salt is the rule that picks this list. A baby's kidneys cannot
+            // handle much of it, so brined and hard-salted cheeses — telemea,
+            // feta, halloumi, cașcaval — are deliberately absent. So are the
+            // unpasteurised soft-ripened ones (brie, camembert, blue), which
+            // carry a listeria risk that has nothing to do with allergy.
+            Food(id: "iaurtgrec",  name: "Greek yogurt",   category: categoryPlanned, colorHex: "#F6F3EA", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, minAgeMonths: 6,
+                 note: "Full-fat and plain. Thicker than ordinary yogurt, so it stays on a spoon."),
+            Food(id: "kefir",      name: "Kefir",          category: categoryPlanned, colorHex: "#F4F1E8", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, minAgeMonths: 6, drinkBlockedUnderMonths: 12,
+                 note: "Plain and unsweetened. On food or from a cup at meals — not as a drink to replace formula before 12 months."),
+            Food(id: "ricotta",    name: "Ricotta",        category: categoryPlanned, colorHex: "#F7F4EC", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, minAgeMonths: 6,
+                 note: "One of the lowest-salt cheeses. Stirs into purée or spreads on a finger of toast."),
+            Food(id: "urda",       name: "Urdă",           category: categoryPlanned, colorHex: "#F7F3E9", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, minAgeMonths: 6,
+                 note: "The Romanian ricotta. Fresh and mild — check the label, some are salted."),
+            Food(id: "cas",        name: "Caș",            category: categoryPlanned, colorHex: "#F5F0E2", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, minAgeMonths: 6,
+                 note: "Fresh, unsalted cheese. Not to be confused with telemea, which is brined and far too salty."),
+            Food(id: "mozzarella", name: "Mozzarella",     category: categoryPlanned, colorHex: "#F8F6F0", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate], family: .dairy, minAgeMonths: 6,
+                 note: "Fresh, in water, pasteurised. Tear it up — a round slice is a choking shape."),
+            Food(id: "branzatop",  name: "Cream cheese",   category: categoryPlanned, colorHex: "#F9F6EF", status: .planned, kind: .proteina, groups: [.asf, .proteina, .lactate, .grasime], family: .dairy, minAgeMonths: 6,
+                 note: "Plain and full-fat. Read the salt on the label — they vary a lot."),
 
             // ---- More vegetables to introduce ----
             // Seasons are Romanian. Nitrate tags matter for batch storage only
@@ -192,10 +219,14 @@ enum MealSeed {
                  role: .accent, family: .none, minAgeMonths: 6),
             Food(id: "unt", name: "Butter", category: categoryFats, colorHex: "#F2D98B",
                  status: .planned, rating: 0, kind: .grasime, groups: [.grasime, .lactate],
-                 role: .accent, family: .dairy, minAgeMonths: 6, holdUntil: dairyHoldUntil),
+                 role: .accent, family: .dairy, minAgeMonths: 6),
             Food(id: "tahini", name: "Tahini", category: categoryFats, colorHex: "#D8C79B",
                  status: .planned, rating: 0, kind: .grasime, groups: [.grasime, .proteina],
                  isAllergen: true, role: .accent, family: .sesame, minAgeMonths: 6),
+            Food(id: "parmezan", name: "Parmesan", category: categoryFats, colorHex: "#EEDFAE",
+                 status: .planned, rating: 0, kind: .proteina, groups: [.lactate],
+                 role: .accent, family: .dairy, minAgeMonths: 6,
+                 note: "A pinch grated over food, for flavour. Salty — an accent, never a portion of cheese."),
             Food(id: "scortisoara", name: "Cinnamon", category: categoryFats, colorHex: "#A9603A",
                  status: .accepted, rating: 3, kind: .altul, groups: [],
                  role: .accent, family: .none, minAgeMonths: 6),
@@ -214,7 +245,7 @@ enum MealSeed {
                 spoonNote: "Creamy, slightly thick — takes well on a spoon.",
                 blwNote: "Thick slices of raw, well-ripened pear alongside, held in the hand.",
                 freezeNote: "Yes — 60 ml portions, up to 1 month.", storeNote: "Fridge 48h.",
-                nutrients: ["fibre", "plant iron", "calcium"], rating: 5, form: .puree
+                nutrients: ["fibre", "plant iron", "calcium"], rating: 5, form: .puree, slots: [.breakfast]
             ),
             Recipe(
                 id: "r2", title: "Salmon with broccoli and potato", minAgeMonths: 6, proteinFoodID: "somon",
@@ -224,7 +255,7 @@ enum MealSeed {
                 spoonNote: "Potato mash with flaked salmon, broccoli puréed on top.",
                 blwNote: "Whole broccoli floret with the stalk left on as a natural handle, plus a potato baton.",
                 freezeNote: "Yes, but the purée only — 1 month.", storeNote: "Fridge 24h (fish).",
-                nutrients: ["omega-3", "protein", "vitamin C"], allergens: ["fish"], rating: 3, form: .mashed
+                nutrients: ["omega-3", "protein", "vitamin C"], allergens: ["fish"], rating: 3, form: .mashed, slots: [.lunch]
             ),
             Recipe(
                 id: "r3", title: "Turkey with zucchini and potato", minAgeMonths: 6, proteinFoodID: "curcan",
@@ -234,7 +265,7 @@ enum MealSeed {
                 spoonNote: "Fine purée, thinned with the cooking liquid.",
                 blwNote: "Finger-thick strips of turkey plus batons of cooked zucchini.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
-                nutrients: ["iron", "protein", "potassium"], rating: 4, form: .puree
+                nutrients: ["iron", "protein", "potassium"], rating: 4, form: .puree, slots: [.lunch]
             ),
             Recipe(
                 id: "r4", title: "Beef with broccoli and sweet potato", minAgeMonths: 7, proteinFoodID: "vita",
@@ -244,7 +275,7 @@ enum MealSeed {
                 spoonNote: "Sweet potato mash with very finely chopped beef.",
                 blwNote: "A long-braised strip of beef that shreds in the mouth, plus a sweet potato baton.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
-                nutrients: ["heme iron", "zinc", "vitamin C", "beta-carotene"], rating: 0, form: .mashed
+                nutrients: ["heme iron", "zinc", "vitamin C", "beta-carotene"], rating: 0, form: .mashed, slots: [.lunch]
             ),
             Recipe(
                 id: "r5", title: "Fluffy egg with avocado", minAgeMonths: 6, proteinFoodID: "ou",
@@ -254,7 +285,7 @@ enum MealSeed {
                 spoonNote: "Mashed avocado with small pieces of egg.",
                 blwNote: "Omelette cut into 2 cm strips — holds very well in a fist.",
                 freezeNote: "No.", storeNote: "Eat the same day.",
-                nutrients: ["choline", "protein", "healthy fats"], allergens: ["egg"], rating: 4, form: .fingerFood
+                nutrients: ["choline", "protein", "healthy fats"], allergens: ["egg"], rating: 4, form: .fingerFood, slots: [.breakfast, .lunch]
             ),
             Recipe(
                 id: "r6", title: "Oats with banana and peanut butter", minAgeMonths: 6, proteinFoodID: "arahide",
@@ -264,7 +295,7 @@ enum MealSeed {
                 spoonNote: "Creamy; thin with a little water if it goes too thick.",
                 blwNote: "Half a banana with the peel left on at the base, as a handle.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
-                nutrients: ["fibre", "healthy fats", "magnesium"], allergens: ["peanut"], rating: 5, form: .puree
+                nutrients: ["fibre", "healthy fats", "magnesium"], allergens: ["peanut"], rating: 5, form: .puree, slots: [.breakfast]
             ),
             Recipe(
                 id: "r7", title: "Lentils with sweet potato and zucchini", minAgeMonths: 6, proteinFoodID: "linte",
@@ -275,7 +306,7 @@ enum MealSeed {
                 blwNote: "Small patties can be pressed from the cooled mixture.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
                 nutrients: ["plant iron", "fibre", "protein"],
-                flag: "Weak acceptance so far — retry without pressure.", rating: 2, form: .puree
+                flag: "Weak acceptance so far — retry without pressure.", rating: 2, form: .puree, slots: [.lunch]
             ),
             Recipe(
                 id: "r8", title: "Oat porridge with coconut milk", minAgeMonths: 6,
@@ -287,7 +318,7 @@ enum MealSeed {
                 freezeNote: "Yes — 60 ml portions, up to 1 month.", storeNote: "Fridge 48h.",
                 nutrients: ["fibre", "healthy fats", "plant iron"],
                 flag: "Coconut milk is used only in recipes, 1–2 times a week. Never as a replacement for formula.",
-                rating: 0, form: .puree
+                rating: 0, form: .puree, slots: [.breakfast]
             ),
 
             // ---- Breakfasts ----
@@ -303,7 +334,7 @@ enum MealSeed {
                 blwNote: "Apricot halves alongside, skin off.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
                 nutrients: ["plant iron", "magnesium", "beta-carotene"],
-                rating: 0, form: .puree
+                rating: 0, form: .puree, slots: [.breakfast]
             ),
             Recipe(
                 id: "b2", title: "Quinoa porridge with pear", minAgeMonths: 6,
@@ -314,7 +345,7 @@ enum MealSeed {
                 blwNote: "Ripe pear slices in the hand.",
                 freezeNote: "Yes — 1 month.", storeNote: "Fridge 48h.",
                 nutrients: ["complete protein", "calcium", "fibre"], allergens: ["sesame"],
-                rating: 0, form: .puree
+                rating: 0, form: .puree, slots: [.breakfast]
             ),
             Recipe(
                 id: "b3", title: "Banana and egg pancakes", minAgeMonths: 8, proteinFoodID: "ou",
@@ -325,7 +356,7 @@ enum MealSeed {
                 blwNote: "Perfect strips — holds together in a fist and takes real chewing.",
                 freezeNote: "Yes, between sheets of paper — 1 month.", storeNote: "Fridge 24h.",
                 nutrients: ["protein", "choline", "potassium"], allergens: ["egg"],
-                rating: 0, form: .fingerFood
+                rating: 0, form: .fingerFood, slots: [.breakfast]
             ),
             Recipe(
                 id: "b4", title: "Scrambled egg with tomato", minAgeMonths: 8, proteinFoodID: "ou",
@@ -336,7 +367,7 @@ enum MealSeed {
                 blwNote: "Leave the curds large enough to pick up.",
                 freezeNote: "No.", storeNote: "Eat the same day.",
                 nutrients: ["protein", "lycopene", "vitamin C"], allergens: ["egg"],
-                rating: 0, form: .mashed
+                rating: 0, form: .mashed, slots: [.breakfast]
             ),
             Recipe(
                 id: "b5", title: "Oat fingers with apple and cinnamon", minAgeMonths: 8,
@@ -347,7 +378,7 @@ enum MealSeed {
                 blwNote: "The point of the recipe — a firm finger that softens as it is chewed.",
                 freezeNote: "Yes — 1 month.", storeNote: "Airtight, 3 days.",
                 nutrients: ["fibre", "beta-glucan"],
-                rating: 0, form: .fingerFood
+                rating: 0, form: .fingerFood, slots: [.breakfast]
             ),
             Recipe(
                 id: "b6", title: "Yogurt with blueberries and carob", minAgeMonths: 8,
@@ -359,7 +390,7 @@ enum MealSeed {
                 freezeNote: "No.", storeNote: "Eat the same day.",
                 nutrients: ["calcium", "protein", "anthocyanins"], allergens: ["dairy"],
                 flag: "Dairy. The CMPA question is still unconfirmed — check before this becomes a regular.",
-                rating: 0, form: .puree
+                rating: 0, form: .puree, slots: [.breakfast]
             ),
 
             // ---- Soups, for the month-8 dinner rule ----
@@ -376,7 +407,7 @@ enum MealSeed {
                 freezeNote: "Yes — freeze the second day's portion straight after cooking.",
                 storeNote: "Carrot is moderate-nitrate: day two goes in the freezer, not the fridge.",
                 nutrients: ["beta-carotene", "potassium"],
-                rating: 0, form: .soup
+                rating: 0, form: .soup, slots: [.dinner]
             ),
             Recipe(
                 id: "s2", title: "Turkey, zucchini and parsnip soup", minAgeMonths: 8, proteinFoodID: "curcan",
@@ -388,7 +419,7 @@ enum MealSeed {
                 freezeNote: "Yes — 1 month.",
                 storeNote: "Zucchini is moderate-nitrate: day two goes in the freezer.",
                 nutrients: ["iron", "protein", "potassium"],
-                rating: 0, form: .soup
+                rating: 0, form: .soup, slots: [.dinner]
             ),
             Recipe(
                 id: "s3", title: "Chicken and broccoli soup", minAgeMonths: 8, proteinFoodID: "pui",
@@ -400,7 +431,7 @@ enum MealSeed {
                 freezeNote: "Yes — 1 month.",
                 storeNote: "Fridge 24h, or freeze the second day's portion.",
                 nutrients: ["protein", "vitamin C", "iron"],
-                rating: 0, form: .soup
+                rating: 0, form: .soup, slots: [.dinner]
             ),
         ]
     }
@@ -573,6 +604,28 @@ enum MealSeed {
     /// the attribute; the defaults — `.base` and `.none` — mean it was written by
     /// a build that had the attribute but not yet the tag, and since nothing in
     /// the app can set either one, a stored default carries no intent to protect.
+    /// Clears the old APLV hold from dairy already sitting in a store.
+    ///
+    /// Dropping `holdUntil` from the seed only affects fresh installs — a phone
+    /// that already has these rows keeps the stored date, and the suggestion
+    /// engine would go on hiding yogurt forever. Matches on the retired date
+    /// exactly, so a hold set for any other reason is left alone.
+    @MainActor
+    @discardableResult
+    static func clearDairyHold(in context: ModelContext) -> Int {
+        let stored = (try? context.fetch(FetchDescriptor<Food>())) ?? []
+        var cleared = 0
+        for food in stored where food.family == .dairy {
+            guard let hold = food.holdUntil,
+                  MealRules.startOfDay(hold) == MealRules.startOfDay(dairyHoldUntil) else { continue }
+            food.holdUntil = nil
+            cleared += 1
+        }
+        guard cleared > 0 else { return 0 }
+        try? context.save()
+        return cleared
+    }
+
     /// The recipe counterpart of `installMissingFoods`. Without it the soups
     /// added for the month-8 dinner rule would only ever appear on a fresh
     /// install, and the filter would have nothing to offer on an existing one.

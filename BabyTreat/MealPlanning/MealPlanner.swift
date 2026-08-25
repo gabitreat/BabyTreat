@@ -330,6 +330,34 @@ enum MealPlanner {
             return plan
         }()
 
+        // MARK: Breakfast rotation
+
+        // Breakfast used to be composed from a cereal and a fruit, which meant
+        // oats nearly every morning. Where a seeded breakfast recipe fits the
+        // day it is used instead, rotated so no two mornings repeat.
+        //
+        // The composed path stays as the fallback: it is what carries the iron
+        // rule, the peanut day and fruit introductions, and those must not be
+        // lost to variety.
+        let breakfastRecipes = recipes
+            .filter { $0.suits(.breakfast) && $0.minAgeMonths <= months && !$0.foodIDs.isEmpty }
+            .filter { recipe in
+                // Every ingredient has to be servable, or the recipe is a
+                // suggestion the pantry cannot honour.
+                recipe.foodIDs.allSatisfy { id in
+                    guard let food = foodsByID[id] else { return false }
+                    return isAvailable(food, on: start) && food.isAgeAppropriate(atAgeMonths: months)
+                }
+            }
+            .sorted { $0.id < $1.id }
+
+        // Days that must carry iron at breakfast keep the composed path, which
+        // knows how to place the iron-fortified cereal.
+        func breakfastRecipe(dayIndex: Int, needsIron: Bool) -> Recipe? {
+            guard !breakfastRecipes.isEmpty, !needsIron else { return nil }
+            return breakfastRecipes[dayIndex % breakfastRecipes.count]
+        }
+
         // MARK: Build the week
 
         var meals: [PlannedMeal] = []
@@ -405,6 +433,27 @@ enum MealPlanner {
                 // Iron every day. Salmon is the one rotation protein without
                 // it, so on a salmon day the iron-fortified cereal carries it.
                 let lunchHasIron = lunchIDs.contains { foodsByID[$0]?.has(.fier) == true }
+
+                // A seeded breakfast, where one fits and the day is not carrying
+                // the iron duty. Introduction days keep the composed path too —
+                // a planned new fruit is the point of that morning.
+                let introducingFruit = newFruit.map { introductionDay[$0.id] == index } ?? false
+                let seededBreakfast: Recipe? = {
+                    guard !introducingFruit, allergenDay["arahide"] != index else { return nil }
+                    return breakfastRecipe(dayIndex: index, needsIron: !lunchHasIron)
+                }()
+
+                if let pick = seededBreakfast {
+                    let baseIDs = pick.foodIDs.filter {
+                        foodsByID[$0]?.role.consumesRotationSlot ?? true
+                    }
+                    baseIDs.forEach { record($0, dayIndex: index) }
+                    meals.append(
+                        PlannedMeal(date: day, slot: .breakfast, dish: pick.title,
+                                    foodIDs: baseIDs, recipeID: pick.id, isNewFood: false)
+                    )
+                }
+
                 let ironCereal = lunchHasIron ? nil : cereals.filter { $0.has(.fier) }
                     .first { canPlan($0, on: day) }
                 if let cereal = ironCereal ?? choose(from: cereals, dayIndex: index, excluding: []) {
@@ -413,6 +462,7 @@ enum MealPlanner {
                 }
 
                 let peanutDay = allergenDay["arahide"] == index
+                if seededBreakfast == nil {
                 if let newFruit, introductionDay[newFruit.id] == index, isAvailable(newFruit, on: day) {
                     breakfastIDs.append(newFruit.id)
                     record(newFruit.id, dayIndex: index)
@@ -438,6 +488,7 @@ enum MealPlanner {
                         PlannedMeal(date: day, slot: .breakfast, dish: name(breakfastIDs), foodIDs: breakfastIDs,
                                     recipeID: recipe(for: breakfastIDs), isNewFood: breakfastIsNew)
                     )
+                }
                 }
             }
 
