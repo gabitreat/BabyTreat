@@ -9,6 +9,11 @@
 - Don't paste long lists of file names, code, or command output at me unless I
   ask for them.
 
+- If explaining something needs a lot of words, **build me an artifact instead**
+  — a page I can look at, with pictures or a diagram if that helps. Don't write
+  me a long message.
+- Short answers still go in the chat. The artifact is for the big explanations.
+
 ## Who decides
 
 This is a **proof of concept** — something to try out, not a finished product.
