@@ -9,6 +9,7 @@ struct CaloriesView: View {
     private var store = EnergyProfileStore()
 
     @State private var addTarget: NutritionSlot?
+    @State private var showServingCalculator = false
     @State private var showingBreakdown = true
 
     private var today: Date { Calendar.current.startOfDay(for: .now) }
@@ -41,9 +42,23 @@ struct CaloriesView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showServingCalculator = true
+                } label: {
+                    Image(systemName: "text.viewfinder")
+                }
+                .accessibilityLabel("Work out a serving from a label")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 NavigationLink(destination: EnergySettingsView()) {
                     Image(systemName: "slider.horizontal.3")
                 }
+            }
+        }
+        .sheet(isPresented: $showServingCalculator) {
+            ServingCalculatorSheet { entry in
+                modelContext.insert(entry)
+                try? modelContext.save()
             }
         }
         .sheet(item: $addTarget) { slot in

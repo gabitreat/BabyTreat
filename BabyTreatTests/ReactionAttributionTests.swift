@@ -1,6 +1,7 @@
 import XCTest
 import SwiftData
 import SwiftUI
+import UIKit
 @testable import BabyTreat
 
 final class ReactionAttributionTests: XCTestCase {
@@ -1065,5 +1066,254 @@ final class ReactionAttributionTests: XCTestCase {
         PeriodStart.migrateFromCycleEvents(in: context)
         let entry = try context.fetch(FetchDescriptor<PeriodStart>()).first
         XCTAssertEqual(entry?.periodLengthDays, 5)
+    }
+
+    // MARK: - Reading a nutrition label
+
+    func testReadsARomanianLabel() {
+        let lines = [
+            "Valori nutriționale medii per 100 g",
+            "Valoare energetică 1560 kJ / 371 kcal",
+            "Grăsimi 6,8 g",
+            "din care acizi grași saturați 1,2 g",
+            "Glucide 62,5 g",
+            "din care zaharuri 1,1 g",
+            "Fibre alimentare 10,6 g",
+            "Proteine 13,5 g",
+            "Sare 0,02 g",
+        ]
+        let facts = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(facts.kcal ?? 0, 371, accuracy: 0.01)
+        XCTAssertFalse(facts.energyWasDerived, "kcal was printed, not derived")
+        XCTAssertEqual(facts.fat ?? 0, 6.8, accuracy: 0.01)
+        XCTAssertEqual(facts.saturatedFat ?? 0, 1.2, accuracy: 0.01)
+        XCTAssertEqual(facts.carbs ?? 0, 62.5, accuracy: 0.01)
+        XCTAssertEqual(facts.sugars ?? 0, 1.1, accuracy: 0.01)
+        XCTAssertEqual(facts.fiber ?? 0, 10.6, accuracy: 0.01)
+        XCTAssertEqual(facts.protein ?? 0, 13.5, accuracy: 0.01)
+        XCTAssertEqual(facts.salt ?? 0, 0.02, accuracy: 0.001)
+    }
+
+    func testReadsAnEnglishLabel() {
+        let lines = [
+            "Nutrition per 100g",
+            "Energy 250 kcal",
+            "Fat 12.4g",
+            "of which saturates 3.1g",
+            "Carbohydrate 30.2g",
+            "of which sugars 5.5g",
+            "Protein 8.1g",
+            "Salt 0.5g",
+        ]
+        let facts = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(facts.kcal ?? 0, 250, accuracy: 0.01)
+        XCTAssertEqual(facts.fat ?? 0, 12.4, accuracy: 0.01)
+        XCTAssertEqual(facts.sugars ?? 0, 5.5, accuracy: 0.01)
+        XCTAssertEqual(facts.protein ?? 0, 8.1, accuracy: 0.01)
+    }
+
+    /// "of which saturates" must not be read as plain fat.
+    func testSaturatesDoNotOverwriteTotalFat() {
+        let facts = NutritionLabelParser.parse(lines: [
+            "Grăsimi 20 g",
+            "din care acizi grași saturați 4 g",
+        ])
+        XCTAssertEqual(facts.fat ?? 0, 20, accuracy: 0.01)
+        XCTAssertEqual(facts.saturatedFat ?? 0, 4, accuracy: 0.01)
+    }
+
+    func testSugarsDoNotOverwriteCarbs() {
+        let facts = NutritionLabelParser.parse(lines: [
+            "Glucide 62 g",
+            "din care zaharuri 3 g",
+        ])
+        XCTAssertEqual(facts.carbs ?? 0, 62, accuracy: 0.01)
+        XCTAssertEqual(facts.sugars ?? 0, 3, accuracy: 0.01)
+    }
+
+    /// A kJ-only label still yields calories, flagged as worked out.
+    func testDerivesCaloriesFromKilojoulesWhenThatIsAllThereIs() {
+        let facts = NutritionLabelParser.parse(lines: ["Valoare energetică 2100 kJ"])
+        XCTAssertEqual(facts.kcal ?? 0, 2100 / NutritionFacts.kilojoulesPerKcal, accuracy: 0.01)
+        XCTAssertTrue(facts.energyWasDerived)
+    }
+
+    /// kcal on the line wins even when kJ is printed first.
+    func testPrefersPrintedCaloriesOverKilojoules() {
+        let facts = NutritionLabelParser.parse(lines: ["Energy 1560 kJ / 371 kcal"])
+        XCTAssertEqual(facts.kcal ?? 0, 371, accuracy: 0.01)
+        XCTAssertFalse(facts.energyWasDerived)
+    }
+
+    func testSaltAndSodiumConvertBetweenEachOther() {
+        let fromSodium = NutritionLabelParser.parse(lines: ["Sodium 0.4 g"])
+        XCTAssertEqual(fromSodium.salt ?? 0, 1.0, accuracy: 0.01)
+
+        let fromSalt = NutritionLabelParser.parse(lines: ["Sare 1 g"])
+        XCTAssertEqual(fromSalt.sodium ?? 0, 0.4, accuracy: 0.01)
+    }
+
+    /// A nutrient the label does not carry stays unknown, never zero.
+    func testMissingNutrientsStayNil() {
+        let facts = NutritionLabelParser.parse(lines: ["Energy 100 kcal"])
+        XCTAssertNil(facts.protein)
+        XCTAssertNil(facts.fat)
+        XCTAssertNil(facts.fiber)
+    }
+
+    func testGarbageInGivesNothingOut() {
+        let facts = NutritionLabelParser.parse(lines: ["ingredients: oats, water", "best before end 2027"])
+        XCTAssertFalse(facts.hasAnyValue)
+    }
+
+    func testHandlesCommaDecimalsAndOCRZeroes() {
+        XCTAssertEqual(NutritionLabelParser.normalise("Grăsimi 6,8 g"), "grăsimi 6.8 g")
+        XCTAssertEqual(NutritionLabelParser.numbers(in: "1.5 and 22"), [1.5, 22])
+    }
+
+    // MARK: - Working out a serving
+
+    func testScalesLabelValuesToTheAmountEaten() {
+        let per100 = NutritionFacts(kcal: 371, protein: 13.5, carbs: 62.5, fat: 6.8)
+        let eaten = ServingCalculator.nutrition(per100: per100, amount: .measure(43))
+
+        XCTAssertEqual(eaten.kcal ?? 0, 371 * 0.43, accuracy: 0.01)
+        XCTAssertEqual(eaten.protein ?? 0, 13.5 * 0.43, accuracy: 0.01)
+        XCTAssertEqual(eaten.fat ?? 0, 6.8 * 0.43, accuracy: 0.01)
+    }
+
+    func testServingsMultiplyByServingSize() {
+        let per100 = NutritionFacts(kcal: 400)
+        let eaten = ServingCalculator.nutrition(
+            per100: per100, amount: .servings(count: 2, sizeGrams: 30))
+        XCTAssertEqual(eaten.kcal ?? 0, 400 * 0.6, accuracy: 0.01)
+    }
+
+    func testNegativeAmountsAreTreatedAsNone() {
+        XCTAssertEqual(ServingCalculator.Amount.measure(-50).grams, 0)
+        XCTAssertEqual(ServingCalculator.Amount.servings(count: -1, sizeGrams: 30).grams, 0)
+    }
+
+    /// Scaling an unknown gives an unknown.
+    func testUnknownNutrientsStayUnknownAfterScaling() {
+        let per100 = NutritionFacts(kcal: 100)
+        let eaten = ServingCalculator.nutrition(per100: per100, amount: .measure(50))
+        XCTAssertEqual(eaten.kcal ?? 0, 50, accuracy: 0.01)
+        XCTAssertNil(eaten.protein)
+    }
+
+    /// The diary cannot hold a nil macro, so the gap is named before it lands as 0.
+    func testMissingMacrosAreNamed() {
+        let partial = NutritionFacts(kcal: 100)
+        XCTAssertFalse(ServingCalculator.hasCompleteMacros(partial))
+        XCTAssertEqual(ServingCalculator.missingMacros(partial), ["protein", "carbs", "fat"])
+
+        let full = NutritionFacts(kcal: 100, protein: 1, carbs: 2, fat: 3)
+        XCTAssertTrue(ServingCalculator.hasCompleteMacros(full))
+        XCTAssertTrue(ServingCalculator.missingMacros(full).isEmpty)
+    }
+
+    func testEntryRecordsTheAmountEaten() {
+        let per100 = NutritionFacts(kcal: 371, protein: 13.5, carbs: 62.5, fat: 6.8)
+        let entry = ServingCalculator.entry(
+            name: "Muesli", per100: per100,
+            amount: .servings(count: 1.5, sizeGrams: 40), slot: .breakfast)
+
+        XCTAssertEqual(entry.name, "Muesli")
+        XCTAssertEqual(entry.grams ?? 0, 60, accuracy: 0.01)
+        XCTAssertEqual(entry.servings ?? 0, 1.5, accuracy: 0.01)
+        XCTAssertEqual(entry.kcal, 371 * 0.6, accuracy: 0.01)
+    }
+
+    /// End to end: a photographed label becomes a diary row.
+    func testLabelTextThroughToADiaryRow() {
+        let lines = [
+            "Valori nutriționale per 100 g",
+            "Valoare energetică 1560 kJ / 371 kcal",
+            "Grăsimi 6,8 g",
+            "Glucide 62,5 g",
+            "Proteine 13,5 g",
+        ]
+        let facts = NutritionLabelParser.parse(lines: lines)
+        let entry = ServingCalculator.entry(
+            name: "Ovăz", per100: facts, amount: .measure(50), slot: .breakfast)
+
+        XCTAssertEqual(entry.kcal, 185.5, accuracy: 0.5)
+        XCTAssertEqual(entry.protein, 6.75, accuracy: 0.01)
+        XCTAssertEqual(entry.fat, 3.4, accuracy: 0.01)
+    }
+
+    // MARK: - The scanner itself
+
+    /// Draws a nutrition table so the OCR path can be exercised for real. A
+    /// parser test proves the string handling; only this proves Vision actually
+    /// reads a label and hands back something the parser understands.
+    @MainActor
+    private func labelImage(_ lines: [String], width: CGFloat = 700) -> UIImage {
+        let lineHeight: CGFloat = 54
+        let size = CGSize(width: width, height: lineHeight * CGFloat(lines.count) + 40)
+        let renderer = UIGraphicsImageRenderer(size: size)
+        return renderer.image { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(origin: .zero, size: size))
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: UIFont.systemFont(ofSize: 34, weight: .medium),
+                .foregroundColor: UIColor.black,
+            ]
+            for (index, line) in lines.enumerated() {
+                let point = CGPoint(x: 20, y: 20 + CGFloat(index) * lineHeight)
+                (line as NSString).draw(at: point, withAttributes: attributes)
+            }
+        }
+    }
+
+    @MainActor
+    func testScannerReadsARenderedLabel() async throws {
+        let image = labelImage([
+            "Energy 371 kcal",
+            "Fat 6.8 g",
+            "Carbohydrate 62.5 g",
+            "Protein 13.5 g",
+        ])
+
+        let lines = try await LabelScanner.lines(in: image)
+        XCTAssertFalse(lines.isEmpty, "Vision found no text at all")
+
+        let facts = NutritionLabelParser.parse(lines: lines)
+        XCTAssertEqual(facts.kcal ?? 0, 371, accuracy: 1)
+        XCTAssertEqual(facts.protein ?? 0, 13.5, accuracy: 0.2)
+        XCTAssertEqual(facts.fat ?? 0, 6.8, accuracy: 0.2)
+        XCTAssertEqual(facts.carbs ?? 0, 62.5, accuracy: 0.2)
+    }
+
+    /// Lines must come back top-to-bottom, or "of which sugars" could be read
+    /// before the carbohydrate line it belongs under.
+    @MainActor
+    func testScannerReturnsLinesInReadingOrder() async throws {
+        let image = labelImage(["Protein 9 g", "Fat 4 g", "Salt 1 g"])
+        let lines = try await LabelScanner.lines(in: image)
+
+        let joined = lines.joined(separator: " | ").lowercased()
+        let protein = joined.range(of: "protein")
+        let salt = joined.range(of: "salt")
+        XCTAssertNotNil(protein)
+        XCTAssertNotNil(salt)
+        if let protein, let salt {
+            XCTAssertTrue(protein.lowerBound < salt.lowerBound, "lines came back out of order")
+        }
+    }
+
+    @MainActor
+    func testScannerReportsAnEmptyImageRatherThanReturningNothing() async {
+        let blank = UIGraphicsImageRenderer(size: CGSize(width: 200, height: 200)).image { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 200, height: 200))
+        }
+        do {
+            _ = try await LabelScanner.lines(in: blank)
+            XCTFail("a blank image should not produce lines")
+        } catch {
+            XCTAssertTrue(error is LabelScanner.ScanError)
+        }
     }
 }

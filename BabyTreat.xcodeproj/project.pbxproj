@@ -78,6 +78,10 @@
 		1DAFB873EE84B801793F7452 /* BatchPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D01A3F440212EB0DB7B50A /* BatchPlanner.swift */; };
 		2671226026739FB304CB22DE /* SoupBatchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F5EF3DCC99E8F48192FD6D /* SoupBatchSheet.swift */; };
 		9EC7C00ADB68893B759F413B /* PeriodStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 550BC23891CD1A15DCC3AEF4 /* PeriodStart.swift */; };
+		297081957F6C7056D514ECDA /* NutritionLabelParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EE3BFA2D1394734D0B1B397 /* NutritionLabelParser.swift */; };
+		158505AEAB86E5ABF917F839 /* LabelScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C3260376BAA68081E1963A /* LabelScanner.swift */; };
+		8E50FC2EEA3C1F3CE993C67F /* ServingCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7DB0C7E3BC436B44AB2EB9 /* ServingCalculator.swift */; };
+		44946F24F9A1EE815EB428BF /* ServingCalculatorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3FF54E9372A4326DFEE2D6 /* ServingCalculatorSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -177,6 +181,10 @@
 		16D01A3F440212EB0DB7B50A /* BatchPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchPlanner.swift; sourceTree = "<group>"; };
 		D9F5EF3DCC99E8F48192FD6D /* SoupBatchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoupBatchSheet.swift; sourceTree = "<group>"; };
 		550BC23891CD1A15DCC3AEF4 /* PeriodStart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodStart.swift; sourceTree = "<group>"; };
+		3EE3BFA2D1394734D0B1B397 /* NutritionLabelParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionLabelParser.swift; sourceTree = "<group>"; };
+		85C3260376BAA68081E1963A /* LabelScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelScanner.swift; sourceTree = "<group>"; };
+		CA7DB0C7E3BC436B44AB2EB9 /* ServingCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServingCalculator.swift; sourceTree = "<group>"; };
+		AB3FF54E9372A4326DFEE2D6 /* ServingCalculatorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServingCalculatorSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -332,6 +340,7 @@
 		AD3508F41705AB2EA836F4C8 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				AB3FF54E9372A4326DFEE2D6 /* ServingCalculatorSheet.swift */,
 				A631462E45A7C03F7320D43A /* CycleView.swift */,
 				B847FA72B2075CB43B005756 /* EnergySettingsView.swift */,
 				F032565E8B26877C42F97443 /* CaloriesView.swift */,
@@ -363,6 +372,7 @@
 		D2495DA22000C4BCF0C89C8C /* Nutrition */ = {
 			isa = PBXGroup;
 			children = (
+				CA7DB0C7E3BC436B44AB2EB9 /* ServingCalculator.swift */,
 				E850F640BF365385CD2FAD0D /* EnergyProfileStore.swift */,
 				6B752D3C453152E86B24341E /* EnergyEngine.swift */,
 			);
@@ -372,6 +382,8 @@
 		E75EFD359198E2CFBE6E1956 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				85C3260376BAA68081E1963A /* LabelScanner.swift */,
+				3EE3BFA2D1394734D0B1B397 /* NutritionLabelParser.swift */,
 				16D01A3F440212EB0DB7B50A /* BatchPlanner.swift */,
 				9A95EA5C29800C34B69BFFF6 /* BatchSafety.swift */,
 				5247989E0A30AB7CA1606B7D /* DinnerRule.swift */,
@@ -489,6 +501,10 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				44946F24F9A1EE815EB428BF /* ServingCalculatorSheet.swift in Sources */,
+				8E50FC2EEA3C1F3CE993C67F /* ServingCalculator.swift in Sources */,
+				158505AEAB86E5ABF917F839 /* LabelScanner.swift in Sources */,
+				297081957F6C7056D514ECDA /* NutritionLabelParser.swift in Sources */,
 				9EC7C00ADB68893B759F413B /* PeriodStart.swift in Sources */,
 				2671226026739FB304CB22DE /* SoupBatchSheet.swift in Sources */,
 				1DAFB873EE84B801793F7452 /* BatchPlanner.swift in Sources */,
@@ -651,6 +667,7 @@
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "Derived/InfoPlists/BabyTreat-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Baby Treat";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo of a nutrition label so the app can read the values for you.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -738,6 +755,7 @@
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "Derived/InfoPlists/BabyTreat-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Baby Treat";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo of a nutrition label so the app can read the values for you.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
