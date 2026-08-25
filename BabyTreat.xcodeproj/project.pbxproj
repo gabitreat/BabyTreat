@@ -77,6 +77,7 @@
 		65440CFF8C3B921CB119E21B /* BatchSafety.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A95EA5C29800C34B69BFFF6 /* BatchSafety.swift */; };
 		1DAFB873EE84B801793F7452 /* BatchPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D01A3F440212EB0DB7B50A /* BatchPlanner.swift */; };
 		2671226026739FB304CB22DE /* SoupBatchSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F5EF3DCC99E8F48192FD6D /* SoupBatchSheet.swift */; };
+		9EC7C00ADB68893B759F413B /* PeriodStart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 550BC23891CD1A15DCC3AEF4 /* PeriodStart.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -175,6 +176,7 @@
 		9A95EA5C29800C34B69BFFF6 /* BatchSafety.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchSafety.swift; sourceTree = "<group>"; };
 		16D01A3F440212EB0DB7B50A /* BatchPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatchPlanner.swift; sourceTree = "<group>"; };
 		D9F5EF3DCC99E8F48192FD6D /* SoupBatchSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoupBatchSheet.swift; sourceTree = "<group>"; };
+		550BC23891CD1A15DCC3AEF4 /* PeriodStart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeriodStart.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -196,6 +198,7 @@
 		06580E702F35321600FBC564 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				550BC23891CD1A15DCC3AEF4 /* PeriodStart.swift */,
 				001B3A299D11C7B6CAFE9B8F /* SoupBatch.swift */,
 				4CA23C158CF3E1D04B666485 /* MealForm.swift */,
 				1B9376997CEFBE2DD51E7E5C /* ReactionLog.swift */,
@@ -486,6 +489,7 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				9EC7C00ADB68893B759F413B /* PeriodStart.swift in Sources */,
 				2671226026739FB304CB22DE /* SoupBatchSheet.swift in Sources */,
 				1DAFB873EE84B801793F7452 /* BatchPlanner.swift in Sources */,
 				65440CFF8C3B921CB119E21B /* BatchSafety.swift in Sources */,

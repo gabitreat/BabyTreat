@@ -769,4 +769,66 @@ final class ReactionAttributionTests: XCTestCase {
             weekStart: weekStart, birthDate: birth, in: context), 0)
     }
 
+    // MARK: - Period starts (cycle spec, Part 1)
+
+    func testPeriodStartNormalisesToTheDay() {
+        let afternoon = day(0).addingTimeInterval(15 * 3600 + 42 * 60)
+        let entry = PeriodStart(startDate: afternoon)
+        XCTAssertEqual(entry.startDate, PeriodStart.calendar.startOfDay(for: afternoon))
+        XCTAssertEqual(entry.dayKey, PeriodStart.dayKey(afternoon))
+    }
+
+    /// Two taps on the same day land on different instants but the same key —
+    /// which is what the store's uniqueness rule hangs on.
+    func testSameDayAtDifferentTimesSharesOneKey() {
+        let morning = day(0).addingTimeInterval(7 * 3600)
+        let night = day(0).addingTimeInterval(23 * 3600)
+        XCTAssertNotEqual(morning, night)
+        XCTAssertEqual(PeriodStart(startDate: morning).dayKey,
+                       PeriodStart(startDate: night).dayKey)
+    }
+
+    func testMovingAnEntryKeepsTheKeyInStep() {
+        let entry = PeriodStart(startDate: day(0))
+        entry.move(to: day(3).addingTimeInterval(11 * 3600))
+        XCTAssertEqual(entry.startDate, PeriodStart.calendar.startOfDay(for: day(3)))
+        XCTAssertEqual(entry.dayKey, PeriodStart.dayKey(day(3)))
+    }
+
+    /// Spotting is logged, but never counted as the start of a cycle.
+    func testSpottingIsExcludedFromCycleMaths() {
+        XCTAssertTrue(PeriodStart(startDate: day(0)).countsForCycleLength)
+        XCTAssertFalse(PeriodStart(startDate: day(0), isSpotting: true).countsForCycleLength)
+    }
+
+    /// One row per calendar day, enforced by the store rather than by a screen.
+    @MainActor
+    func testTheStoreKeepsOnlyOneEntryPerDay() throws {
+        let container = try ModelContainer(
+            for: PeriodStart.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+
+        context.insert(PeriodStart(startDate: day(0).addingTimeInterval(8 * 3600)))
+        try context.save()
+        context.insert(PeriodStart(startDate: day(0).addingTimeInterval(20 * 3600)))
+        try context.save()
+
+        let rows = try context.fetch(FetchDescriptor<PeriodStart>())
+        XCTAssertEqual(rows.count, 1, "a second entry for the same day replaces the first")
+    }
+
+    @MainActor
+    func testDifferentDaysAreKeptSeparately() throws {
+        let container = try ModelContainer(
+            for: PeriodStart.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let context = container.mainContext
+
+        context.insert(PeriodStart(startDate: day(0)))
+        context.insert(PeriodStart(startDate: day(28)))
+        try context.save()
+
+        XCTAssertEqual(try context.fetch(FetchDescriptor<PeriodStart>()).count, 2)
+    }
 }
