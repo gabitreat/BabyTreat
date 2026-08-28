@@ -82,6 +82,12 @@
 		158505AEAB86E5ABF917F839 /* LabelScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85C3260376BAA68081E1963A /* LabelScanner.swift */; };
 		8E50FC2EEA3C1F3CE993C67F /* ServingCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7DB0C7E3BC436B44AB2EB9 /* ServingCalculator.swift */; };
 		44946F24F9A1EE815EB428BF /* ServingCalculatorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3FF54E9372A4326DFEE2D6 /* ServingCalculatorSheet.swift */; };
+		BA6E62F7A577F438667E0AEB /* CarbConvention.swift in Sources */ = {isa = PBXBuildFile; fileRef = E996DE81DCDF760D5ABF02F5 /* CarbConvention.swift */; };
+		DBE10A257A73C518E7613CD5 /* BeverageEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44BA86EA5F3A647C10C45ACA /* BeverageEntry.swift */; };
+		4BC21F35B69712748113CE05 /* BeverageLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACBE366A1D7D2BCDFCCA507 /* BeverageLibrary.swift */; };
+		030944AF765A2B86BA3CD91B /* BeverageCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED54A1882848370730330F30 /* BeverageCalculator.swift */; };
+		38416539359A04BD0CF120B7 /* BeverageTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916F75D54C262884100FD3FE /* BeverageTemplate.swift */; };
+		77C0137386921B381D73EE1C /* BeverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6520B2E1BD70B6E4A385385 /* BeverageTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -185,6 +191,12 @@
 		85C3260376BAA68081E1963A /* LabelScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelScanner.swift; sourceTree = "<group>"; };
 		CA7DB0C7E3BC436B44AB2EB9 /* ServingCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServingCalculator.swift; sourceTree = "<group>"; };
 		AB3FF54E9372A4326DFEE2D6 /* ServingCalculatorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServingCalculatorSheet.swift; sourceTree = "<group>"; };
+		E996DE81DCDF760D5ABF02F5 /* CarbConvention.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbConvention.swift; sourceTree = "<group>"; };
+		44BA86EA5F3A647C10C45ACA /* BeverageEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeverageEntry.swift; sourceTree = "<group>"; };
+		AACBE366A1D7D2BCDFCCA507 /* BeverageLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeverageLibrary.swift; sourceTree = "<group>"; };
+		ED54A1882848370730330F30 /* BeverageCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeverageCalculator.swift; sourceTree = "<group>"; };
+		916F75D54C262884100FD3FE /* BeverageTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeverageTemplate.swift; sourceTree = "<group>"; };
+		E6520B2E1BD70B6E4A385385 /* BeverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeverageTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -206,6 +218,8 @@
 		06580E702F35321600FBC564 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				44BA86EA5F3A647C10C45ACA /* BeverageEntry.swift */,
+				E996DE81DCDF760D5ABF02F5 /* CarbConvention.swift */,
 				550BC23891CD1A15DCC3AEF4 /* PeriodStart.swift */,
 				001B3A299D11C7B6CAFE9B8F /* SoupBatch.swift */,
 				4CA23C158CF3E1D04B666485 /* MealForm.swift */,
@@ -372,6 +386,9 @@
 		D2495DA22000C4BCF0C89C8C /* Nutrition */ = {
 			isa = PBXGroup;
 			children = (
+				916F75D54C262884100FD3FE /* BeverageTemplate.swift */,
+				ED54A1882848370730330F30 /* BeverageCalculator.swift */,
+				AACBE366A1D7D2BCDFCCA507 /* BeverageLibrary.swift */,
 				CA7DB0C7E3BC436B44AB2EB9 /* ServingCalculator.swift */,
 				E850F640BF365385CD2FAD0D /* EnergyProfileStore.swift */,
 				6B752D3C453152E86B24341E /* EnergyEngine.swift */,
@@ -410,6 +427,7 @@
 		843977F207ACAED8418A4719 /* BabyTreatTests */ = {
 			isa = PBXGroup;
 			children = (
+				E6520B2E1BD70B6E4A385385 /* BeverageTests.swift */,
 				91264CCC3A670FA31C3ACE7F /* ReactionAttributionTests.swift */,
 				56120A9869B5C4CF9E35923D /* OpenFoodFactsTests.swift */,
 			);
@@ -501,6 +519,11 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				38416539359A04BD0CF120B7 /* BeverageTemplate.swift in Sources */,
+				030944AF765A2B86BA3CD91B /* BeverageCalculator.swift in Sources */,
+				4BC21F35B69712748113CE05 /* BeverageLibrary.swift in Sources */,
+				DBE10A257A73C518E7613CD5 /* BeverageEntry.swift in Sources */,
+				BA6E62F7A577F438667E0AEB /* CarbConvention.swift in Sources */,
 				44946F24F9A1EE815EB428BF /* ServingCalculatorSheet.swift in Sources */,
 				8E50FC2EEA3C1F3CE993C67F /* ServingCalculator.swift in Sources */,
 				158505AEAB86E5ABF917F839 /* LabelScanner.swift in Sources */,
@@ -579,6 +602,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				77C0137386921B381D73EE1C /* BeverageTests.swift in Sources */,
 				1916180B50EAAE39126E520F /* ReactionAttributionTests.swift in Sources */,
 				24405CF8EB713A3C94BCD63D /* OpenFoodFactsTests.swift in Sources */,
 			);
