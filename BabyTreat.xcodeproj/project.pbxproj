@@ -88,6 +88,14 @@
 		030944AF765A2B86BA3CD91B /* BeverageCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED54A1882848370730330F30 /* BeverageCalculator.swift */; };
 		38416539359A04BD0CF120B7 /* BeverageTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916F75D54C262884100FD3FE /* BeverageTemplate.swift */; };
 		77C0137386921B381D73EE1C /* BeverageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6520B2E1BD70B6E4A385385 /* BeverageTests.swift */; };
+		C4E5EFBB3961CC37CB114047 /* ActiveEnergyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83735354C0D6E89AD70A6865 /* ActiveEnergyTests.swift */; };
+		3734B5E3F8EB79262C3F4EA9 /* ActiveEnergy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 320A23DA29329D8C35549596 /* ActiveEnergy.swift */; };
+		8B18232545DE082CBA6D5775 /* ActiveEnergyProviding.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0D241E4A8B754B505E46841 /* ActiveEnergyProviding.swift */; };
+		93D71B8AFE3B53D608D70A31 /* ActiveEnergySourceSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728DE9D00EC2B4433936D0B4 /* ActiveEnergySourceSelector.swift */; };
+		5835EDFFFE796C16B0F12F50 /* MockActiveEnergyProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9819711BD67F90C54254B83 /* MockActiveEnergyProvider.swift */; };
+		70A306198E30FB8D362E432C /* ActiveEnergyWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21031F4007E7B4C9610EA81B /* ActiveEnergyWindow.swift */; };
+		911EE16BB0A5576BDF10470F /* HealthKitActiveEnergyProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9970BA79C10EE76CBFC1B2F2 /* HealthKitActiveEnergyProvider.swift */; };
+		C154A8C55550E5F868F18697 /* ActiveEnergyObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6668D3EDFE5A0E60B9A4AE50 /* ActiveEnergyObserver.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -197,6 +205,14 @@
 		ED54A1882848370730330F30 /* BeverageCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeverageCalculator.swift; sourceTree = "<group>"; };
 		916F75D54C262884100FD3FE /* BeverageTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeverageTemplate.swift; sourceTree = "<group>"; };
 		E6520B2E1BD70B6E4A385385 /* BeverageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeverageTests.swift; sourceTree = "<group>"; };
+		83735354C0D6E89AD70A6865 /* ActiveEnergyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveEnergyTests.swift; sourceTree = "<group>"; };
+		320A23DA29329D8C35549596 /* ActiveEnergy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveEnergy.swift; sourceTree = "<group>"; };
+		D0D241E4A8B754B505E46841 /* ActiveEnergyProviding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveEnergyProviding.swift; sourceTree = "<group>"; };
+		728DE9D00EC2B4433936D0B4 /* ActiveEnergySourceSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveEnergySourceSelector.swift; sourceTree = "<group>"; };
+		B9819711BD67F90C54254B83 /* MockActiveEnergyProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockActiveEnergyProvider.swift; sourceTree = "<group>"; };
+		21031F4007E7B4C9610EA81B /* ActiveEnergyWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveEnergyWindow.swift; sourceTree = "<group>"; };
+		9970BA79C10EE76CBFC1B2F2 /* HealthKitActiveEnergyProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitActiveEnergyProvider.swift; sourceTree = "<group>"; };
+		6668D3EDFE5A0E60B9A4AE50 /* ActiveEnergyObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveEnergyObserver.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -399,6 +415,7 @@
 		E75EFD359198E2CFBE6E1956 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				CFC4203F4775F25405EF6D7E /* HealthKit */,
 				85C3260376BAA68081E1963A /* LabelScanner.swift */,
 				3EE3BFA2D1394734D0B1B397 /* NutritionLabelParser.swift */,
 				16D01A3F440212EB0DB7B50A /* BatchPlanner.swift */,
@@ -427,11 +444,26 @@
 		843977F207ACAED8418A4719 /* BabyTreatTests */ = {
 			isa = PBXGroup;
 			children = (
+				83735354C0D6E89AD70A6865 /* ActiveEnergyTests.swift */,
 				E6520B2E1BD70B6E4A385385 /* BeverageTests.swift */,
 				91264CCC3A670FA31C3ACE7F /* ReactionAttributionTests.swift */,
 				56120A9869B5C4CF9E35923D /* OpenFoodFactsTests.swift */,
 			);
 			path = BabyTreatTests;
+			sourceTree = "<group>";
+		};
+		CFC4203F4775F25405EF6D7E /* HealthKit */ = {
+			isa = PBXGroup;
+			children = (
+				6668D3EDFE5A0E60B9A4AE50 /* ActiveEnergyObserver.swift */,
+				9970BA79C10EE76CBFC1B2F2 /* HealthKitActiveEnergyProvider.swift */,
+				21031F4007E7B4C9610EA81B /* ActiveEnergyWindow.swift */,
+				B9819711BD67F90C54254B83 /* MockActiveEnergyProvider.swift */,
+				728DE9D00EC2B4433936D0B4 /* ActiveEnergySourceSelector.swift */,
+				D0D241E4A8B754B505E46841 /* ActiveEnergyProviding.swift */,
+				320A23DA29329D8C35549596 /* ActiveEnergy.swift */,
+			);
+			path = HealthKit;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -519,6 +551,13 @@
 		5439C9C5F954022E8A1D0850 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			files = (
+				C154A8C55550E5F868F18697 /* ActiveEnergyObserver.swift in Sources */,
+				911EE16BB0A5576BDF10470F /* HealthKitActiveEnergyProvider.swift in Sources */,
+				70A306198E30FB8D362E432C /* ActiveEnergyWindow.swift in Sources */,
+				5835EDFFFE796C16B0F12F50 /* MockActiveEnergyProvider.swift in Sources */,
+				93D71B8AFE3B53D608D70A31 /* ActiveEnergySourceSelector.swift in Sources */,
+				8B18232545DE082CBA6D5775 /* ActiveEnergyProviding.swift in Sources */,
+				3734B5E3F8EB79262C3F4EA9 /* ActiveEnergy.swift in Sources */,
 				38416539359A04BD0CF120B7 /* BeverageTemplate.swift in Sources */,
 				030944AF765A2B86BA3CD91B /* BeverageCalculator.swift in Sources */,
 				4BC21F35B69712748113CE05 /* BeverageLibrary.swift in Sources */,
@@ -602,6 +641,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C4E5EFBB3961CC37CB114047 /* ActiveEnergyTests.swift in Sources */,
 				77C0137386921B381D73EE1C /* BeverageTests.swift in Sources */,
 				1916180B50EAAE39126E520F /* ReactionAttributionTests.swift in Sources */,
 				24405CF8EB713A3C94BCD63D /* OpenFoodFactsTests.swift in Sources */,
@@ -692,6 +732,7 @@
 				INFOPLIST_FILE = "Derived/InfoPlists/BabyTreat-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Baby Treat";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo of a nutrition label so the app can read the values for you.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Citim caloriile arse din Sănătate, ca bugetul zilnic să urmeze cât te-ai mișcat cu adevărat, nu o estimare. Nu scriem nimic în Sănătate.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -780,6 +821,7 @@
 				INFOPLIST_FILE = "Derived/InfoPlists/BabyTreat-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Baby Treat";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Choose a photo of a nutrition label so the app can read the values for you.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Citim caloriile arse din Sănătate, ca bugetul zilnic să urmeze cât te-ai mișcat cu adevărat, nu o estimare. Nu scriem nimic în Sănătate.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (

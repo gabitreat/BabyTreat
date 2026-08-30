@@ -12,6 +12,36 @@ baby's side of the app. This one covers the parent's energy budget only.
 
 ---
 
+## P-2 · 2026-08-30 · The spec's worked example is 8 kcal out; the code follows the equation
+
+`babytreat-beverages-and-active-energy-spec.md` 4.1 gives BMR ≈ **1417** for a
+32-year-old woman of 68 kg and 168 cm. Mifflin-St Jeor for those inputs is
+**1409**:
+
+    10 × 68 + 6.25 × 168 − 5 × 32 − 161
+    = 680 + 1050 − 160 − 161
+    = 1409
+
+`EnergyEngine.bmr(weightKg:heightCm:age:)` — `BabyTreat/Nutrition/EnergyEngine.swift:140`
+— implements the equation, so it returns 1409 and the spec's three downstream
+figures are all slightly wrong:
+
+| | Spec 4.1 | Actual |
+|---|---|---|
+| Old, double-counted | 3196 | **3184** |
+| New, dynamic TDEE | 2575 | **2566** |
+| Daily gap | 621 | **618** |
+
+The equation wins; the arithmetic in the prose does not. `testHealthKitPinsTheMultiplierToSedentary`
+asserts the actual figures, so the regression this example exists to catch is
+still locked down. Nothing about the conclusion changes — the double-count is
+still worth over 600 kcal a day.
+
+Spec 4.2's floor example inherits the same 8 kcal, on top of the separate
+floor-formula correction in [P-1].
+
+---
+
 ## P-1 · 2026-08-28 · The lactating floor keeps the lactation add-on inside it
 
 `babytreat-beverages-and-active-energy-spec.md` Part 4.2 and its test 5 both

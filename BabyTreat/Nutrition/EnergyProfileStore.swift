@@ -17,13 +17,67 @@ struct EnergyProfileStore: DynamicProperty {
     @AppStorage("nutritionMilkShare")     var breastmilkShare: Double = 1.0
     @AppStorage("nutritionPostpartum")    var monthsPostpartum: Int = 0
 
+    /// When on, movement comes from Health and the activity picker stops
+    /// applying. See `activity` below — this is C1, and it is worth 600 kcal a
+    /// day if it ever stops holding.
+    @AppStorage("nutritionUseHealthEnergy")    var useHealthKitActiveEnergy: Bool = false
+    /// The fraction of the wearable's figure that reaches the budget.
+    @AppStorage("nutritionActiveEnergyCredit") var activeEnergyCreditFactor: Double = ActiveEnergyWindow.defaultCreditFactor
+    /// Comma-joined bundle identifiers of the sources the user trusts.
+    @AppStorage("nutritionActiveEnergySources") var enabledSourceIDsRaw: String = ""
+    /// When a previously trusted source first went missing from Health, so a
+    /// week of silence can raise a notice instead of quietly crediting zero.
+    /// Zero means "not missing".
+    @AppStorage("nutritionActiveEnergyMissingSince") var missingSourceSinceStamp: Double = 0
+
     @AppStorage("nutritionTracksCycle")   var tracksCycle: Bool = false
     @AppStorage("nutritionCycleLength")   var cycleLength: Int = 28
     @AppStorage("nutritionPeriodLength")  var periodLength: Int = 5
 
-    var activity: EnergyEngine.ActivityLevel {
+    /// What the picker shows, and what comes back if Health is switched off.
+    /// Stored even while Health is on, so turning the toggle off restores the
+    /// choice rather than resetting it.
+    var selectedActivity: EnergyEngine.ActivityLevel {
         get { EnergyEngine.ActivityLevel(rawValue: activityRaw) ?? .light }
-        nonmutating set { activityRaw = newValue.rawValue }
+        nonmutating set {
+            // Ignored while Health is supplying the movement. The picker is
+            // disabled in that state, so this is the belt to the UI's braces.
+            guard !useHealthKitActiveEnergy else { return }
+            activityRaw = newValue.rawValue
+        }
+    }
+
+    /// The multiplier the budget actually uses.
+    ///
+    /// Mifflin-St Jeor times 1.375 or 1.55 **already contains** a day's walking
+    /// and exercise. Adding a watch's active energy on top counts the same
+    /// movement twice — 300 to 700 kcal a day for someone who moves. So when
+    /// Health is on, the multiplier is pinned to sedentary and every calorie of
+    /// movement arrives as a measurement instead (C1).
+    var activity: EnergyEngine.ActivityLevel {
+        get { useHealthKitActiveEnergy ? .sedentary : selectedActivity }
+        nonmutating set { selectedActivity = newValue }
+    }
+
+    /// The sources the user ticked. Empty means nothing is credited.
+    var enabledSourceIDs: Set<String> {
+        get {
+            Set(enabledSourceIDsRaw
+                .split(separator: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty })
+        }
+        nonmutating set { enabledSourceIDsRaw = newValue.sorted().joined(separator: ",") }
+    }
+
+    var creditFactor: Double {
+        get { ActiveEnergyWindow.clampFactor(activeEnergyCreditFactor) }
+        nonmutating set { activeEnergyCreditFactor = ActiveEnergyWindow.clampFactor(newValue) }
+    }
+
+    var missingSourceSince: Date? {
+        get { missingSourceSinceStamp > 0 ? Date(timeIntervalSince1970: missingSourceSinceStamp) : nil }
+        nonmutating set { missingSourceSinceStamp = newValue?.timeIntervalSince1970 ?? 0 }
     }
 
     var goal: EnergyEngine.WeightGoal {
